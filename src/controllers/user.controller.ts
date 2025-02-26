@@ -10,7 +10,9 @@ export class UserController extends CrudController<typeof User, UserService> {
   }
   @PUT()
   async addContact(req: Request) {
-    return await this.service.addContact(req.user!.id, req.body.contact);
+    const result = await this.service.addContact(req.user!.id, req.body.contact);
+    this.service.addContact(req.body.contact, req.user!.id);
+    return result;
   }
 };
 export default new UserController();

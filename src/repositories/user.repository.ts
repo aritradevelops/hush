@@ -7,6 +7,7 @@ export class UserRepository extends Repository<typeof User> {
   constructor() {
     super(User);
   }
+
   getContacts(contacts: string[]) {
     const qb = this.entity.createQueryBuilder(this.entity.name)
     qb.select(['first_name', 'last_name', 'email', 'id'].map(e => (this.entity.name + '.' + e)))

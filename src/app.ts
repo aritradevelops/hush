@@ -10,6 +10,7 @@ import { isAuth } from "./middlewares/is-auth";
 import { Router } from "./utils/router";
 import translator from "./utils/translator";
 import userRepository from "./repositories/user.repository";
+import chatRepository from "./repositories/chat.repository";
 const app = express();
 const router = new Router();
 app.set('trust proxy', true)
@@ -32,6 +33,9 @@ app.get('/chats', isAuth(), async (req, res, next) => {
   const user = await userRepository.view({ id: req.user?.id })
   if (!user) throw new NotFoundError()
   const contacts = await userRepository.getContacts(user!.contacts)
+  const unreadCounts = await chatRepository.getUnreadCounts(contacts.map(contact => [user.id, contact.id].sort().join('_')), user.id)
+  // @ts-ignore
+  contacts.forEach(contact => { contact.unread_count = unreadCounts.find(e => e.created_by == contact.id)?.unread_count || '0' })
   res.render('chats', {
     me: {
       id: req.user?.id,
@@ -51,6 +55,7 @@ app.get('/chats', isAuth(), async (req, res, next) => {
       dp: user?.dp,
       contacts
     })}
+    var current_chat = null;
     </script>
     `
   })

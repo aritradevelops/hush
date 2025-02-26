@@ -33,6 +33,15 @@
     <div class="col-md-4">
       <div class="card h-100 position-relative text-bg-primary">
         <div class="card-body d-flex flex-column">
+          <div class="position-relative rounded mb-3" style="background-color: white;color: black;padding: 1rem;">
+            <strong>
+              <%= me.first_name %>
+                <%= me.last_name %>
+            </strong>
+            <span class=" badge bg-primary badge-pill ml-auto">
+              <%= me.email %>
+            </span>
+          </div>
           <div class="position-relative">
             <input type="text" class="form-control mb-3" id="search" placeholder="Search new contacts...">
             <div id="search-results" class="list-group shadow"></div>
@@ -40,14 +49,24 @@
           <% if(me.contacts.length) {%>
             <ul class="list-group overflow-auto flex-grow-1" style="max-height: 70vh;">
               <% me.contacts.forEach(contact=> { %>
-                <a href="#" class="list-group-item list-group-item-action" data-id="<%= contact._id %>">
-                  <strong>
+                <a href="#<%= contact.id  %>" class="list-group-item list-group-item-action">
+                  <strong data-id="<%= contact.id  %>">
                     <%= contact.first_name %>
                       <%= contact.last_name %>
                   </strong>
                   <span class="badge bg-primary badge-pill ml-auto">
                     <%= contact.email %>
                   </span>
+                  <% if(contact.unread_count !=='0' ){ %>
+                    <span class="badge bg-secondary" id="unread-count">
+                      <%= contact.unread_count %>
+                    </span>
+                    </span>
+                    <% }else { %>
+                      <span class="badge bg-secondary d-none" id="unread-count">
+                        0
+                      </span>
+                      <% } %>
                 </a>
                 <% }); %>
             </ul>
@@ -62,14 +81,21 @@
     <!-- Chat Section -->
     <div class="col-md-8">
       <div class="card h-100">
-        <div class="card-body d-flex flex-column">
-          <div class="border rounded p-3 flex-grow-1 overflow-auto" style="max-height: 70vh;">
-            <p><strong>Alice:</strong> Hello!</p>
-            <p><strong>You:</strong> Hi, how are you?</p>
+        <div id="no-chat"
+          style="width: 100%; height: 100%;display: flex; justify-content: center; align-items: center;">
+          <h1>Please select a chat to continue...</h1>
+        </div>
+        <div id="chat-section" class="card-body flex-column" style="display: none;">
+          <div style="padding: 5px;" id="chat-person">Loading...</div>
+          <div id="chats-container" class="border rounded p-3 flex-grow-1 overflow-auto" style="max-height: 70vh;">
+            <!-- Messages will be rendered here -->
+            <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+              <h3 id="chat-info">Loading your chats...</h3>
+            </div>
           </div>
           <div class="mt-3 d-flex">
-            <input type="text" class="form-control me-2" placeholder="Type a message...">
-            <button class="btn btn-primary">Send</button>
+            <input type="text" id="chat-msg" class="form-control me-2" placeholder="Type a message...">
+            <button class="btn btn-primary" id="chat-btn">Send</button>
           </div>
         </div>
       </div>
@@ -106,8 +132,7 @@
           if (!res.errors && res.info.total) {
             res.data.forEach(user => {
               if (user.id !== me.id && !me.contacts.filter(({ id }) => id == user.id).length) {
-                let item = document.createElement('a');
-                item.href = '#';
+                let item = document.createElement('li');
                 // show a add button here
                 item.className = 'list-group-item list-group-item-action';
                 item.innerHTML = `
@@ -140,7 +165,9 @@
       }
     });
   </script>
-
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/chat.js"></script>
+  <script src="/main.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

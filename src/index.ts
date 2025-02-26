@@ -7,8 +7,14 @@ import env from "./lib/env";
 import hookManager from "./lib/hook-manager";
 import logger from "./utils/logger";
 import { Swagger } from './utils/swagger';
+import { createServer } from "http";
+import { Server } from 'socket.io';
+import { registerSocketHandler } from './socket';
+const httpServer = createServer(app);
 
-const server = app.listen(env.get('PORT'), async () => {
+const io = new Server(httpServer, {});
+registerSocketHandler(io);
+const server = httpServer.listen(env.get('PORT'), async () => {
   await db.init();
   await hookManager.init();
   if (env.get('NODE_ENV') === 'development')
