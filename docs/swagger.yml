@@ -1,0 +1,3207 @@
+openapi: 3.0.3
+info:
+  title: Barebone
+  description: |-
+    This is a sample Pet Store Server based on the OpenAPI 3.0 specification.  You can find out more about
+    Swagger at [https://swagger.io](https://swagger.io). In the third iteration of the pet store, we've switched to the design first approach!
+    You can now help us improve the API whether it's by making changes to the definition itself or to the code.
+    That way, with time, we can improve the API in general, and expose some of the new features in OAS3.
+
+    _If you're looking for the Swagger 2.0/OAS 2.0 version of Petstore, then click [here](https://editor.swagger.io/?url=https://petstore.swagger.io/v2/swagger.yaml). Alternatively, you can load via the `Edit > Load Petstore OAS 2.0` menu option!_
+
+    Some useful links:
+    - [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)
+    - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://petstore3.swagger.io/api/v3
+tags:
+  - name: pet
+    description: Everything about your Pets
+paths:
+  /ready:
+    get:
+      summary: Readiness check
+      description: Verify if the application is ready to handle requests.
+      operationId: get-readiness
+      responses:
+        "200":
+          description: Application is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OK
+        "500":
+          description: Application is not ready
+  /health-check:
+    get:
+      summary: Health check
+      description: Check the application's health, including database status.
+      operationId: get-health-check
+      responses:
+        "200":
+          description: Application health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  db:
+                    type: boolean
+                    example: true
+        "500":
+          description: Application is unhealthy
+  /books:
+    get:
+      tags:
+        - Book
+      summary: list Books
+      description: Retrieve a list of Books
+      operationId: list-books-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Book"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.books
+  /books/create:
+    post:
+      tags:
+        - Book
+      summary: create a new Book
+      description: create a new Book
+      operationId: create-books-post
+      requestBody:
+        description: create a new Book
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Book"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Book"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.books
+  /books/view/{id}:
+    get:
+      tags:
+        - Book
+      summary: view details of an existing Book
+      description: Retrieve details of an existing Book by ID
+      operationId: view-books-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Book
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Book"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.books
+  /books/update/{id}:
+    put:
+      tags:
+        - Book
+      summary: update an existing Book
+      description: update an existing Book
+      operationId: update-books-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Book
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Book. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Book"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Book"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.books
+  /books/delete/{id}:
+    delete:
+      tags:
+        - Book
+      summary: delete an existing Book
+      description: delete an existing Book
+      operationId: delete-books-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Book
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Book"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.books
+  /accounts:
+    get:
+      tags:
+        - Account
+      summary: list Accounts
+      description: Retrieve a list of Accounts
+      operationId: list-accounts-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Account"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.accounts
+  /accounts/create:
+    post:
+      tags:
+        - Account
+      summary: create a new Account
+      description: create a new Account
+      operationId: create-accounts-post
+      requestBody:
+        description: create a new Account
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Account"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Account"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.accounts
+  /accounts/view/{id}:
+    get:
+      tags:
+        - Account
+      summary: view details of an existing Account
+      description: Retrieve details of an existing Account by ID
+      operationId: view-accounts-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Account
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Account"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.accounts
+  /accounts/update/{id}:
+    put:
+      tags:
+        - Account
+      summary: update an existing Account
+      description: update an existing Account
+      operationId: update-accounts-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Account
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Account. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Account"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Account"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.accounts
+  /accounts/delete/{id}:
+    delete:
+      tags:
+        - Account
+      summary: delete an existing Account
+      description: delete an existing Account
+      operationId: delete-accounts-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Account
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Account"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.accounts
+  /apps:
+    get:
+      tags:
+        - App
+      summary: list Apps
+      description: Retrieve a list of Apps
+      operationId: list-apps-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/App"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.apps
+  /apps/create:
+    post:
+      tags:
+        - App
+      summary: create a new App
+      description: create a new App
+      operationId: create-apps-post
+      requestBody:
+        description: create a new App
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/App"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/App"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.apps
+  /apps/view/{id}:
+    get:
+      tags:
+        - App
+      summary: view details of an existing App
+      description: Retrieve details of an existing App by ID
+      operationId: view-apps-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the App
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/App"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.apps
+  /apps/update/{id}:
+    put:
+      tags:
+        - App
+      summary: update an existing App
+      description: update an existing App
+      operationId: update-apps-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the App
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing App. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/App"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/App"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.apps
+  /apps/delete/{id}:
+    delete:
+      tags:
+        - App
+      summary: delete an existing App
+      description: delete an existing App
+      operationId: delete-apps-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the App
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/App"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.apps
+  /roles:
+    get:
+      tags:
+        - Role
+      summary: list Roles
+      description: Retrieve a list of Roles
+      operationId: list-roles-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Role"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.roles
+  /roles/create:
+    post:
+      tags:
+        - Role
+      summary: create a new Role
+      description: create a new Role
+      operationId: create-roles-post
+      requestBody:
+        description: create a new Role
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Role"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Role"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.roles
+  /roles/view/{id}:
+    get:
+      tags:
+        - Role
+      summary: view details of an existing Role
+      description: Retrieve details of an existing Role by ID
+      operationId: view-roles-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Role
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Role"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.roles
+  /roles/update/{id}:
+    put:
+      tags:
+        - Role
+      summary: update an existing Role
+      description: update an existing Role
+      operationId: update-roles-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Role
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Role. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Role"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Role"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.roles
+  /roles/delete/{id}:
+    delete:
+      tags:
+        - Role
+      summary: delete an existing Role
+      description: delete an existing Role
+      operationId: delete-roles-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Role
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Role"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.roles
+  /organizations:
+    get:
+      tags:
+        - Organization
+      summary: list Organizations
+      description: Retrieve a list of Organizations
+      operationId: list-organizations-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Organization"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.organizations
+  /organizations/create:
+    post:
+      tags:
+        - Organization
+      summary: create a new Organization
+      description: create a new Organization
+      operationId: create-organizations-post
+      requestBody:
+        description: create a new Organization
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Organization"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Organization"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.organizations
+  /organizations/view/{id}:
+    get:
+      tags:
+        - Organization
+      summary: view details of an existing Organization
+      description: Retrieve details of an existing Organization by ID
+      operationId: view-organizations-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Organization
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Organization"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.organizations
+  /organizations/update/{id}:
+    put:
+      tags:
+        - Organization
+      summary: update an existing Organization
+      description: update an existing Organization
+      operationId: update-organizations-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Organization
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Organization. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Organization"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Organization"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.organizations
+  /organizations/delete/{id}:
+    delete:
+      tags:
+        - Organization
+      summary: delete an existing Organization
+      description: delete an existing Organization
+      operationId: delete-organizations-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Organization
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Organization"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.organizations
+  /plans:
+    get:
+      tags:
+        - Plan
+      summary: list Plans
+      description: Retrieve a list of Plans
+      operationId: list-plans-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Plan"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.plans
+  /plans/create:
+    post:
+      tags:
+        - Plan
+      summary: create a new Plan
+      description: create a new Plan
+      operationId: create-plans-post
+      requestBody:
+        description: create a new Plan
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Plan"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Plan"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.plans
+  /plans/view/{id}:
+    get:
+      tags:
+        - Plan
+      summary: view details of an existing Plan
+      description: Retrieve details of an existing Plan by ID
+      operationId: view-plans-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Plan
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Plan"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.plans
+  /plans/update/{id}:
+    put:
+      tags:
+        - Plan
+      summary: update an existing Plan
+      description: update an existing Plan
+      operationId: update-plans-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Plan
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Plan. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Plan"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Plan"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.plans
+  /plans/delete/{id}:
+    delete:
+      tags:
+        - Plan
+      summary: delete an existing Plan
+      description: delete an existing Plan
+      operationId: delete-plans-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Plan
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Plan"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.plans
+  /users:
+    get:
+      tags:
+        - User
+      summary: list Users
+      description: Retrieve a list of Users
+      operationId: list-users-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.users
+  /users/create:
+    post:
+      tags:
+        - User
+      summary: create a new User
+      description: create a new User
+      operationId: create-users-post
+      requestBody:
+        description: create a new User
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.users
+  /users/view/{id}:
+    get:
+      tags:
+        - User
+      summary: view details of an existing User
+      description: Retrieve details of an existing User by ID
+      operationId: view-users-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the User
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.users
+  /users/update/{id}:
+    put:
+      tags:
+        - User
+      summary: update an existing User
+      description: update an existing User
+      operationId: update-users-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the User
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing User. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.users
+  /users/delete/{id}:
+    delete:
+      tags:
+        - User
+      summary: delete an existing User
+      description: delete an existing User
+      operationId: delete-users-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the User
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.users
+  /sessions:
+    get:
+      tags:
+        - Session
+      summary: list Sessions
+      description: Retrieve a list of Sessions
+      operationId: list-sessions-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Session"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.sessions
+  /sessions/create:
+    post:
+      tags:
+        - Session
+      summary: create a new Session
+      description: create a new Session
+      operationId: create-sessions-post
+      requestBody:
+        description: create a new Session
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Session"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.sessions
+  /sessions/view/{id}:
+    get:
+      tags:
+        - Session
+      summary: view details of an existing Session
+      description: Retrieve details of an existing Session by ID
+      operationId: view-sessions-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Session
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.sessions
+  /sessions/update/{id}:
+    put:
+      tags:
+        - Session
+      summary: update an existing Session
+      description: update an existing Session
+      operationId: update-sessions-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Session
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Session. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Session"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.sessions
+  /sessions/delete/{id}:
+    delete:
+      tags:
+        - Session
+      summary: delete an existing Session
+      description: delete an existing Session
+      operationId: delete-sessions-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Session
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Session"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.sessions
+  /auths:
+    get:
+      tags:
+        - Auth
+      summary: list Auths
+      description: Retrieve a list of Auths
+      operationId: list-auths-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Auth"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.auths
+  /auths/create:
+    post:
+      tags:
+        - Auth
+      summary: create a new Auth
+      description: create a new Auth
+      operationId: create-auths-post
+      requestBody:
+        description: create a new Auth
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Auth"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Auth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.auths
+  /auths/view/{id}:
+    get:
+      tags:
+        - Auth
+      summary: view details of an existing Auth
+      description: Retrieve details of an existing Auth by ID
+      operationId: view-auths-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Auth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Auth"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.auths
+  /auths/update/{id}:
+    put:
+      tags:
+        - Auth
+      summary: update an existing Auth
+      description: update an existing Auth
+      operationId: update-auths-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Auth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Auth. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Auth"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Auth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.auths
+  /auths/delete/{id}:
+    delete:
+      tags:
+        - Auth
+      summary: delete an existing Auth
+      description: delete an existing Auth
+      operationId: delete-auths-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Auth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Auth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.auths
+  /auth:
+    get:
+      tags:
+        - Auth
+      summary: list Auths
+      description: Retrieve a list of Auths
+      operationId: list-auth-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Auth"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.auth
+  /auth/create:
+    post:
+      tags:
+        - Auth
+      summary: create a new Auth
+      description: create a new Auth
+      operationId: create-auth-post
+      requestBody:
+        description: create a new Auth
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Auth"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Auth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.auth
+  /auth/view/{id}:
+    get:
+      tags:
+        - Auth
+      summary: view details of an existing Auth
+      description: Retrieve details of an existing Auth by ID
+      operationId: view-auth-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Auth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Auth"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.auth
+  /auth/update/{id}:
+    put:
+      tags:
+        - Auth
+      summary: update an existing Auth
+      description: update an existing Auth
+      operationId: update-auth-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Auth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Auth. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Auth"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Auth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.auth
+  /auth/delete/{id}:
+    delete:
+      tags:
+        - Auth
+      summary: delete an existing Auth
+      description: delete an existing Auth
+      operationId: delete-auth-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Auth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Auth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.auth
+  /oauths:
+    get:
+      tags:
+        - Oauth
+      summary: list Oauths
+      description: Retrieve a list of Oauths
+      operationId: list-oauths-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Oauth"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.oauths
+  /oauths/create:
+    post:
+      tags:
+        - Oauth
+      summary: create a new Oauth
+      description: create a new Oauth
+      operationId: create-oauths-post
+      requestBody:
+        description: create a new Oauth
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Oauth"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Oauth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.oauths
+  /oauths/view/{id}:
+    get:
+      tags:
+        - Oauth
+      summary: view details of an existing Oauth
+      description: Retrieve details of an existing Oauth by ID
+      operationId: view-oauths-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Oauth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Oauth"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.oauths
+  /oauths/update/{id}:
+    put:
+      tags:
+        - Oauth
+      summary: update an existing Oauth
+      description: update an existing Oauth
+      operationId: update-oauths-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Oauth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Oauth. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Oauth"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Oauth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.oauths
+  /oauths/delete/{id}:
+    delete:
+      tags:
+        - Oauth
+      summary: delete an existing Oauth
+      description: delete an existing Oauth
+      operationId: delete-oauths-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Oauth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Oauth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.oauths
+components:
+  schemas:
+    Book:
+      properties:
+        title:
+          minLength: 3
+          type: string
+      type: object
+      required:
+        - title
+    Account:
+      properties:
+        name:
+          type: string
+          minLength: 3
+        logo:
+          format: url
+          type: string
+        domain:
+          minLength: 3
+          type: string
+          pattern: ^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}$
+          format: url
+      type: object
+      required:
+        - name
+    App:
+      properties:
+        name:
+          minLength: 3
+          type: string
+        description:
+          minLength: 3
+          type: string
+        landing_url:
+          format: url
+          type: string
+          minLength: 3
+        logo:
+          format: url
+          type: string
+        branding:
+          format: url
+          type: string
+        signup_type:
+          enum:
+            - individual
+            - organization
+          type: string
+        auth_methods:
+          items:
+            type: string
+            enum:
+              - google
+              - password
+              - passkeys
+          minItems: 1
+          type: array
+        allow_mfa:
+          type: boolean
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        redirect_uris:
+          items:
+            format: url
+            type: string
+          minItems: 1
+          type: array
+        jwt_algo:
+          enum:
+            - HS256
+            - RS256
+            - JWKS
+          type: string
+        jwt_secret:
+          type: string
+        jwt_lifetime:
+          type: string
+        refresh_token_lifetime:
+          type: string
+        permanent_callback:
+          format: url
+          type: string
+        permanent_error_callback:
+          format: url
+          type: string
+      type: object
+      required:
+        - name
+        - description
+        - landing_url
+        - auth_methods
+        - client_id
+        - client_secret
+        - redirect_uris
+        - jwt_secret
+        - permanent_callback
+        - permanent_error_callback
+    Role:
+      properties:
+        name:
+          minLength: 3
+          type: string
+        description:
+          minLength: 3
+          type: string
+        org_id:
+          format: uuid
+          type: string
+        acc_id:
+          format: uuid
+          type: string
+        permissions:
+          items:
+            type: string
+          type: array
+          minItems: 1
+      type: object
+      required:
+        - name
+        - acc_id
+        - permissions
+    Organization:
+      properties:
+        name:
+          minLength: 3
+          type: string
+        logo:
+          format: url
+          type: string
+      type: object
+      required:
+        - name
+    Plan:
+      properties:
+        name:
+          minLength: 3
+          type: string
+        description:
+          minLength: 3
+          type: string
+        features:
+          items: {}
+          minItems: 1
+          type: array
+        slogan:
+          minLength: 3
+          type: string
+        price:
+          type: number
+        billing_period:
+          enum:
+            - weekly
+            - monthly
+            - quarterly
+            - half-yearly
+            - YEARLY
+          type: string
+      type: object
+      required:
+        - name
+        - description
+        - features
+        - slogan
+        - price
+        - billing_period
+    User:
+      properties:
+        first_name:
+          minLength: 3
+          type: string
+        last_name:
+          minLength: 3
+          type: string
+        email:
+          minLength: 3
+          type: string
+          format: email
+        dp:
+          format: url
+          type: string
+        password:
+          type: string
+        reset_password_hash:
+          type: string
+        contacts:
+          items:
+            type: string
+          type: array
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email
+        - password
+    Session:
+      properties:
+        user_ip:
+          format: ipv4
+          type: string
+      type: object
+      required:
+        - user_ip
+    Auth:
+      properties:
+        title:
+          minLength: 3
+          type: string
+      type: object
+      required:
+        - title
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://petstore3.swagger.io/oauth/authorize
+          scopes:
+            write:pets: modify pets in your account
+            read:pets: read your pets
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

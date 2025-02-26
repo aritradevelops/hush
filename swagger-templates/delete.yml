@@ -1,0 +1,35 @@
+/{route}/delete/{{id}}:  
+  {method}:
+    tags:
+      - {entity}
+    summary: delete an existing {entity}
+    description: delete an existing {entity}
+    operationId: delete-{route}-{method}
+    parameters:
+      - name: id
+        in: path
+        description: id of the {entity}
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: Successful operation
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Entity deleted successfully"
+                data:
+                  $ref: "#/components/schemas/{entity}"
+      "400":
+        description: Invalid input
+      "422":
+        description: Validation exception
+    security:
+      - auth:
+          - delete.{route}

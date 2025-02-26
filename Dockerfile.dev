@@ -1,0 +1,11 @@
+FROM node:23-alpine
+
+WORKDIR /usr/lib/app
+
+COPY package*.json tsconfig.json ./
+
+RUN npm ci
+
+COPY . .
+
+CMD ["npm" , "run", "dev"]

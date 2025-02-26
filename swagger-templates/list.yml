@@ -1,0 +1,117 @@
+/{route}:
+  {method}:
+    tags:
+      - {entity}
+    summary: list {entity}s
+    description: Retrieve a list of {entity}s
+    operationId: list-{route}-{method}
+    parameters:
+      - name: search
+        in: query
+        description: Search query string
+        required: false
+        schema:
+          type: string
+          example: ""
+      - name: order_by
+        in: query
+        description: Field to order by
+        required: false
+        schema:
+          type: string
+          example: "created_at"
+      - name: order
+        in: query
+        description: Order direction
+        required: false
+        schema:
+          type: string
+          enum: ["DESC", "ASC"]
+          example: "DESC"
+      - name: page
+        in: query
+        description: Page number
+        required: false
+        schema:
+          type: integer
+          default: 1
+      - name: per_page
+        in: query
+        description: Number of results per page
+        required: false
+        schema:
+          type: integer
+          default: 10
+      - name: trash
+        in: query
+        description: Include trashed items
+        required: false
+        schema:
+          type: boolean
+          default: false
+      - name: where_clause
+        in: query
+        description: Additional filtering criteria
+        required: false
+        schema:
+          type: object
+          example: {}
+      - name: select
+        in: query
+        description: Specific fields to select
+        required: false
+        schema:
+          type: string
+          example: ""
+    responses:
+      "200":
+        description: Successful operation
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Entities retrieved successfully"
+                data:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/{entity}"
+                info:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                      example: 100
+                    page:
+                      type: integer
+                      example: 1
+                    per_page:
+                      type: integer
+                      example: 10
+                    trash:
+                      type: boolean
+                      example: false
+                    order_by:
+                      type: string
+                      example: "created_at"
+                    order:
+                      type: string
+                      example: "DESC"
+                    search:
+                      type: string
+                      example: ""
+                    where_clause:
+                      type: object
+                      example: {}
+                    select:
+                      type: string
+                      example: ""
+      "400":
+        description: Invalid input
+      "422":
+        description: Validation exception
+    security:
+      - auth:
+          - list.{route}

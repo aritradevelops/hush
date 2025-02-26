@@ -1,0 +1,32 @@
+services:
+  db:
+    container_name: posgresql
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=barebone
+      - POSTGRES_EXTENSIONS=pgcrypto
+    ports:
+      - "5432:5432"
+    volumes:
+      # - ./scripts:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+  server:
+    container_name: barebone-server
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+    volumes: 
+      - /usr/lib/app/node_modules
+      - .:/usr/lib/app/
+    depends_on:
+      - db
+volumes:
+  postgres_data:

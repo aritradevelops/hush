@@ -1,0 +1,8 @@
+# deps
+node_modules/
+.env
+dist/
+tsconfig.tsbuildinfo
+.vscode
+ormlogs.log
+private/*

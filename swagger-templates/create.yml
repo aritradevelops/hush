@@ -1,0 +1,34 @@
+/{route}/create:
+  {method}:
+    tags:
+      - {entity}
+    summary: create a new {entity}
+    description: create a new {entity}
+    operationId: create-{route}-{method}
+    requestBody:
+      description: create a new {entity}
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/{entity}"
+      required: true
+    responses:
+      "200":
+        description: Successful operation
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Entity created successfully"
+                data:
+                  $ref: "#/components/schemas/{entity}"
+      "400":
+        description: Invalid input
+      "422":
+        description: Validation exception
+    security:
+      - auth:
+          - create.{route}

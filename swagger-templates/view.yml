@@ -1,0 +1,35 @@
+/{route}/view/{{id}}:
+  {method}:
+    tags:
+      - {entity}
+    summary: view details of an existing {entity}
+    description: Retrieve details of an existing {entity} by ID
+    operationId: view-{route}-{method}
+    parameters:
+      - name: id
+        in: path
+        description: ID of the {entity}
+        required: true
+        schema:
+          type: string
+          format: uuid
+    responses:
+      "200":
+        description: Successful operation
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Entity retrieved successfully"
+                data:
+                  $ref: "#/components/schemas/{entity}"
+      "400":
+        description: Invalid input
+      "404":
+        description: Entity not found
+    security:
+      - auth:
+          - view.{route}

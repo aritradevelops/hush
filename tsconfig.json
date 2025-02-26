@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "typeRoots": [
+      "./node_modules/@types",
+      "./@types",
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2018",
+    "lib": [
+      "es2018"
+    ],
+    "outDir": "dist",
+    "rootDir": "./src",
+    "strict": true,
+    "sourceMap": false,
+    "removeComments": false,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "@types"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

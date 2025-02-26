@@ -1,0 +1,42 @@
+/{route}/update/{{id}}:
+  {method}:
+    tags:
+      - {entity}
+    summary: update an existing {entity}
+    description: update an existing {entity}
+    operationId: update-{route}-{method}
+    parameters:
+      - name: id
+        in: path
+        description: id of the {entity}
+        required: true
+        schema:
+          type: string
+          format: uuid
+    requestBody:
+      description: update an existing {entity}. Every key is optional here.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/{entity}"
+      required: true
+    responses:
+      "200":
+        description: Successful operation
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Entity created successfully"
+                data:
+                  $ref: "#/components/schemas/{entity}"
+      "400":
+        description: Invalid input
+      "422":
+        description: Validation exception
+    security:
+      - auth:
+          - update.{route}
