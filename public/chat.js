@@ -5,9 +5,17 @@ const chatPerson = document.getElementById('chat-person');
 const chatInfo = document.getElementById('chat-info');
 let abortSignal = null;
 window.navigation.addEventListener('navigate', function (event) {
+  renderCurrentChats(event.destination.url)
+})
+document.addEventListener("DOMContentLoaded", (event) => {
+  console.log("DOM fully loaded and parsed");
+  renderCurrentChats(window.location);
+});
+
+function renderCurrentChats(url) {
   noChat.style.display = 'none';
   chatSection.style.display = 'flex';
-  const id = new URL(event.destination.url).hash.slice(1)
+  const id = new URL(url).hash.slice(1)
   if (!id) {
     noChat.style.display = 'flex';
     chatSection.style.display = 'none';
@@ -55,4 +63,4 @@ window.navigation.addEventListener('navigate', function (event) {
       chatInfo.innerText = `Failed fetch chats due to: ${err.message || err}`
     })
   }
-})
+}

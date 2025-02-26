@@ -5,10 +5,10 @@ import logger from "../utils/logger";
 
 class UserHook extends Hook {
   before(req: Request, res: Response, data: any): void {
-    logger.info("I was called before");
+    // logger.info("I was called before");
   }
   after(req: Request, res: Response, data: any): void {
-    console.log("I was called after", data);
+    // console.log("I was called after", data);
   }
 }
 export class List extends UserHook { }
