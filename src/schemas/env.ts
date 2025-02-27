@@ -42,15 +42,7 @@ export class Env {
 
   @IsString()
   @IsNotEmpty()
-  CLIENT_DOMAIN!: string
-
-  @IsString()
-  @IsNotEmpty()
   RESEND_API_KEY: string = '';
-
-  @IsString()
-  @IsNotEmpty()
-  KEY_MANAGER_URL!: string
 
   @IsString()
   @IsNotEmpty()

@@ -6,7 +6,6 @@ import db from "./lib/db";
 import env from "./lib/env";
 import hookManager from "./lib/hook-manager";
 import logger from "./utils/logger";
-import { Swagger } from './utils/swagger';
 import { createServer } from "http";
 import { Server } from 'socket.io';
 import { registerSocketHandler } from './socket';
@@ -17,15 +16,18 @@ registerSocketHandler(io);
 const server = httpServer.listen(env.get('PORT'), async () => {
   await db.init();
   await hookManager.init();
-  if (env.get('NODE_ENV') === 'development')
+  if (env.get('NODE_ENV') === 'development') {
+    const { Swagger } = require('./utils/swagger');
     Swagger.generate();
+  }
   logger.info(`Server is running on port ${env.get('PORT')}`);
 });
 
 async function shutDown() {
-  await db.close();
-  logger.notice('Server gracefully shutting down');
-  server.close(err => {
+  server.close(async err => {
+    await db.close();
+    logger.notice('Server gracefully shutting down');
+
     logger.info(`Server stopped successfully`)
     process.exit(err ? 1 : 0);
   });

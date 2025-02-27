@@ -6,3 +6,4 @@ tsconfig.tsbuildinfo
 .vscode
 ormlogs.log
 private/*
+.env.prod
