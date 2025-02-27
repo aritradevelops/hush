@@ -70,6 +70,12 @@ export default class User extends PrimaryColumns {
   @Column('text', { array: true, default: [] })
   contacts!: string[];
 
+  @Expose()
+  @IsString()
+  @IsOptional()
+  @Column({ type: 'text', nullable: true })
+  public_key!: string | null;
+
   toJSON() {
     return {
       id: this.id,

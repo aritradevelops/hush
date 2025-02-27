@@ -28,7 +28,10 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(morgan('combined'));
-app.use(express.static('public'));
+app.use('/assets', express.static('views/assets'));
+app.get('/', (req, res) => {
+  res.render('index');
+})
 app.get('/chats', isAuth(), async (req, res, next) => {
   const user = await userRepository.view({ id: req.user?.id })
   if (!user) throw new NotFoundError()
@@ -60,6 +63,33 @@ app.get('/chats', isAuth(), async (req, res, next) => {
     `
   })
 })
+
+app.get('/setup-encryption', isAuth(), async (req, res, next) => {
+  const user = await userRepository.view({ id: req.user?.id })
+  if (!user) throw new NotFoundError()
+  res.render('setup-encryption', {
+    me: {
+      id: req.user?.id,
+      first_name: user?.first_name,
+      last_name: user?.last_name,
+      email: user?.email,
+      dp: user?.dp,
+    },
+    scripts: `
+    <script> 
+    var me = ${JSON.stringify({
+      id: req.user?.id,
+      first_name: user?.first_name,
+      last_name: user?.last_name,
+      email: user?.email,
+      dp: user?.dp,
+    })}
+    var current_chat = null;
+    </script>
+    `
+  })
+})
+
 const views = ['register', 'login']
 
 views.forEach((view) => {

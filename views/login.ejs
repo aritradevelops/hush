@@ -141,7 +141,8 @@
         } else {
           responseMessage.innerHTML = `<div class="form-control bg-success text-light">${res.message}</div>`
           responseMessage.classList.remove('d-none');
-          window.location = '/chats'
+          const privateKey = localStorage.getItem(`${ref.email}_hush_private_key`)
+          window.location = privateKey ? '/chats' : '/setup-encryption'
         }
       }).catch(e => {
         responseMessage.innerHTML = `<div class="form-control bg-danger text-light">${e.message || e}</div>`

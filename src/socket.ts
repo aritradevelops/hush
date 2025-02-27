@@ -6,6 +6,7 @@ interface Message {
   message: string;
   room_id: string;
   from_id: string;
+  iv: string;
 }
 export function registerSocketHandler(io: Server) {
   io.on("connection", (socket) => {
@@ -24,6 +25,7 @@ export function registerSocketHandler(io: Server) {
         message: msg.message,
         room_id: msg.room_id,
         created_by: msg.from_id,
+        iv: msg.iv,
         unread: true,
       })
       socket.broadcast.to(msg.room_id).emit("private-message", msg, async () => {

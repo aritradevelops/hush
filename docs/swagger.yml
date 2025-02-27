@@ -3244,6 +3244,271 @@ paths:
       security:
         - auth:
             - delete.chats
+  /secrets:
+    get:
+      tags:
+        - Secret
+      summary: list Secrets
+      description: Retrieve a list of Secrets
+      operationId: list-secrets-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Secret"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.secrets
+  /secrets/create:
+    post:
+      tags:
+        - Secret
+      summary: create a new Secret
+      description: create a new Secret
+      operationId: create-secrets-post
+      requestBody:
+        description: create a new Secret
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Secret"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Secret"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.secrets
+  /secrets/view/{id}:
+    get:
+      tags:
+        - Secret
+      summary: view details of an existing Secret
+      description: Retrieve details of an existing Secret by ID
+      operationId: view-secrets-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Secret
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Secret"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.secrets
+  /secrets/update/{id}:
+    put:
+      tags:
+        - Secret
+      summary: update an existing Secret
+      description: update an existing Secret
+      operationId: update-secrets-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Secret
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Secret. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Secret"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Secret"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.secrets
+  /secrets/delete/{id}:
+    delete:
+      tags:
+        - Secret
+      summary: delete an existing Secret
+      description: delete an existing Secret
+      operationId: delete-secrets-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Secret
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Secret"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.secrets
 components:
   schemas:
     Book:
@@ -3435,6 +3700,8 @@ components:
           items:
             type: string
           type: array
+        public_key:
+          type: string
       type: object
       required:
         - first_name
@@ -3462,6 +3729,9 @@ components:
         message:
           minLength: 3
           type: string
+        iv:
+          minLength: 3
+          type: string
         room_id:
           minLength: 3
           type: string
@@ -3471,8 +3741,25 @@ components:
       type: object
       required:
         - message
+        - iv
         - room_id
         - unread
+    Secret:
+      properties:
+        encrypted_shared_secret:
+          minLength: 3
+          type: string
+        room_id:
+          minLength: 3
+          type: string
+        user_id:
+          minLength: 3
+          type: string
+      type: object
+      required:
+        - encrypted_shared_secret
+        - room_id
+        - user_id
   securitySchemes:
     petstore_auth:
       type: oauth2

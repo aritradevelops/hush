@@ -21,6 +21,13 @@ export default class Chat extends PrimaryColumns {
   @MinLength(3)
   @Trim()
   @Column()
+  iv!: string;
+
+  @Expose()
+  @IsString()
+  @MinLength(3)
+  @Trim()
+  @Column()
   room_id!: string;
 
   @Expose()

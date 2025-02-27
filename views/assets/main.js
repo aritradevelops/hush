@@ -8,21 +8,24 @@ chatMsg.addEventListener('keydown', (e) => {
   }
 })
 class Message {
-  constructor(message, room_id, from_id) {
+  constructor(message, room_id, from_id, iv) {
     this.message = message;
     this.room_id = room_id;
     this.from_id = from_id;
+    this.iv = iv;
   }
 }
 
-chatButton.addEventListener('click', function (e) {
+chatButton.addEventListener('click', async function (e) {
   e.preventDefault();
   const message = chatMsg.value.trim();
   if (!message) {
     chatMsg.classList.add('is-invalid');
     return;
   }
-  socket.emit('message', new Message(message, [me.id, current_chat].sort().join('_'), me.id));
+  const sharedSecret = localStorage.getItem(`shared_secret_${current_chat}`)
+  const { encrypted, iv } = await CryptoUtil.encryptMessage(message, Uint8Array.from(atob(sharedSecret), c => c.charCodeAt(0)))
+  socket.emit('message', new Message(encrypted, [me.id, current_chat].sort().join('_'), me.id, iv));
   const chatDiv = document.createElement('div')
   chatDiv.style.display = 'flex';
   chatDiv.style.width = '100%'
@@ -40,12 +43,12 @@ socket.on('connect', () => {
   }
 })
 
-socket.on('private-message', (msg) => {
+socket.on('private-message', async (msg) => {
   if (msg.from_id === current_chat) {
     const chatDiv = document.createElement('div')
     chatDiv.style.display = 'flex';
     chatDiv.style.width = '100%'
-    chatDiv.innerHTML = `<p class="text-bg-primary p-2 rounded">${msg.message}</p>`
+    chatDiv.innerHTML = `<p class="text-bg-primary p-2 rounded">${await CryptoUtil.decryptMessage(msg.message, msg.iv, localStorage.getItem(`shared_secret_${msg.from_id}`))}</p>`
     chatsContainer.appendChild(chatDiv)
     chatsContainer.scrollTop = chatsContainer.scrollHeight
   } else {
