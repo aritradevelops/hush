@@ -14,17 +14,17 @@ jobs:
 
     steps:
     - name: Deploy to server
-    uses: garygrossgarten/github-action-ssh@release
-    with:
-      host: ${{ secrets.SSH_HOST }}
-      username: ${{ secrets.SSH_USER }}
-      privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
-      passphrase: ${{ secrets.DO_PASSPHRASE }}
-      command: |
-        sudo docker pull aritradevelops/hush_app:latest
-        sudo docker stop hush_app || true
-        sudo docker rm -f hush_app || true
-        sudo docker run -d -p 3000:3000 --name hush_app --env-file ~/projects/hush/.env.prod aritradevelops/hush_app:latest
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
+        passphrase: ${{ secrets.DO_PASSPHRASE }}
+        command: |
+          sudo docker pull aritradevelops/hush_app:latest
+          sudo docker stop hush_app || true
+          sudo docker rm -f hush_app || true
+          sudo docker run -d -p 3000:3000 --name hush_app --env-file ~/projects/hush/.env.prod aritradevelops/hush_app:latest
     # - name: Install ssh keys
     #   # check this thread to understand why its needed:
     #   # https://stackoverflow.com/a/70447517
