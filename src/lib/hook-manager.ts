@@ -21,7 +21,7 @@ class HookManager {
             && (Object.getPrototypeOf(module[action]) === Hook
               || Object.getPrototypeOf(Object.getPrototypeOf(module[action])) === Hook)
           ) {
-            this.hooks[`${routeMap.get(kebabToPascal(file.name.replace('.hook.ts', '-controller'))) || inflection.pluralize(file.name.replace('.hook.ts', ''))}.${pascalToKebab(action)}`] = new module[action]();
+            this.hooks[`${routeMap.get(kebabToPascal(file.name.replace(`.hook.${env.get('EXT')}`, '-controller'))) || inflection.pluralize(file.name.replace(`.hook.${env.get('EXT')}`, ''))}.${pascalToKebab(action)}`] = new module[action]();
           }
         }
       }
