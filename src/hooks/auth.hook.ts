@@ -20,7 +20,8 @@ class AuthHook extends Hook {
 }
 export class SignUp extends AuthHook {
   async after(req: Request, res: Response, resp: { message: string, data: User }) {
-    // TODO: send verification email
+    try {
+      // TODO: send verification email
     const { data, error } = await mailer.send({
       to: [resp.data.email],
       from: 'Hush <notify@authinifinity.com>',
@@ -38,6 +39,12 @@ export class SignUp extends AuthHook {
     delete resp.data.email_verification_hash
     // @ts-ignore
     resp.data.resend_id = data?.id
+    } catch (error) {
+      logger.critical((error as Error).message)
+      // rollback
+      await userRepository.destroy({ id: resp.data.id });
+      throw new InternalServerError()
+    }
   }
 }
 export class VerifyEmail extends AuthHook {
