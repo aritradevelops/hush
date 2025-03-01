@@ -126,18 +126,18 @@
             console.log(publicKey)
             console.log(`Storing shared secret for ${userId} : ${btoa(String.fromCharCode(...new Uint8Array(secretKey)))}`)
             localStorage.setItem(`shared_secret_${userId}`, btoa(String.fromCharCode(...new Uint8Array(secretKey))));
-            const encryptedSharedSecretBuffer = await CryptoUtil.encryptSharedKey(secretKey, publicKey)
-            const encryptedSharedSecret = btoa(String.fromCharCode(...new Uint8Array(encryptedSharedSecretBuffer)))
-            console.log(`Sharing encrypted shared secret`, encryptedSharedSecret)
+            const encryptedSharedSecretString = await CryptoUtil.encryptSharedKey(secretKey, publicKey)
+            //      ^^ this is giving empty string why ??
+            console.log(`Sharing encrypted shared secret`, encryptedSharedSecretString)
             const response = await fetch(`/v1/secrets/create`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ user_id: userId, encrypted_shared_secret: encryptedSharedSecret, room_id: [me.id, userId].sort().join('_') }),
+              body: JSON.stringify({ user_id: userId, encrypted_shared_secret: encryptedSharedSecretString, room_id: [me.id, userId].sort().join('_') }),
             })
             if (!response.ok) { alert("Failed to create secret!") }
             else {
               alert('Contact added successfully!');
-              // window.location.reload()
+              window.location.reload()
             }
           }
 

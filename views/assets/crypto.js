@@ -30,7 +30,7 @@ class CryptoUtil {
     const privateKeyBuffer = Uint8Array.from(atob(privateKey), c => c.charCodeAt(0));
     const key = await window.crypto.subtle.importKey("pkcs8", privateKeyBuffer, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["decrypt"]);
 
-    const decrypted = await window.crypto.subtle.decrypt({ name: "RSA-OAEP" }, key, Uint8Array.from(atob(encryptedSharedKey), c => c.charCodeAt(0)));
+    const decrypted = await window.crypto.subtle.decrypt({ name: "RSA-OAEP" }, key, encryptedSharedKey);
     return new Uint8Array(decrypted);
   }
 
