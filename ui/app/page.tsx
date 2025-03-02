@@ -25,7 +25,7 @@ export default function LandingPage() {
             <Lock className="h-6 w-6 text-primary" />
             <span>Hush</span>
           </div>
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-1 gap-2">
             <nav className="flex items-center space-x-6 text-sm font-medium">
               <Link href="#features" className="transition-colors hover:text-foreground/80">
                 Features
