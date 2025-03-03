@@ -19,8 +19,8 @@ import { Button } from "@/components/ui/button"
 export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0 mx-auto">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-8">
+        <div className="container flex justify-between h-16 items-center space-x-4 sm:justify-between sm:space-x-0 mx-auto">
           <div className="flex gap-2 items-center text-xl font-bold">
             <Lock className="h-6 w-6 text-primary" />
             <span>Hush</span>
@@ -105,8 +105,6 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="mx-auto flex items-center justify-center relative">
-                <div className="absolute -top-8 -left-8 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-8 -right-8 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
                 <div className="relative z-10 overflow-hidden rounded-xl border bg-background p-2 shadow-xl">
                   <div className="flex items-center justify-between rounded-lg bg-muted p-2">
                     <div className="flex items-center space-x-2">
