@@ -41,10 +41,10 @@ export default function LandingPage() {
               </Link>
             </nav>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
-                Log in
+              <Button variant="secondary" size="sm">
+                <Link href={"/register"}>Register</Link>
               </Button>
-              <Button size="sm">Sign up</Button>
+              <Button size="sm"><Link href={"/login"}>Log in</Link></Button>
             </div>
           </div>
           <div className="flex md:hidden">
@@ -82,8 +82,8 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" className="gap-1.5">
-                    Get Started <ChevronRight className="h-4 w-4" />
+                  <Button size="lg" className="cursor-pointer">
+                    <Link href={"/register"} className="gap-1.5 flex items-center">Get Started <ChevronRight className="h-4 w-4" /></Link>
                   </Button>
                   <Button size="lg" variant="outline">
                     Learn more
