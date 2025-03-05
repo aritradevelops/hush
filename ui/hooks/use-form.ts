@@ -1,3 +1,4 @@
+import { debounce } from "@/lib/utils";
 import { FormEvent, useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -30,20 +31,17 @@ export function useForm<T extends z.ZodObject<any>>(params: { zodSchema: T; id: 
   const [fields, setFields] = useState<Fields<z.infer<T>>>(initialFields);
 
   function validateAndShowError(rawData: any) {
-    const result = params.zodSchema.safeParse(rawData);
+    const result = params.zodSchema.safeParse(rawData || {});
     if (!result.success) {
       const flattenedErrors = result.error.flatten().fieldErrors;
-      const newFields = { ...fields };
+      const newFields = Object.assign({}, fields);
 
-      for (const field in newFields) {
+      for (const field of ids) {
         newFields[field].errors = flattenedErrors[field] || [];
       }
-
       setFields(newFields);
       return false;
     }
-
-    setData(result.data);
     return true;
   }
 
@@ -54,7 +52,6 @@ export function useForm<T extends z.ZodObject<any>>(params: { zodSchema: T; id: 
     try {
       const isValid = validateAndShowError(data);
       if (!isValid) return;
-
       const result = await params.onSubmit(data!);
 
       setForm((prev) => ({
@@ -81,22 +78,22 @@ export function useForm<T extends z.ZodObject<any>>(params: { zodSchema: T; id: 
   });
 
   useEffect(() => {
-    const handleChange = (e: Event) => {
+    const handleChange = debounce((e: Event) => {
       const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
       if (target && target.id && ids.includes(target.id)) {
         setData((prevData) => {
           const newData = { ...prevData, [target.id]: target.value };
           if (validateAndShowError(newData)) {
-            setFields(initialFields);
+            setFields({ ...initialFields });
           }
           return newData;
         });
       }
-    };
+    })
 
-    document.addEventListener("change", handleChange);
+    document.addEventListener("input", handleChange);
     return () => {
-      document.removeEventListener("change", handleChange);
+      document.removeEventListener("input", handleChange);
     };
   }, []);
 

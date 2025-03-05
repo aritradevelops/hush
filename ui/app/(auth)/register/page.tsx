@@ -97,7 +97,9 @@ function RegistrationForm() {
   const { form, fields, isSubmitting } = useForm({
     id: 'register',
     zodSchema: RegisterSchema,
-    onSubmit: async () => { console.log('submitted'); return { success: true, message: "Form submitted successfully", fields: {} } }
+    onSubmit: async () => {
+      return new Promise((res, rej) => setTimeout(() => res({ success: true, message: "Form submitted successfully", fields: {} }), 1000))
+    }
   })
   return (
     <div className="space-y-6">
@@ -133,7 +135,7 @@ function RegistrationForm() {
             <Label htmlFor={fields.password.id}>Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <PasswordInput id={fields.password.id} required className="pl-10" />
+              <PasswordInput id={fields.password.id} required className="pl-8" placeholder="Create new password" />
             </div>
             {
               fields.password.errors?.map((errorMessage, idx) => (
