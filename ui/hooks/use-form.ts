@@ -1,126 +1,108 @@
-import { useState, useEffect } from 'react';
-import { z, ZodError, ZodSchema } from 'zod';
+import { FormEvent, useEffect, useState } from "react";
+import { z } from "zod";
 
-// Field interface for individual form fields
-interface Field {
+type Obj = Record<string, unknown>;
+
+type Fields<T extends Obj> = Record<keyof T, { errors: string[]; id: string }>;
+type OnSubmit<T extends Obj> = (data: T) => Promise<{ fields: Partial<Fields<T>>; success: boolean; message: string }>;
+
+interface FormState<T extends Obj> {
   id: string;
-  value: any;
-  errors: string[];
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+  state: "none" | "success" | "error";
+  message: string | null;
 }
 
-// Form interface for form element properties
-interface FormProps {
-  id: string;
-  onSubmit: (e: React.FormEvent) => void;
-}
+export function useForm<T extends z.ZodObject<any>>(params: { zodSchema: T; id: string; onSubmit: OnSubmit<z.infer<T>> }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [data, setData] = useState<z.infer<T>>();
 
-const useForm = <T extends Record<string, any>>(
-  zodSchema: ZodSchema<T>,
-  initialValues: T
-): [FormProps, { [K in keyof T]: Omit<Field, 'value'> }] => {
-  const [fields, setFields] = useState<{ [K in keyof T]: Field }>(() =>
-    Object.keys(initialValues).reduce((acc, key) => {
-      acc[key as keyof T] = {
-        id: key,
-        value: initialValues[key],
-        errors: [],
-        onChange: () => { },
-      };
-      return acc;
-    }, {} as { [K in keyof T]: Field })
-  );
-
-  const [isValid, setIsValid] = useState(false);
-
-  // Validate the form whenever fields change
-  useEffect(() => {
-    validateForm();
-  }, [fields]);
-
-  const validateForm = () => {
-    try {
-      const values = Object.keys(fields).reduce((acc, key) => {
-        // @ts-ignore
-        acc[key] = fields[key].value;
-        return acc;
-      }, {} as T);
-
-      zodSchema.parse(values);
-
-      setFields((prevFields) => {
-        const newFields = { ...prevFields };
-        Object.keys(newFields).forEach((key) => {
-          newFields[key].errors = [];
-        });
-        return newFields;
-      });
-
-      setIsValid(true);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const newFields = { ...fields };
-
-        // Clear previous errors
-        Object.keys(newFields).forEach((key) => {
-          newFields[key].errors = [];
-        });
-
-        // Set new errors
-        error.errors.forEach((err) => {
-          const path = err.path[0] as keyof T;
-          if (newFields[path]) {
-            newFields[path].errors.push(err.message);
-          }
-        });
-
-        setFields(newFields);
-        setIsValid(false);
-      }
-    }
-  };
-
-  const handleFieldChange = (id: keyof T, value: any) => {
-    setFields((prevFields) => ({
-      ...prevFields,
-      [id]: {
-        ...prevFields[id],
-        value,
-      },
-    }));
-  };
-
-  // Prepare form and fields
-  const formProps: FormProps = {
-    id: 'form',
-    onSubmit: (e: React.FormEvent) => {
-      e.preventDefault();
-      validateForm();
-
-      if (isValid) {
-        const values = Object.keys(fields).reduce((acc, key) => {
-          acc[key] = fields[key].value;
-          return acc;
-        }, {} as T);
-
-        // You can add your submit logic here or pass a callback
-        console.log('Form submitted with values:', values);
-      }
-    }
-  };
-
-  // Attach onChange handlers to fields
-  const fieldsWithHandlers = Object.keys(fields).reduce((acc, key) => {
-    acc[key] = {
-      id: fields[key].id,
-      errors: fields[key].errors.join(', '), // Convert errors to comma-separated string
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        handleFieldChange(key as keyof T, e.target.value),
+  const schemaKeys = Object.keys(params.zodSchema.shape);
+  const ids: string[] = [];
+  const initialFields = schemaKeys.reduce((acc, field) => {
+    ids.push(field);
+    return {
+      ...acc,
+      [field]: { errors: [], id: field },
     };
-    return acc;
-  }, {} as { [K in keyof T]: Omit<Field, 'value'> });
+  }, {} as Fields<z.infer<T>>);
 
-  return [formProps, fieldsWithHandlers];
-};
+  const [fields, setFields] = useState<Fields<z.infer<T>>>(initialFields);
 
-export default useForm;
+  function validateAndShowError(rawData: any) {
+    const result = params.zodSchema.safeParse(rawData);
+    if (!result.success) {
+      const flattenedErrors = result.error.flatten().fieldErrors;
+      const newFields = { ...fields };
+
+      for (const field in newFields) {
+        newFields[field].errors = flattenedErrors[field] || [];
+      }
+
+      setFields(newFields);
+      return false;
+    }
+
+    setData(result.data);
+    return true;
+  }
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const isValid = validateAndShowError(data);
+      if (!isValid) return;
+
+      const result = await params.onSubmit(data!);
+
+      setForm((prev) => ({
+        ...prev,
+        state: result.success ? "success" : "error",
+        message: result.message,
+      }));
+    } catch (error) {
+      setForm((prev) => ({
+        ...prev,
+        state: "error",
+        message: (error as Error).message,
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const [form, setForm] = useState<FormState<z.infer<T>>>({
+    id: params.id,
+    onSubmit: handleSubmit,
+    state: "none",
+    message: null,
+  });
+
+  useEffect(() => {
+    const handleChange = (e: Event) => {
+      const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+      if (target && target.id && ids.includes(target.id)) {
+        setData((prevData) => {
+          const newData = { ...prevData, [target.id]: target.value };
+          if (validateAndShowError(newData)) {
+            setFields(initialFields);
+          }
+          return newData;
+        });
+      }
+    };
+
+    document.addEventListener("change", handleChange);
+    return () => {
+      document.removeEventListener("change", handleChange);
+    };
+  }, []);
+
+  return {
+    isSubmitting,
+    form,
+    fields,
+  };
+}

@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RegisterSchema } from "@/schemas/register"
-import { useForm } from '@conform-to/react'
-import { parseWithZod } from '@conform-to/zod'
+import { useForm } from "@/hooks/use-form"
 
 export default function RegisterPage() {
   return (
@@ -95,25 +94,10 @@ export default function RegisterPage() {
 }
 
 function RegistrationForm() {
-  const [form, fields] = useForm({
+  const { form, fields, isSubmitting } = useForm({
     id: 'register',
-    onValidate({ formData }) {
-      console.log(formData, 'fsdf')
-      const result = parseWithZod(formData, { schema: RegisterSchema });
-      console.log(result)
-      return result;
-    },
-    onSubmit(e) {
-      console.log('here')
-      e.preventDefault();
-      const form = e.currentTarget;
-      console.log('form', form)
-      const formData = new FormData(form);
-      const result = parseWithZod(formData, { schema: RegisterSchema });
-      alert(JSON.stringify(result, null, 2))
-    },
-    shouldRevalidate: 'onInput',
-    shouldValidate: 'onBlur'
+    zodSchema: RegisterSchema,
+    onSubmit: async () => { console.log('submitted'); return { success: true, message: "Form submitted successfully", fields: {} } }
   })
   return (
     <div className="space-y-6">
@@ -159,7 +143,7 @@ function RegistrationForm() {
           </div>
           <div className="space-y-2">
             <Button className="w-full cursor-pointer" type="submit">
-              Create Account
+              {isSubmitting ? "Creating Account..." : "Create account"}
             </Button>
           </div>
         </div>
