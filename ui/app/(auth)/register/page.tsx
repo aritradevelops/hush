@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RegisterSchema } from "@/schemas/register"
 import { useForm } from "@/hooks/use-form"
+import { HttpClient } from "@/lib/httpClient"
 
 export default function RegisterPage() {
   return (
@@ -94,13 +95,15 @@ export default function RegisterPage() {
 }
 
 function RegistrationForm() {
+  const httpClient = new HttpClient();
   const { form, fields, isSubmitting } = useForm({
     id: 'register',
     zodSchema: RegisterSchema,
-    onSubmit: async () => {
-      return new Promise((res, rej) => setTimeout(() => res({ success: true, message: "Form submitted successfully", fields: {} }), 1000))
+    onSubmit: async (data) => {
+      return httpClient.register(data)
     }
   })
+  console.log(fields)
   return (
     <div className="space-y-6">
       <form id={form.id} onSubmit={form.onSubmit} noValidate>
@@ -143,6 +146,9 @@ function RegistrationForm() {
               ))
             }
           </div>
+          {
+            form.state !== 'none' && <Message variant={form.state} message={form.message!} />
+          }
           <div className="space-y-2">
             <Button className="w-full cursor-pointer" type="submit">
               {isSubmitting ? "Creating Account..." : "Create account"}

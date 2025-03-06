@@ -2,10 +2,16 @@ import { debounce } from "@/lib/utils";
 import { FormEvent, useEffect, useState } from "react";
 import { z } from "zod";
 
-type Obj = Record<string, unknown>;
+export type Obj = Record<string, unknown>;
 
-type Fields<T extends Obj> = Record<keyof T, { errors: string[]; id: string }>;
-type OnSubmit<T extends Obj> = (data: T) => Promise<{ fields: Partial<Fields<T>>; success: boolean; message: string }>;
+export type Fields<T extends Obj> = Record<
+  keyof T,
+  { errors: string[]; id: string }
+>;
+
+export type OnSubmit<T extends Obj> = (
+  data: T
+) => Promise<{ fields: Partial<Fields<T>>; success: boolean; message: string }>;
 
 interface FormState<T extends Obj> {
   id: string;
@@ -14,34 +20,58 @@ interface FormState<T extends Obj> {
   message: string | null;
 }
 
-export function useForm<T extends z.ZodObject<any>>(params: { zodSchema: T; id: string; onSubmit: OnSubmit<z.infer<T>> }) {
+export function useForm<T extends z.ZodObject<any>>(params: {
+  zodSchema: T;
+  id: string;
+  onSubmit: OnSubmit<z.infer<T>>;
+}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [data, setData] = useState<z.infer<T>>();
+  const [data, setData] = useState<z.infer<T>>({} as z.infer<T>);
 
+  // Store schema keys
   const schemaKeys = Object.keys(params.zodSchema.shape);
-  const ids: string[] = [];
-  const initialFields = schemaKeys.reduce((acc, field) => {
-    ids.push(field);
-    return {
+  const ids = schemaKeys;
+
+  // Deep copy helper
+  const cloneFields = (fields: Fields<z.infer<T>>): Fields<z.infer<T>> =>
+    Object.fromEntries(
+      Object.entries(fields).map(([key, value]) => [
+        key,
+        { ...value, errors: [...value.errors] },
+      ])
+    ) as Fields<z.infer<T>>;
+
+  // Define initial fields
+  const initialFields: Fields<z.infer<T>> = schemaKeys.reduce(
+    (acc, field) => ({
       ...acc,
       [field]: { errors: [], id: field },
-    };
-  }, {} as Fields<z.infer<T>>);
+    }),
+    {} as Fields<z.infer<T>>
+  );
 
-  const [fields, setFields] = useState<Fields<z.infer<T>>>(initialFields);
+  // Set fields state
+  const [fields, setFields] = useState<Fields<z.infer<T>>>(
+    cloneFields(initialFields)
+  );
 
   function validateAndShowError(rawData: any) {
     const result = params.zodSchema.safeParse(rawData || {});
     if (!result.success) {
       const flattenedErrors = result.error.flatten().fieldErrors;
-      const newFields = Object.assign({}, fields);
 
+      // Create a deep copy of `initialFields` and update errors
+      const newFields = cloneFields(initialFields);
       for (const field of ids) {
         newFields[field].errors = flattenedErrors[field] || [];
       }
+
       setFields(newFields);
       return false;
     }
+
+    console.log("Reset", initialFields);
+    setFields(cloneFields(initialFields)); // Ensure deep copy on reset
     return true;
   }
 
@@ -49,25 +79,42 @@ export function useForm<T extends z.ZodObject<any>>(params: { zodSchema: T; id: 
     e.preventDefault();
     setIsSubmitting(true);
 
-    try {
-      const isValid = validateAndShowError(data);
-      if (!isValid) return;
-      const result = await params.onSubmit(data!);
+    // Ensure data is always fresh
+    setData((prevData) => {
+      const newData = { ...prevData };
+      if (!validateAndShowError(newData)) {
+        setIsSubmitting(false);
+        return prevData;
+      }
 
-      setForm((prev) => ({
-        ...prev,
-        state: result.success ? "success" : "error",
-        message: result.message,
-      }));
-    } catch (error) {
-      setForm((prev) => ({
-        ...prev,
-        state: "error",
-        message: (error as Error).message,
-      }));
-    } finally {
-      setIsSubmitting(false);
-    }
+      (async () => {
+        try {
+          const result = await params.onSubmit(newData);
+          setForm((prev) => ({
+            ...prev,
+            state: result.success ? "success" : "error",
+            message: result.message,
+          }));
+
+          if (!result.success) {
+            setFields((prev) => ({
+              ...cloneFields(prev),
+              ...result.fields,
+            }));
+          }
+        } catch (error) {
+          setForm((prev) => ({
+            ...prev,
+            state: "error",
+            message: (error as Error).message,
+          }));
+        } finally {
+          setIsSubmitting(false);
+        }
+      })();
+
+      return newData;
+    });
   };
 
   const [form, setForm] = useState<FormState<z.infer<T>>>({
@@ -79,17 +126,22 @@ export function useForm<T extends z.ZodObject<any>>(params: { zodSchema: T; id: 
 
   useEffect(() => {
     const handleChange = debounce((e: Event) => {
-      const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+      const target = e.target as
+        | HTMLInputElement
+        | HTMLTextAreaElement
+        | HTMLSelectElement;
+
       if (target && target.id && ids.includes(target.id)) {
         setData((prevData) => {
           const newData = { ...prevData, [target.id]: target.value };
           if (validateAndShowError(newData)) {
-            setFields({ ...initialFields });
+            console.log("Reset", initialFields);
+            setFields(cloneFields(initialFields)); // Ensure deep copy
           }
           return newData;
         });
       }
-    })
+    });
 
     document.addEventListener("input", handleChange);
     return () => {
