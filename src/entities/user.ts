@@ -15,15 +15,7 @@ export default class User extends PrimaryColumns {
   @Trim()
   @Searchable()
   @Column({ type: "varchar", length: 100 })
-  first_name!: string;
-
-  @Expose()
-  @IsString()
-  @MinLength(3)
-  @Trim()
-  @Searchable()
-  @Column({ type: "varchar", length: 100 })
-  last_name!: string;
+  name!: string;
 
   @Expose()
   @IsString()
@@ -79,8 +71,7 @@ export default class User extends PrimaryColumns {
   toJSON() {
     return {
       id: this.id,
-      first_name: this.first_name,
-      last_name: this.last_name,
+      name: this.name,
       email: this.email,
       dp: this.dp,
       // password: this.password, // password is not returned in json

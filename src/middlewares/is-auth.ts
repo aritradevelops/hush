@@ -21,7 +21,7 @@ export const isAuth = () => {
         ...verified.payload
       }
     } catch (err) {
-      if (req.url.startsWith('/v1')) throw new UnauthenticatedError()
+      if (req.url.startsWith('/v1')) next(new UnauthenticatedError())
       else res.redirect('/login')
       return
     }

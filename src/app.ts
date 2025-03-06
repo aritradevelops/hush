@@ -15,6 +15,7 @@ const app = express();
 const router = new Router();
 app.set('trust proxy', true)
 app.set('view engine', 'ejs');
+app.use(cors({ origin: '*' }))
 app.use(translator.translate());
 app.use(express.json({
   verify: (req: Request, res, buf, encoding) => {
@@ -42,8 +43,8 @@ app.get('/chats', isAuth(), async (req, res, next) => {
   res.render('chats', {
     me: {
       id: req.user?.id,
-      first_name: user?.first_name,
-      last_name: user?.last_name,
+      // first_name: user?.first_name,
+      // last_name: user?.last_name,
       email: user?.email,
       dp: user?.dp,
       contacts
@@ -52,8 +53,8 @@ app.get('/chats', isAuth(), async (req, res, next) => {
     <script> 
     var me = ${JSON.stringify({
       id: req.user?.id,
-      first_name: user?.first_name,
-      last_name: user?.last_name,
+      // first_name: user?.first_name,
+      // last_name: user?.last_name,
       email: user?.email,
       dp: user?.dp,
       contacts
@@ -70,8 +71,8 @@ app.get('/setup-encryption', isAuth(), async (req, res, next) => {
   res.render('setup-encryption', {
     me: {
       id: req.user?.id,
-      first_name: user?.first_name,
-      last_name: user?.last_name,
+      // first_name: user?.first_name,
+      // last_name: user?.last_name,
       email: user?.email,
       dp: user?.dp,
     },
@@ -79,8 +80,8 @@ app.get('/setup-encryption', isAuth(), async (req, res, next) => {
     <script> 
     var me = ${JSON.stringify({
       id: req.user?.id,
-      first_name: user?.first_name,
-      last_name: user?.last_name,
+      // first_name: user?.first_name,
+      // last_name: user?.last_name,
       email: user?.email,
       dp: user?.dp,
     })}

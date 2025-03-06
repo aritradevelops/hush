@@ -3679,10 +3679,7 @@ components:
         - billing_period
     User:
       properties:
-        first_name:
-          minLength: 3
-          type: string
-        last_name:
+        name:
           minLength: 3
           type: string
         email:
@@ -3704,8 +3701,7 @@ components:
           type: string
       type: object
       required:
-        - first_name
-        - last_name
+        - name
         - email
         - password
     Session:
