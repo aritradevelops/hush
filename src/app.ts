@@ -15,7 +15,7 @@ const app = express();
 const router = new Router();
 app.set('trust proxy', true)
 app.set('view engine', 'ejs');
-app.use(cors({ origin: '*' }))
+app.use(cors({ origin: 'http://localhost:3000', exposedHeaders: ['Access-Control-Allow-Origin'] }))
 app.use(translator.translate());
 app.use(express.json({
   verify: (req: Request, res, buf, encoding) => {

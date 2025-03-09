@@ -1,6 +1,6 @@
 import { debounce } from "@/lib/utils";
 import { FormEvent, useEffect, useState } from "react";
-import { z } from "zod";
+import { z, ZodObject, ZodEffects, ZodTypeAny } from "zod";
 
 export type Obj = Record<string, unknown>;
 
@@ -20,7 +20,7 @@ interface FormState<T extends Obj> {
   message: string | null;
 }
 
-export function useForm<T extends z.ZodObject<any>>(params: {
+export function useForm<T extends ZodTypeAny>(params: {
   zodSchema: T;
   id: string;
   onSubmit: OnSubmit<z.infer<T>>;
@@ -28,11 +28,11 @@ export function useForm<T extends z.ZodObject<any>>(params: {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<z.infer<T>>({} as z.infer<T>);
 
-  // Store schema keys
-  const schemaKeys = Object.keys(params.zodSchema.shape);
+  // Extract base schema if wrapped in ZodEffects
+  const baseSchema = params.zodSchema instanceof ZodEffects ? params.zodSchema._def.schema : params.zodSchema;
+  const schemaKeys = Object.keys((baseSchema as ZodObject<any>).shape);
   const ids = schemaKeys;
 
-  // Deep copy helper
   const cloneFields = (fields: Fields<z.infer<T>>): Fields<z.infer<T>> =>
     Object.fromEntries(
       Object.entries(fields).map(([key, value]) => [
@@ -41,7 +41,6 @@ export function useForm<T extends z.ZodObject<any>>(params: {
       ])
     ) as Fields<z.infer<T>>;
 
-  // Define initial fields
   const initialFields: Fields<z.infer<T>> = schemaKeys.reduce(
     (acc, field) => ({
       ...acc,
@@ -50,28 +49,20 @@ export function useForm<T extends z.ZodObject<any>>(params: {
     {} as Fields<z.infer<T>>
   );
 
-  // Set fields state
-  const [fields, setFields] = useState<Fields<z.infer<T>>>(
-    cloneFields(initialFields)
-  );
+  const [fields, setFields] = useState<Fields<z.infer<T>>>(cloneFields(initialFields));
 
   function validateAndShowError(rawData: any) {
     const result = params.zodSchema.safeParse(rawData || {});
     if (!result.success) {
       const flattenedErrors = result.error.flatten().fieldErrors;
-
-      // Create a deep copy of `initialFields` and update errors
       const newFields = cloneFields(initialFields);
       for (const field of ids) {
         newFields[field].errors = flattenedErrors[field] || [];
       }
-
       setFields(newFields);
       return false;
     }
-
-    console.log("Reset", initialFields);
-    setFields(cloneFields(initialFields)); // Ensure deep copy on reset
+    setFields(cloneFields(initialFields));
     return true;
   }
 
@@ -79,7 +70,6 @@ export function useForm<T extends z.ZodObject<any>>(params: {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Ensure data is always fresh
     setData((prevData) => {
       const newData = { ...prevData };
       if (!validateAndShowError(newData)) {
@@ -112,7 +102,6 @@ export function useForm<T extends z.ZodObject<any>>(params: {
           setIsSubmitting(false);
         }
       })();
-
       return newData;
     });
   };
@@ -126,32 +115,20 @@ export function useForm<T extends z.ZodObject<any>>(params: {
 
   useEffect(() => {
     const handleChange = debounce((e: Event) => {
-      const target = e.target as
-        | HTMLInputElement
-        | HTMLTextAreaElement
-        | HTMLSelectElement;
-
+      const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
       if (target && target.id && ids.includes(target.id)) {
         setData((prevData) => {
           const newData = { ...prevData, [target.id]: target.value };
           if (validateAndShowError(newData)) {
-            console.log("Reset", initialFields);
-            setFields(cloneFields(initialFields)); // Ensure deep copy
+            setFields(cloneFields(initialFields));
           }
           return newData;
         });
       }
     });
-
     document.addEventListener("input", handleChange);
-    return () => {
-      document.removeEventListener("input", handleChange);
-    };
+    return () => document.removeEventListener("input", handleChange);
   }, []);
 
-  return {
-    isSubmitting,
-    form,
-    fields,
-  };
+  return { isSubmitting, form, fields };
 }

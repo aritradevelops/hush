@@ -7,6 +7,7 @@ import Searchable from "../decorators/searchable";
 import { PrimaryColumns } from "../lib/primary-columns";
 import { hash } from "../utils/string";
 
+
 @Entity({ name: 'users' })
 export default class User extends PrimaryColumns {
   @Expose()
@@ -41,7 +42,6 @@ export default class User extends PrimaryColumns {
   @Column('varchar', { length: 255 })
   password!: string;
 
-
   @Expose()
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
@@ -55,6 +55,12 @@ export default class User extends PrimaryColumns {
   @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
   /** will be updated on reset password request */
   reset_password_hash!: string | null;
+
+  @Expose()
+  @Index({ unique: true })
+  @Column({ type: Date, nullable: true })
+  /** will be updated on reset password request */
+  reset_password_hash_expiry!: Date | null;
 
   @Expose()
   @IsString({ each: true })

@@ -8,11 +8,12 @@ import { PasswordInput } from "@/components/password-input"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { RegisterSchema } from "@/schemas/auth"
 import { useForm } from "@/hooks/use-form"
-import httpClient, { HttpClient } from "@/lib/httpClient"
+import httpClient from "@/lib/httpClient"
+import { RegisterSchema, ResetPasswordSchema } from "@/schemas/auth"
+import { useRouter, useSearchParams } from "next/navigation"
 
-export default function RegisterPage() {
+export default function ResetPasswordPage() {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Branding Section */}
@@ -63,7 +64,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Registration Form Section */}
+      {/* Form Section */}
       <div className="flex flex-1 items-center justify-center p-8 md:w-1/2">
         <div className="w-full max-w-md space-y-8">
           <div className="flex justify-between items-center min-w-2.5">
@@ -83,23 +84,27 @@ export default function RegisterPage() {
           </div>
 
           <div className="space-y-2 text-center">
-            <h2 className="text-3xl font-bold">Create your account</h2>
-            <p className="text-muted-foreground">Enter your information to get started</p>
+            <h2 className="text-3xl font-bold">Reset your password</h2>
+            <p className="text-muted-foreground">Enter your new password</p>
           </div>
 
-          <RegistrationForm />
+          <ResetPasswordForm />
         </div>
       </div>
     </div>
   )
 }
 
-function RegistrationForm() {
+function ResetPasswordForm() {
+  const searchParams = useSearchParams();
+  const hash = searchParams.get('hash');
+  const router = useRouter();
+  if (!hash) router.push('/notfound');
   const { form, fields, isSubmitting } = useForm({
     id: 'register',
-    zodSchema: RegisterSchema,
+    zodSchema: ResetPasswordSchema,
     onSubmit: async (data) => {
-      return httpClient.register(data)
+      return httpClient.resetPassword({ ...data, hash: hash! })
     }
   })
   return (
@@ -107,33 +112,7 @@ function RegistrationForm() {
       <form id={form.id} onSubmit={form.onSubmit} noValidate>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor={fields.name.id}>Full Name</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id={fields.name.id} placeholder="Enter your full name" className="pl-10" />
-            </div>
-            {
-              fields.name.errors?.map((errorMessage, idx) => (
-                <Message variant={"error"} message={errorMessage} key={idx} />
-              ))
-            }
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={fields.email.id}>Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input id={fields.email.id} type="email" placeholder="Enter your email" className="pl-10" />
-            </div>
-            {
-              fields.email.errors?.map((errorMessage, idx) => (
-                <Message variant={"error"} message={errorMessage} key={idx} />
-              ))
-            }
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={fields.password.id}>Password</Label>
+            <Label htmlFor={fields.password.id}>New Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <PasswordInput id={fields.password.id} required className="pl-8" placeholder="Create new password" />
@@ -144,12 +123,25 @@ function RegistrationForm() {
               ))
             }
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor={fields.confirm_password.id}>Confirm Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <PasswordInput id={fields.confirm_password.id} required className="pl-8" placeholder="Confirm new password" />
+            </div>
+            {
+              fields.confirm_password.errors?.map((errorMessage, idx) => (
+                <Message variant={"error"} message={errorMessage} key={idx} />
+              ))
+            }
+          </div>
           {
             form.state !== 'none' && <Message variant={form.state} message={form.message!} />
           }
           <div className="space-y-2">
             <Button className="w-full cursor-pointer" type="submit">
-              {isSubmitting ? "Creating Account..." : "Create account"}
+              {isSubmitting ? "Resetting Password..." : "Reset Password"}
             </Button>
           </div>
         </div>

@@ -7,7 +7,7 @@ import Route from "../decorators/route";
 import User from "../entities/user";
 import { BadRequestError } from "../errors/http/bad-request.error";
 import env from "../lib/env";
-import { SignIn } from "../schemas/sign-in";
+import { ForgotPassword, ResetPassword, SignIn, VerifyEmail } from "../schemas/auth";
 import authService, { AuthService } from "../services/auth.service";
 import CrudController from "../utils/crud-controller";
 @Route('auth')
@@ -26,20 +26,22 @@ export class AuthController extends CrudController<typeof User, AuthService> {
       data: data
     };
   }
-  @GET()
+  @POST()
   async verifyEmail(req: Request, res: Response) {
-    if (!req.query.hash || typeof req.query.hash !== 'string') {
-      res.render('verify-email', {
-        verified: false
-      });
-    }
-    const foundAndVerified = await this.service.verifyEmail(req.query.hash as string)
-    if (!foundAndVerified.success) res.render('verify-email', {
-      verified: false
-    });
-    res.render('verify-email', {
-      verified: true
+    const verifyEmailSchema = plainToInstance(VerifyEmail, req.body)
+    await validateOrReject(verifyEmailSchema, {
+      validationError: {
+        transformFunction: (key: string) => req.t(`validation.${key}`)
+      },
     })
+    const foundAndVerified = await this.service.verifyEmail(req.body.hash as string)
+    if (!foundAndVerified.success) throw new BadRequestError()
+    return {
+      message: req.t('user.verified_email'),
+      data: {
+        verified: true
+      }
+    }
   }
   @POST()
   async signIn(req: Request, res: Response) {
@@ -60,6 +62,36 @@ export class AuthController extends CrudController<typeof User, AuthService> {
         access_token_expiry,
         refresh_token_expiry
       }
+    }
+  }
+
+  @POST()
+  async forgotPassword(req: Request, res: Response) {
+    const forgotPasswordSchema = plainToInstance(ForgotPassword, req.body)
+    await validateOrReject(forgotPasswordSchema, {
+      validationError: {
+        transformFunction: (key: string) => req.t(`validation.${key}`)
+      },
+    })
+    const data = await this.service.forgotPassword(req.body.email as string)
+    return {
+      message: req.t('user.forgot_password'),
+      data
+    }
+  }
+
+  @POST()
+  async resetPassword(req: Request, res: Response) {
+    const resetPasswordSchema = plainToInstance(ResetPassword, req.body)
+    await validateOrReject(resetPasswordSchema, {
+      validationError: {
+        transformFunction: (key: string) => req.t(`validation.${key}`)
+      },
+    })
+    await this.service.resetPassword(resetPasswordSchema.hash, resetPasswordSchema.password)
+    return {
+      message: req.t('user.reset_password'),
+      data: {}
     }
   }
 

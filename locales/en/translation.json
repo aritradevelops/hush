@@ -20,14 +20,17 @@
     "minLength": "The minimum length is not attained!",
     "isStrongPassword": "The password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
     "isEmail": "The email must be a valid email address.",
-    "isUnique": "The email must be unique."
+    "isUnique": "The email must be unique.",
+    "passwordMismatch": "The passwords do not match."
   },
   "db": {
     "isUnique": "The {{key}} already exists."
   },
   "user": {
     "registered": "Verification email sent! Please check your inbox to verify your email.",
-    "signed_in": "Signed in successfully!"
+    "signed_in": "Signed in successfully!",
+    "forgot_password": "Reset password email sent! Please check your inbox to reset your password",
+    "reset_password": "Password reset successfully! Please login with your new password."
   },
   "invalid_email_or_password": "The provided email or password is invalid.",
   "invalid_json_body": "The given payload is not valid JSON.",

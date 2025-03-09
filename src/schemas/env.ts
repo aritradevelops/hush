@@ -1,5 +1,5 @@
 import { ToInt } from "class-sanitizer";
-import { IsIn, IsNotEmpty, IsNumberString, IsOptional, IsString, MinLength } from "class-validator-custom-errors";
+import { IsIn, IsNotEmpty, IsNumberString, IsOptional, IsString, IsUrl, MinLength } from "class-validator-custom-errors";
 
 export const NodeEnv = ['development', 'production', 'test'] as const;
 export const AppEnv = ['local', 'development', 'staging', 'production', 'test'] as const;
@@ -48,6 +48,12 @@ export class Env {
   @IsNotEmpty()
   @MinLength(10)
   JWT_SECRET!: string
+
+
+  @IsString()
+  @IsNotEmpty()
+  @IsUrl({ require_tld: false })
+  CLIENT_DOMAIN!: string;
 
   get ROOT() {
     return this.NODE_ENV === 'production' ? 'dist' : 'src';

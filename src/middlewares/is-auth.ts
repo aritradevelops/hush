@@ -3,7 +3,8 @@ import { jwtVerify } from "jose";
 import env from "../lib/env";
 import { UnauthenticatedError } from "../errors/http/unauthenticated.error";
 
-const publcRoutes = ['auth_sign-in', 'auth_sign-up', 'auth_verify-email']
+// TODO: handle this via decorator
+const publcRoutes = ['auth_sign-in', 'auth_sign-up', 'auth_verify-email', 'auth_forgot-password', 'auth_reset-password']
 export const isAuth = () => {
   return async function (req: Request, res: Response, next: NextFunction) {
     const identifier = req.params.module + '_' + req.params.action
