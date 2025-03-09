@@ -55,6 +55,20 @@ export class Env {
   @IsUrl({ require_tld: false })
   CLIENT_DOMAIN!: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @IsUrl()
+  GOOGLE_CLIENT_ID!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  GOOGLE_CLIENT_SECRET!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsUrl()
+  GOOGLE_OAUTH_REDIRECT_URI!: string;
+
   get ROOT() {
     return this.NODE_ENV === 'production' ? 'dist' : 'src';
   }

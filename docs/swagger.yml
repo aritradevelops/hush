@@ -3756,6 +3756,14 @@ components:
         - encrypted_shared_secret
         - room_id
         - user_id
+    Oauth:
+      properties:
+        title:
+          minLength: 3
+          type: string
+      type: object
+      required:
+        - title
   securitySchemes:
     petstore_auth:
       type: oauth2

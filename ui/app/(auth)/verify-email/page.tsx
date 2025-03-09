@@ -7,7 +7,7 @@ import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { SiTicktick } from 'react-icons/si';
 import { RxCrossCircled } from 'react-icons/rx';
-import httpClient from '@/lib/httpClient';
+import httpClient from '@/lib/http-client';
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
