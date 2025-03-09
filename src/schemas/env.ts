@@ -66,8 +66,19 @@ export class Env {
 
   @IsString()
   @IsNotEmpty()
-  @IsUrl()
   GOOGLE_OAUTH_REDIRECT_URI!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  FACEBOOK_CLIENT_ID!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  FACEBOOK_CLIENT_SECRET!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  FACEBOOK_OAUTH_REDIRECT_URI!: string;
 
   get ROOT() {
     return this.NODE_ENV === 'production' ? 'dist' : 'src';

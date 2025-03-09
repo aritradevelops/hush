@@ -3509,6 +3509,271 @@ paths:
       security:
         - auth:
             - delete.secrets
+  /oauth:
+    get:
+      tags:
+        - Oauth
+      summary: list Oauths
+      description: Retrieve a list of Oauths
+      operationId: list-oauth-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Oauth"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.oauth
+  /oauth/create:
+    post:
+      tags:
+        - Oauth
+      summary: create a new Oauth
+      description: create a new Oauth
+      operationId: create-oauth-post
+      requestBody:
+        description: create a new Oauth
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Oauth"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Oauth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.oauth
+  /oauth/view/{id}:
+    get:
+      tags:
+        - Oauth
+      summary: view details of an existing Oauth
+      description: Retrieve details of an existing Oauth by ID
+      operationId: view-oauth-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Oauth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Oauth"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.oauth
+  /oauth/update/{id}:
+    put:
+      tags:
+        - Oauth
+      summary: update an existing Oauth
+      description: update an existing Oauth
+      operationId: update-oauth-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Oauth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Oauth. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Oauth"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Oauth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.oauth
+  /oauth/delete/{id}:
+    delete:
+      tags:
+        - Oauth
+      summary: delete an existing Oauth
+      description: delete an existing Oauth
+      operationId: delete-oauth-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Oauth
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Oauth"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.oauth
 components:
   schemas:
     Book:
@@ -3690,7 +3955,7 @@ components:
           format: url
           type: string
         password:
-          type: string
+          $ref: "#/definitions/Object"
         reset_password_hash:
           type: string
         contacts:
@@ -3703,7 +3968,6 @@ components:
       required:
         - name
         - email
-        - password
     Session:
       properties:
         user_ip:

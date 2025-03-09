@@ -4,7 +4,7 @@ import env from "../lib/env";
 import { UnauthenticatedError } from "../errors/http/unauthenticated.error";
 
 // TODO: handle this via decorator
-const publcRoutes = ['auth_sign-in', 'auth_sign-up', 'auth_verify-email', 'auth_forgot-password', 'auth_reset-password', 'auth_callback']
+const publcRoutes = ['auth_sign-in', 'auth_sign-up', 'auth_verify-email', 'auth_forgot-password', 'auth_reset-password', 'oauth_callback']
 export const isAuth = () => {
   return async function (req: Request, res: Response, next: NextFunction) {
     const identifier = req.params.module + '_' + req.params.action

@@ -35,13 +35,14 @@ export default class User extends PrimaryColumns {
   @Column({ type: "text", nullable: true })
   dp?: string;
 
+  // TODO: implement group wise password checking
   @Expose()
   @Trim()
   @IsStrongPassword({ minLength: 8, minLowercase: 1, minNumbers: 1, minSymbols: 1, minUppercase: 1 })
   @IsOptional()
   @Transform(({ value }) => value ? hash(value) : undefined)
-  @Column('varchar', { length: 255 })
-  password!: string;
+  @Column('varchar', { length: 255, nullable: true })
+  password?: string | null;
 
   @Expose()
   @Index({ unique: true })
