@@ -1,12 +1,8 @@
-import React from 'react'
-import Menu from './menu'
-import ChatSideBar from './chat-sidebar'
 
-export default function Chats() {
+export default function ChatsBranding() {
   return (
-    <main className='w-full h-lvh flex'>
-      <Menu />
-      <ChatSideBar />
-    </main>
+    <div className='w-full h-full flex justify-center items-center'>
+      <h1 className='text-2xl text-center'>Welcome To Hush</h1>
+    </div>
   )
 }
