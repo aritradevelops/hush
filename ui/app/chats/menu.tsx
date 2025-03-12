@@ -1,15 +1,5 @@
-import React from 'react'
-import { PiChatsCircle } from "react-icons/pi";
-import { IoCallOutline, IoSettingsOutline } from "react-icons/io5";
 import { MessageSquareText, Phone, Settings } from 'lucide-react';
-
-// Font awesome pixel sizes relative to the multiplier. 
-// 1x - 14px
-// 2x - 28px
-// 3x - 42px
-// 4x - 56px
-// 5x - 70px
-const iconSize = 35;
+import React from 'react';
 
 interface MenuOptionProps {
   icon: React.ReactNode;
@@ -31,7 +21,7 @@ function MenuOption({ icon, label, onClick }: MenuOptionProps) {
 
 export default function Menu() {
   return (
-    <div className='absolute bottom-0 left-0 w-full h-16 flex bg-primary/5 sm:relative sm:flex-col sm:w-16 sm:h-lvh sm:pt-5'>
+    <div className='absolute bottom-0 left-0 w-full h-16 flex bg-background z-10 sm:relative sm:flex-col sm:w-16 sm:h-lvh sm:pt-5'>
       <MenuOption icon={<MessageSquareText />} label="Chats" />
       <MenuOption icon={<Settings />} label="Calls" />
       <MenuOption icon={<Phone />} label="Settings" />

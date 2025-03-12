@@ -207,8 +207,8 @@ function FilterTabs({ activeTab, setActiveTab }: HeaderProps): JSX.Element {
 
 function ContactList({ contacts, selectedContactId, setSelectedContactId }: ContactListProps): JSX.Element {
   return (
-    <ScrollArea className="overflow-y-auto overflow-x-clip">
-      <div className="px-2">
+    <ScrollArea className="overflow-y-auto">
+      <div className="px-2 w-full">
         {contacts.map((contact) => (
           <ContactItem
             key={contact.id}
@@ -229,14 +229,13 @@ function ContactItem({ contact, isSelected, onClick }: ContactItemProps): JSX.El
   };
 
   return (
-    // TODO: fix this 70% thing
     <div
-      className={`p-3 rounded-lg mb-1 flex cursor-pointer transition-colors w-[70%]
+      className={`p-3 rounded-lg mb-1 flex cursor-pointer transition-colors w-full
         ${isSelected ? 'bg-primary/20' : 'hover:bg-primary/10'}`}
       onClick={onClick}
     >
       {/* Avatar */}
-      <div className="relative mr-3">
+      <div className="relative mr-3 flex-shrink-0">
         <Avatar>
           <AvatarImage src={contact.avatar} alt="@shadcn" />
           <AvatarFallback>CN</AvatarFallback>
@@ -247,23 +246,23 @@ function ContactItem({ contact, isSelected, onClick }: ContactItemProps): JSX.El
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex justify-between items-center">
           <h3 className={`text-sm font-medium truncate ${!contact.isRead ? 'font-bold' : ''}`}>
             {contact.name}
           </h3>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
+          <span className="text-xs text-muted-foreground whitespace-nowrap ml-2 flex-shrink-0">
             {formatTime(contact.timestamp)}
           </span>
         </div>
 
-        <div className="flex justify-between items-center mt-1">
-          <p className={`text-xs truncate text-muted-foreground ${!contact.isRead ? 'font-medium text-foreground' : ''}`}>
+        <div className="flex justify-between items-center mt-1 max-w-full">
+          <div className={`flex-1text-xs line-clamp-1 text-muted-foreground max-w-full ${!contact.isRead ? 'font-medium text-foreground' : ''}`}>
             {contact.lastMessage}
-          </p>
+          </div>
 
           {contact.unreadCount > 0 && (
-            <Badge variant="default" className="ml-2 rounded-full h-5 w-5 flex items-center justify-center p-0 text-xs">
+            <Badge variant="default" className="ml-2 rounded-full h-5 w-5 flex items-center justify-center p-0 text-xs flex-shrink-0">
               {contact.unreadCount}
             </Badge>
           )}
