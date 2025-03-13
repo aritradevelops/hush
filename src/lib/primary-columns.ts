@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 
@@ -37,5 +37,13 @@ export class PrimaryColumns extends BaseEntity {
   deleted_by!: string | null;
 
   @Column('tsvector', { select: false, nullable: true })
+  @Index()
+  /** 
+   * A precomputed search vector that indexes all relevant searchable fields  
+   * of the entity. This column is automatically updated on entity creation  
+   * and modification, enabling efficient full-text search queries.  
+   * It improves search performance by consolidating multiple fields into  
+   * a single indexed column, reducing the need for complex filtering.  
+   */
   search: any;
 }

@@ -1,5 +1,6 @@
 import { ToBoolean, ToInt, Trim } from "class-sanitizer";
 import { IsIn, IsNumberString, IsObject, IsOptional, IsString } from "class-validator-custom-errors";
+import { ClauseMap } from "../utils/clauses";
 
 export class ListParams {
   @IsString()
@@ -28,7 +29,7 @@ export class ListParams {
   trash: boolean = false;
   @IsOptional()
   @IsObject()
-  where_clause: Record<string, unknown> = {};
+  where_clause: ClauseMap = {};
   @IsOptional()
   @IsString()
   select = '';
