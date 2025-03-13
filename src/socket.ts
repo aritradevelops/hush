@@ -1,10 +1,11 @@
 import type { Server } from "socket.io";
 import logger from "./utils/logger";
 import chatRepository from "./repositories/chat.repository";
+import { UUID } from "node:crypto";
 
 interface Message {
   message: string;
-  room_id: string;
+  channel_id: UUID;
   from_id: string;
   iv: string;
 }
@@ -13,22 +14,22 @@ export function registerSocketHandler(io: Server) {
     logger.info('New user connected:', socket.id)
 
 
-    socket.on('join', (room_id: string) => {
-      socket.join(room_id)
+    socket.on('join', (channel_id: UUID) => {
+      socket.join(channel_id)
     })
 
 
     socket.on("message", async (msg: Message) => {
-      logger.info(`Message received: ${msg.message} from ${msg.from_id} in ${msg.room_id}`)
+      logger.info(`Message received: ${msg.message} from ${msg.from_id} in ${msg.channel_id}`)
       const chat = await chatRepository.create({
         created_at: new Date(),
         message: msg.message,
-        room_id: msg.room_id,
+        channel_id: msg.channel_id,
         created_by: msg.from_id,
         iv: msg.iv,
         unread: true,
       })
-      socket.broadcast.to(msg.room_id).emit("private-message", msg, async () => {
+      socket.broadcast.to(msg.channel_id).emit("private-message", msg, async () => {
         await chatRepository.update({ id: chat.raw.id }, { unread: false })
       });
     });

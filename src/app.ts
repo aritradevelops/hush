@@ -11,11 +11,12 @@ import { Router } from "./utils/router";
 import translator from "./utils/translator";
 import userRepository from "./repositories/user.repository";
 import chatRepository from "./repositories/chat.repository";
+import env from "./lib/env";
 const app = express();
 const router = new Router();
 app.set('trust proxy', true)
 app.set('view engine', 'ejs');
-app.use(cors({ origin: 'http://localhost:3000', exposedHeaders: ['Access-Control-Allow-Origin'] }))
+app.use(cors({ origin: env.get('CLIENT_URL'), credentials: true }))
 app.use(translator.translate());
 app.use(express.json({
   verify: (req: Request, res, buf, encoding) => {

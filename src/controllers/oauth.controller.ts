@@ -32,9 +32,10 @@ export class OauthController extends CrudController<typeof Oauth, OauthService> 
       }
     }
     const { access_token, refresh_token, access_token_expiry, refresh_token_expiry } = result
-    res.cookie('access_token', access_token, { httpOnly: true, expires: access_token_expiry, secure: env.get('NODE_ENV') === 'production', maxAge: (access_token_expiry.getTime() - Date.now()) });
-    res.cookie('refresh_token', refresh_token, { httpOnly: true, expires: refresh_token_expiry, secure: env.get('NODE_ENV') === 'production', maxAge: (refresh_token_expiry.getTime() - Date.now()) });
-    res.redirect(`${env.get('CLIENT_DOMAIN')}/chats`)
+    const clientUrl = new URL(env.get('CLIENT_URL'))
+    res.cookie('access_token', access_token, { httpOnly: true, expires: access_token_expiry, secure: env.get('NODE_ENV') === 'production', maxAge: (access_token_expiry.getTime() - Date.now()), sameSite: env.get('NODE_ENV') === 'production' ? "none" : true, domain: clientUrl.hostname });
+    res.cookie('refresh_token', refresh_token, { httpOnly: true, expires: refresh_token_expiry, secure: env.get('NODE_ENV') === 'production', maxAge: (refresh_token_expiry.getTime() - Date.now()), sameSite: env.get('NODE_ENV') === 'production' ? "none" : true, domain: clientUrl.hostname });
+    res.redirect(`${env.get('CLIENT_URL')}/chats`)
   }
 };
 export default new OauthController();

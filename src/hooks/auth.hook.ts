@@ -27,7 +27,7 @@ export class SignUp extends AuthHook {
         to: [resp.data.email],
         from: 'Hush <notify@authinifinity.com>',
         subject: 'Verify your email',
-      }, new Verification(`${env.get('CLIENT_DOMAIN')}/verify-email?hash=${resp.data.email_verification_hash}`, 'Hush'))
+      }, new Verification(`${env.get('CLIENT_URL')}/verify-email?hash=${resp.data.email_verification_hash}`, 'Hush'))
 
       if (error) {
         logger.critical(error)
@@ -39,7 +39,7 @@ export class SignUp extends AuthHook {
       // @ts-ignore
       resp.data.resend_id = data?.id
     } else {
-      logger.info("Email verification link:", `${env.get('CLIENT_DOMAIN')}/verify-email?hash=${resp.data.email_verification_hash}`)
+      logger.info("Email verification link:", `${env.get('CLIENT_URL')}/verify-email?hash=${resp.data.email_verification_hash}`)
     }
     // @ts-ignore
     delete resp.data.email_verification_hash
@@ -59,7 +59,7 @@ export class ForgotPassword extends AuthHook {
         to: [resp.data.email],
         from: 'Hush <notify@authinifinity.com>',
         subject: 'Reset Your Password',
-      }, new ResetPassword(`${env.get('CLIENT_DOMAIN')}/reset-password?hash=${resp.data.reset_password_hash}`, 'Hush'))
+      }, new ResetPassword(`https://${env.get('CLIENT_URL')}/reset-password?hash=${resp.data.reset_password_hash}`, 'Hush'))
 
       if (error) {
         logger.critical(error)
@@ -69,7 +69,7 @@ export class ForgotPassword extends AuthHook {
       // @ts-ignore
       resp.data.resend_id = data?.id
     } else {
-      logger.info("Reset Password Link:", `${env.get('CLIENT_DOMAIN')}/reset-password?hash=${resp.data.reset_password_hash}`)
+      logger.info("Reset Password Link:", `http://${env.get('CLIENT_URL')}/reset-password?hash=${resp.data.reset_password_hash}`)
     }
   }
 }

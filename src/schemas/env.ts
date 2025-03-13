@@ -53,7 +53,7 @@ export class Env {
   @IsString()
   @IsNotEmpty()
   @IsUrl({ require_tld: false })
-  CLIENT_DOMAIN!: string;
+  CLIENT_URL!: string;
 
   @IsString()
   @IsNotEmpty()

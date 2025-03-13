@@ -10,6 +10,7 @@ import env from "../lib/env";
 import { ForgotPassword, ResetPassword, SignIn, VerifyEmail } from "../schemas/auth";
 import authService, { AuthService } from "../services/auth.service";
 import CrudController from "../utils/crud-controller";
+import { cli } from "winston/lib/winston/config";
 @Route('auth')
 export class AuthController extends CrudController<typeof User, AuthService> {
   constructor() {
@@ -52,8 +53,9 @@ export class AuthController extends CrudController<typeof User, AuthService> {
       },
     })
     const { access_token, refresh_token, access_token_expiry, refresh_token_expiry } = await this.service.signIn(req, signInSchema)
-    res.cookie('access_token', access_token, { httpOnly: true, expires: access_token_expiry, secure: env.get('NODE_ENV') === 'production', maxAge: (access_token_expiry.getTime() - Date.now()) });
-    res.cookie('refresh_token', refresh_token, { httpOnly: true, expires: refresh_token_expiry, secure: env.get('NODE_ENV') === 'production', maxAge: (refresh_token_expiry.getTime() - Date.now()) });
+    const clientUrl = new URL(env.get('CLIENT_URL'))
+    res.cookie('access_token', access_token, { httpOnly: true, expires: access_token_expiry, secure: env.get('NODE_ENV') === 'production', maxAge: (access_token_expiry.getTime() - Date.now()), sameSite: env.get('NODE_ENV') === 'production' ? "none" : true, domain: clientUrl.hostname });
+    res.cookie('refresh_token', refresh_token, { httpOnly: true, expires: refresh_token_expiry, secure: env.get('NODE_ENV') === 'production', maxAge: (refresh_token_expiry.getTime() - Date.now()), sameSite: env.get('NODE_ENV') === 'production' ? "none" : true, domain: clientUrl.hostname });
     return {
       message: req.t('user.signed_in'),
       data: {

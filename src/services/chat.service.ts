@@ -13,8 +13,8 @@ export class ChatService extends CrudService<ChatRepository> {
   async list(req: Request, res: Response, listParams: ListParams): Promise<[PrimaryColumns[], number]> {
     const result = await super.list(req, res, listParams)
     // @ts-ignore
-    const roomId = req.query['where_clause']['room_id'];
-    await this.repository.update({ room_id: roomId, created_by: Not(req.user!.id) }, { unread: false })
+    const roomId = req.query['where_clause']['channel_id'];
+    await this.repository.update({ channel_id: roomId, created_by: Not(req.user!.id) }, { unread: false })
     return result;
   }
 }
