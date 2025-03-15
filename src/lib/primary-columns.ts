@@ -9,6 +9,7 @@ export enum Status {
   INACTIVE,
   LOCKED,
   DEACTIVATED,
+  BLOCKED
 }
 
 export class PrimaryColumns extends BaseEntity {

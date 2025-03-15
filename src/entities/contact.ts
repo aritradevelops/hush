@@ -44,7 +44,4 @@ export default class Contact extends PrimaryColumns {
   /** Refers to the `direct` channel b/w the created_by and the user_id. */
   channel_id!: UUID
 
-  @Column({ type: 'enum', enum: ContactStatus, default: ContactStatus.PENDING })
-  //@ts-ignore
-  status!: ContactStatus;
 }

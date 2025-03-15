@@ -4039,6 +4039,271 @@ paths:
       security:
         - auth:
             - delete.channels
+  /contacts:
+    get:
+      tags:
+        - Contact
+      summary: list Contacts
+      description: Retrieve a list of Contacts
+      operationId: list-contacts-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Contact"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.contacts
+  /contacts/create:
+    post:
+      tags:
+        - Contact
+      summary: create a new Contact
+      description: create a new Contact
+      operationId: create-contacts-post
+      requestBody:
+        description: create a new Contact
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Contact"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Contact"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.contacts
+  /contacts/view/{id}:
+    get:
+      tags:
+        - Contact
+      summary: view details of an existing Contact
+      description: Retrieve details of an existing Contact by ID
+      operationId: view-contacts-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Contact
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Contact"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.contacts
+  /contacts/update/{id}:
+    put:
+      tags:
+        - Contact
+      summary: update an existing Contact
+      description: update an existing Contact
+      operationId: update-contacts-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Contact
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Contact. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Contact"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Contact"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.contacts
+  /contacts/delete/{id}:
+    delete:
+      tags:
+        - Contact
+      summary: delete an existing Contact
+      description: delete an existing Contact
+      operationId: delete-contacts-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Contact
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Contact"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.contacts
 components:
   schemas:
     Book:
@@ -4316,6 +4581,22 @@ components:
       required:
         - type
         - participants
+    Contact:
+      properties:
+        name:
+          minLength: 3
+          type: string
+        user_id:
+          format: uuid
+          type: string
+        channel_id:
+          format: uuid
+          type: string
+      type: object
+      required:
+        - name
+        - user_id
+        - channel_id
   securitySchemes:
     petstore_auth:
       type: oauth2
