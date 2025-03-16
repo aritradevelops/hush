@@ -17,7 +17,6 @@ export class OauthController extends CrudController<typeof Oauth, OauthService> 
   @GET()
   async callback(req: Request, res: Response) {
     let result: Awaited<ReturnType<JwtService['sign']>>
-    console.log(req.params.id)
     switch (req.params.id) {
       case 'google': {
         result = await this.service.handleGoogleCallback(req, res);

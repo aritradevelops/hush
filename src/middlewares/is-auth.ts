@@ -11,7 +11,10 @@ export const isAuth = () => {
     if (publcRoutes.includes(identifier)) {
       return next();
     }
-    const accessToken = req.cookies.access_token
+    let accessToken = req.cookies.access_token
+    if (!accessToken) {
+      accessToken = req.headers['authorization']?.split(' ')[1]
+    }
     try {
       const verified = await jwtVerify(accessToken, Buffer.from(env.get('JWT_SECRET')), {
         algorithms: ['HS256']

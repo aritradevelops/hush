@@ -1,4 +1,5 @@
 
+import { UUID } from "crypto";
 import { GET, PUT } from "../decorators/method";
 import User from "../entities/user";
 import { BadRequestError } from "../errors/http/bad-request.error";
@@ -19,16 +20,14 @@ export class UserController extends CrudController<typeof User, UserService> {
   @GET()
   async publicKey(req: Request) {
     if (!req.params.id) throw new BadRequestError()
-    const result = await this.service.publicKey(req.params.id)
+    const result = await this.service.publicKey(req.params.id as UUID)
     if (!result) throw new NotFoundError()
     return { public_key: result };
   }
   @PUT()
   async addPublicKey(req: Request) {
     const key = req.body.public_key
-    console.log(key)
     if (!key || !key.length) throw new BadRequestError()
-    console.log(req.user?.id)
     await this.service.addPublicKey(req.user!.id, key)
     return null;
   }

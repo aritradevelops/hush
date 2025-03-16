@@ -25,6 +25,7 @@ export function registerSocketHandler(io: Server) {
         created_at: new Date(),
         message: msg.message,
         channel_id: msg.channel_id,
+        // @ts-ignore
         created_by: msg.from_id,
         iv: msg.iv,
         unread: true,

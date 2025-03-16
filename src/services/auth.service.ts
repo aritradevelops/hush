@@ -11,8 +11,9 @@ import { generateHash, hash } from "../utils/string";
 import jwtService from "./jwt.service";
 import ms from 'ms'
 import { NotFoundError } from '../errors/http/not-found.error';
+import { UUID } from 'crypto';
 export class AuthService extends CrudService<AuthRepository> {
-  globalCreatedBy = '9d78bc6f-8fba-4387-81b2-f53d4b41e5b4'
+  globalCreatedBy = '9d78bc6f-8fba-4387-81b2-f53d4b41e5b4' as UUID
   constructor() {
     super(authRepository);
   }

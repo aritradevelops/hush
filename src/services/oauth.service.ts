@@ -115,7 +115,6 @@ export class OauthService extends CrudService<UserRepository> {
     const resp2 = await axios.get<FacebookUserResult>(
       `https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=${resp.data.access_token}`
     );
-    console.log(resp2.data)
     const user = await this.syncAndFetchFacebookUser(resp2.data);
     return await jwtService.sign(user)
   }

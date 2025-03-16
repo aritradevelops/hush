@@ -1,3 +1,4 @@
+import { UUID } from "crypto";
 import { BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
@@ -14,7 +15,7 @@ export enum Status {
 
 export class PrimaryColumns extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
-  id!: string;
+  id!: UUID;
 
   @Column({ type: 'enum', enum: Status, default: Status.DRAFT })
   status!: Status
@@ -28,14 +29,14 @@ export class PrimaryColumns extends BaseEntity {
   @Column({ nullable: true, type: Date })
   deleted_at!: Date | null;
 
-  @Column()
-  created_by!: string;
+  @Column({ type: "uuid" })
+  created_by!: UUID;
 
-  @Column({ nullable: true, type: String })
-  updated_by!: string | null;
+  @Column({ nullable: true, type: "uuid" })
+  updated_by!: UUID | null;
 
-  @Column({ nullable: true, type: String })
-  deleted_by!: string | null;
+  @Column({ nullable: true, type: 'uuid' })
+  deleted_by!: UUID | null;
 
   @Column('tsvector', { select: false, nullable: true })
   @Index()

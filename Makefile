@@ -69,4 +69,4 @@ db-stop:
 	cd db && $(DOCKER_COMPOSE) down
 
 db-attach:
-	$(DOCKER_EXEC) chat-app-postgres psql -U postgres -d chat-app
+	$(DOCKER_EXEC) chat-app-postgres psql -U postgres -d barebone

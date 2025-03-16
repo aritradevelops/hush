@@ -1,6 +1,8 @@
-import { IsString } from "class-validator-custom-errors";
+import { IsString, IsUUID } from "class-validator-custom-errors";
+import { UUID } from "crypto";
 
 export class HasId {
   @IsString()
-  id!: string;
+  @IsUUID('4')
+  id!: UUID;
 }
