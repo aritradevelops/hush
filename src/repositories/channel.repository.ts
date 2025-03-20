@@ -1,10 +1,14 @@
 
+import { UUID } from "node:crypto";
 import Channel from "../entities/channel";
 import { Repository } from "../lib/repository";
 
 export class ChannelRepository extends Repository<typeof Channel> {
   constructor() {
     super(Channel);
+  }
+  async forUser(userId: UUID, search: string){
+
   }
 
   async groupChats(userId: string) {
