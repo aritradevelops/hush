@@ -10,7 +10,7 @@ import { NotFoundError } from "../errors/http/not-found.error";
 import Controller from "../lib/controller";
 import env from "../lib/env";
 import hookManager from "../lib/hook-manager";
-import { camelToKebab, kebabToCamel, pascalToCamel } from "../utils/string";
+import { camelToKebab, kebabToCamel, pascalToCamel } from "./string";
 import logger from "./logger";
 export class Router {
   protected store = new Map<string, Controller>();
