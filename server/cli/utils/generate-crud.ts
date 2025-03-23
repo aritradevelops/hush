@@ -81,7 +81,10 @@ export class Destroy extends ${modelName}Hook { }
 export class Restore extends ${modelName}Hook { }
   `
 };
-
+/**
+ * 
+ * @param moduleName {uuid} - The name of the module to generate the CRUD for
+ */
 export async function generateCRUD(moduleName: string) {
   const kebabCaseName = pascalToKebab(moduleName);
 

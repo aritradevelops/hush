@@ -1,7 +1,8 @@
 {
   "name": "barebone",
   "scripts": {
-    "dev": "nodemon --legacy-watch --files src/index.ts",
+    "dev": "nodemon --legacy-watch --files src/index.ts src/queries.sql",
+    "test": "tsx src/test.ts",
     "prod": "NODE_ENV=production node dist/index.js",
     "prod:watch": "NODE_ENV=production nodemon --hot dist/index.js",
     "cli": "NODE_ENV=development ts-node -T cli/index.ts",
@@ -23,6 +24,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "class-validator-custom-errors": "^0.0.5",
+    "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -59,6 +61,7 @@
     "class-validator-jsonschema": "^5.0.1",
     "commander": "^12.1.0",
     "nodemon": "^3.1.7",
+    "pg-minify": "^1.7.0",
     "string-template": "^1.0.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",

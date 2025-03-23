@@ -6,7 +6,7 @@ import { BadRequestError } from "./errors/http/bad-request.error";
 import { NotFoundError } from "./errors/http/not-found.error";
 import db from "./lib/db";
 import errorHandler from "./lib/error-handler";
-import { isAuth } from "./middlewares/is-auth";
+import { isAuthRequest } from "./middlewares/is-auth";
 import { Router } from "./utils/router";
 import translator from "./utils/translator";
 import userRepository from "./repositories/user.repository";
@@ -34,7 +34,7 @@ app.use('/assets', express.static('views/assets'));
 app.get('/', (req, res) => {
   res.render('index');
 })
-app.get('/chats', isAuth(), async (req, res, next) => {
+app.get('/chats', isAuthRequest(), async (req, res, next) => {
   const user = await userRepository.view({ id: req.user?.id })
   if (!user) throw new NotFoundError()
   const contacts = await userRepository.getContacts(user!.contacts)
@@ -47,7 +47,7 @@ app.get('/chats', isAuth(), async (req, res, next) => {
       // first_name: user?.first_name,
       // last_name: user?.last_name,
       email: user?.email,
-      dp: user?.dp,
+      avatar: user?.avatar,
       contacts
     },
     scripts: `
@@ -57,7 +57,7 @@ app.get('/chats', isAuth(), async (req, res, next) => {
       // first_name: user?.first_name,
       // last_name: user?.last_name,
       email: user?.email,
-      dp: user?.dp,
+      avatar: user?.avatar,
       contacts
     })}
     var current_chat = null;
@@ -66,7 +66,7 @@ app.get('/chats', isAuth(), async (req, res, next) => {
   })
 })
 
-app.get('/setup-encryption', isAuth(), async (req, res, next) => {
+app.get('/setup-encryption', isAuthRequest(), async (req, res, next) => {
   const user = await userRepository.view({ id: req.user?.id })
   if (!user) throw new NotFoundError()
   res.render('setup-encryption', {
@@ -75,7 +75,7 @@ app.get('/setup-encryption', isAuth(), async (req, res, next) => {
       // first_name: user?.first_name,
       // last_name: user?.last_name,
       email: user?.email,
-      dp: user?.dp,
+      avatar: user?.avatar,
     },
     scripts: `
     <script> 
@@ -84,7 +84,7 @@ app.get('/setup-encryption', isAuth(), async (req, res, next) => {
       // first_name: user?.first_name,
       // last_name: user?.last_name,
       email: user?.email,
-      dp: user?.dp,
+      avatar: user?.avatar,
     })}
     var current_chat = null;
     </script>
@@ -101,7 +101,7 @@ views.forEach((view) => {
 });
 app.get('/v1/ready', (_req, res) => { res.json({ message: 'OK' }); });
 app.get('/v1/health-check', async (_req, res) => { res.json({ db: await db.healthCheck() }); });
-app.all('/v1/:module/:action?/:id?', isAuth(), router.handle);
+app.all('/v1/:module/:action?/:id?', isAuthRequest(), router.handle);
 app.all('*', (_, __, next) => { next(new NotFoundError()) });
 app.use(errorHandler());
 

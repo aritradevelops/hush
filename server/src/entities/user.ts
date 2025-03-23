@@ -33,7 +33,7 @@ export default class User extends PrimaryColumns {
   @IsOptional()
   @Trim()
   @Column({ type: "text", nullable: true })
-  dp?: string;
+  avatar?: string;
 
   // TODO: implement group wise password checking
   @Expose()
@@ -81,7 +81,7 @@ export default class User extends PrimaryColumns {
       id: this.id,
       name: this.name,
       email: this.email,
-      dp: this.dp,
+      avatar: this.avatar,
       // password: this.password, // password is not returned in json
       // email_verification_hash: this.email_verification_hash,
       // reset_password_hash: this.reset_password_hash

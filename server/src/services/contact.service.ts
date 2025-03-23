@@ -1,13 +1,18 @@
 
+import { Request, Response } from "express";
+import { UUID } from "node:crypto";
 import contactRepository, { ContactRepository } from "../repositories/contact.repository";
 import CrudService from "../utils/crud-service";
-import { Request, Response } from "express";
 export class ContactService extends CrudService<ContactRepository> {
   constructor() {
     super(contactRepository);
   }
-  async directChats(req: Request, res: Response) {
-    return await this.repository.directChats(req.user?.id!)
+
+  async addContact(req: Request, res: Response, id: UUID) {
+    const userId = req.user?.id!
+    const result = await this.repository.addNewContact(userId, id)
+    // TODO: send socket event to the new contact
+    return result
   }
 }
 export default new ContactService();

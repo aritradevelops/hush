@@ -48,7 +48,7 @@ export default abstract class CrudController<U extends typeof PrimaryColumns = t
   }
   @GET()
   async view(req: Request, res: Response) {
-    const instance = plainToInstance(HasId, req.query);
+    const instance = plainToInstance(HasId, req.params);
     const sanitized = await sanitizeAsync(instance);
     const data = await this.service.view(req, res, sanitized.id);
     if (!data) throw new NotFoundError();
@@ -59,7 +59,7 @@ export default abstract class CrudController<U extends typeof PrimaryColumns = t
   }
   @PUT()
   async update(req: Request, res: Response) {
-    const instance = plainToInstance(HasId, req.query);
+    const instance = plainToInstance(HasId, req.params);
     const sanitizedQuery = await sanitizeAsync(instance);
     const body = await req.body;
     const sanitized = await this._validate(body, req.t, true);
@@ -72,7 +72,7 @@ export default abstract class CrudController<U extends typeof PrimaryColumns = t
   }
   @DELETE()
   async delete(req: Request, res: Response) {
-    const instance = plainToInstance(HasId, req.query);
+    const instance = plainToInstance(HasId, req.params);
     const sanitized = await sanitizeAsync(instance);
     const data = await this.service.delete(req, res, sanitized.id);
     if (!data.affected) throw new NotFoundError();
@@ -83,7 +83,7 @@ export default abstract class CrudController<U extends typeof PrimaryColumns = t
   }
   @PATCH()
   async restore(req: Request, res: Response) {
-    const instance = plainToInstance(HasId, req.query);
+    const instance = plainToInstance(HasId, req.params);
     const sanitized = await sanitizeAsync(instance);
     const data = await this.service.restore(req, res, sanitized.id);
     if (!data.affected) throw new NotFoundError();
@@ -94,7 +94,7 @@ export default abstract class CrudController<U extends typeof PrimaryColumns = t
   }
   @DELETE()
   async destroy(req: Request, res: Response) {
-    const instance = plainToInstance(HasId, req.query);
+    const instance = plainToInstance(HasId, req.params);
     const sanitized = await sanitizeAsync(instance);
     const data = await this.service.destroy(req, res, sanitized.id);
     if (!data.affected) throw new NotFoundError();

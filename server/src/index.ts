@@ -1,18 +1,15 @@
 import 'dotenv/config';
 import 'reflect-metadata';
 
+import { createServer } from "http";
 import app from "./app";
 import db from "./lib/db";
 import env from "./lib/env";
 import hookManager from "./lib/hook-manager";
+import webSocketManager from './lib/web-socket-manager';
 import logger from "./utils/logger";
-import { createServer } from "http";
-import { Server } from 'socket.io';
-import { registerSocketHandler } from './socket';
 const httpServer = createServer(app);
-
-const io = new Server(httpServer, {});
-registerSocketHandler(io);
+webSocketManager.init(httpServer)
 const server = httpServer.listen(env.get('PORT'), async () => {
   await db.init();
   await hookManager.init();

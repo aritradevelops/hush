@@ -40,7 +40,7 @@ export default class Chat extends PrimaryColumns {
   @IsBoolean()
   @MinLength(3)
   @Trim()
-  @Column()
+  @Column({ type: 'boolean', default: true })
   /** Unread is true until the chat is read by all the participants of the channel. */
   unread!: boolean;
 }

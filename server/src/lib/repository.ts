@@ -22,7 +22,7 @@ export abstract class Repository<T extends typeof PrimaryColumns = typeof Primar
       .into(this.entity)
       .values(data)
       .returning('*')
-      .execute();
+      .execute()
   }
   async view(filter: FindOptionsWhere<InstanceType<T>>) {
     return await this.entity.findOne({ where: filter }) as InstanceType<T> | null;
@@ -35,6 +35,7 @@ export abstract class Repository<T extends typeof PrimaryColumns = typeof Primar
   }
 
   protected getListQuery(query: ListParams) {
+    console.log(query)
     const qb = this.entity.createQueryBuilder(this.entity.name)
       // @ts-ignore
       .select(query.select ? query.select.split(',').map(field => (this.entity.name + '.' + field)) : query.select);
@@ -44,6 +45,7 @@ export abstract class Repository<T extends typeof PrimaryColumns = typeof Primar
     if (Object.keys(query.where_clause).length) {
       Object.keys(query.where_clause).forEach((key) => {
         const clause = Clause.build(query.where_clause[key]).toSql(this.getColumnName(key))
+        console.log(clause)
         qb.andWhere(clause)
       });
     }

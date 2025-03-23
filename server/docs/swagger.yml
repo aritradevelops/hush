@@ -4304,6 +4304,271 @@ paths:
       security:
         - auth:
             - delete.contacts
+  /group-members:
+    get:
+      tags:
+        - GroupMember
+      summary: list GroupMembers
+      description: Retrieve a list of GroupMembers
+      operationId: list-group-members-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GroupMember"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.group-members
+  /group-members/create:
+    post:
+      tags:
+        - GroupMember
+      summary: create a new GroupMember
+      description: create a new GroupMember
+      operationId: create-group-members-post
+      requestBody:
+        description: create a new GroupMember
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupMember"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/GroupMember"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.group-members
+  /group-members/view/{id}:
+    get:
+      tags:
+        - GroupMember
+      summary: view details of an existing GroupMember
+      description: Retrieve details of an existing GroupMember by ID
+      operationId: view-group-members-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the GroupMember
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/GroupMember"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.group-members
+  /group-members/update/{id}:
+    put:
+      tags:
+        - GroupMember
+      summary: update an existing GroupMember
+      description: update an existing GroupMember
+      operationId: update-group-members-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the GroupMember
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing GroupMember. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupMember"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/GroupMember"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.group-members
+  /group-members/delete/{id}:
+    delete:
+      tags:
+        - GroupMember
+      summary: delete an existing GroupMember
+      description: delete an existing GroupMember
+      operationId: delete-group-members-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the GroupMember
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/GroupMember"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.group-members
 components:
   schemas:
     Book:
@@ -4481,7 +4746,7 @@ components:
           minLength: 3
           type: string
           format: email
-        dp:
+        avatar:
           format: url
           type: string
         password:
@@ -4561,26 +4826,19 @@ components:
         - title
     Channel:
       properties:
-        name:
-          minLength: 3
-          type: string
         type:
           enum:
-            - DIRECT
+            - PRIVATE
             - GROUP
             - 0
             - 1
           type: string
-        participants:
-          items:
-            format: uuid
-            type: string
-          minItems: 1
-          type: array
+        metadata:
+          $ref: "#/definitions/ChannelMetadata"
+          type: object
       type: object
       required:
         - type
-        - participants
     Contact:
       properties:
         name:
@@ -4592,11 +4850,38 @@ components:
         channel_id:
           format: uuid
           type: string
+        is_pinned:
+          type: boolean
+        is_muted:
+          type: boolean
+        is_blocked:
+          type: boolean
       type: object
       required:
         - name
         - user_id
         - channel_id
+        - is_pinned
+        - is_muted
+        - is_blocked
+    GroupMember:
+      properties:
+        channel_id:
+          format: uuid
+          type: string
+        user_id:
+          format: uuid
+          type: string
+        has_pinned:
+          type: boolean
+        has_muted:
+          type: boolean
+      type: object
+      required:
+        - channel_id
+        - user_id
+        - has_pinned
+        - has_muted
   securitySchemes:
     petstore_auth:
       type: oauth2

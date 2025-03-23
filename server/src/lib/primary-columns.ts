@@ -9,15 +9,14 @@ export enum Status {
   ACTIVE,
   INACTIVE,
   LOCKED,
-  DEACTIVATED,
-  BLOCKED
+  DEACTIVATED
 }
 
 export class PrimaryColumns extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: UUID;
 
-  @Column({ type: 'enum', enum: Status, default: Status.DRAFT })
+  @Column({ type: 'enum', enum: Status, default: Status.ACTIVE })
   status!: Status
 
   @CreateDateColumn()

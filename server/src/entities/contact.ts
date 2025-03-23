@@ -1,26 +1,16 @@
 
 import { Trim } from "class-sanitizer";
 import { Expose } from "class-transformer";
-import { IsString, IsUUID, MinLength } from "class-validator-custom-errors";
+import { IsBoolean, IsString, IsUUID, MinLength } from "class-validator-custom-errors";
 import { UUID } from "crypto";
 import { Column, Entity } from "typeorm";
 import Searchable from "../decorators/searchable";
 import { PrimaryColumns } from "../lib/primary-columns";
 
-export enum ContactStatus {
-  DRAFT,
-  PENDING,
-  ACTIVE,
-  INACTIVE,
-  LOCKED,
-  DEACTIVATED,
-  BLOCKED
-}
-
 @Entity({ name: 'contacts' })
 /** Contact represents one-to-one contact relation from created_by to user_id. 
  * i.e for a direct channel there will be two contacts representing relations from
- * each direction. A contacts status `BLOCKED` means the `created_by` is blocked by the `user_id`
+ * each direction. A contact is_blocked means that the `created_by` has blocked the `user_id`
 */
 export default class Contact extends PrimaryColumns {
   @Expose()
@@ -43,5 +33,23 @@ export default class Contact extends PrimaryColumns {
   @Column({ type: 'uuid' })
   /** Refers to the `direct` channel b/w the created_by and the user_id. */
   channel_id!: UUID
+
+  @Expose()
+  @IsBoolean()
+  @Column({ type: 'boolean', default: false })
+  /** Indicates if the contact is pinned. */
+  is_pinned!: boolean
+
+  @Expose()
+  @IsBoolean()
+  @Column({ type: 'boolean', default: false })
+  /** Indicates if the contact is muted. */
+  is_muted!: boolean
+
+  @Expose()
+  @IsBoolean()
+  @Column({ type: 'boolean', default: false })
+  /** Indicates if the contact is blocked. */
+  is_blocked!: boolean
 
 }

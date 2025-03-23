@@ -1,7 +1,6 @@
-import { ArrayMinSize, IsArray, IsNumber, IsOptional, IsString, ValidateNested, validateSync } from "class-validator-custom-errors";
+import { ArrayMinSize, IsArray, IsNumber, IsObject, IsOptional, IsString, ValidateNested, validateSync } from "class-validator-custom-errors";
 import { SchemaValidationError } from "../errors/http/schema-validation.error";
 import { plainToInstance, Type } from "class-transformer";
-import { IsStringOrNumber } from "./extra-validators";
 
 
 export interface InClauseInterface {
@@ -141,7 +140,6 @@ export abstract class Clause {
 export class InClause extends Clause implements InClauseInterface {
   @IsArray()
   @ArrayMinSize(1)
-  @IsStringOrNumber({ each: true })
   $in!: (string | number)[];
 
   toSql(column: string): string {
@@ -151,7 +149,6 @@ export class InClause extends Clause implements InClauseInterface {
 
 // **$eq Clause**
 export class EqualsClause extends Clause implements EqualsClauseInterface {
-  @IsStringOrNumber()
   $eq!: string | number;
 
   toSql(column: string): string {
@@ -160,7 +157,6 @@ export class EqualsClause extends Clause implements EqualsClauseInterface {
 }
 // **$neq Clause**
 export class NotEqualsClause extends Clause implements NotEqualsClauseInterface {
-  @IsStringOrNumber()
   $neq!: string | number;
 
   toSql(column: string): string {
@@ -272,11 +268,12 @@ export class OrClause extends Clause implements OrClauseInterface {
 
 // **$not Clause**
 export class NotClause extends Clause implements NotClauseInterface {
-  @ValidateNested()
+  @IsObject()
   $not!: UnknownClauseInterface;
 
   toSql(column: string): string {
     const clause = Clause.build(this.$not)
+    console.log(clause)
     clause.validate();
     return `NOT (${clause.toSql(column)})`;
   }
@@ -285,7 +282,6 @@ export class NotClause extends Clause implements NotClauseInterface {
 // **$contains Clause**
 export class ContainsClause extends Clause implements ContainsClauseInterface {
   @IsArray()
-  @IsStringOrNumber({ each: true })
   @ArrayMinSize(1)
   $contains!: (string | number)[];
 
@@ -297,7 +293,6 @@ export class ContainsClause extends Clause implements ContainsClauseInterface {
 // **$containedBy Clause**
 export class ContainedByClause extends Clause {
   @IsArray()
-  @IsStringOrNumber({ each: true })
   @ArrayMinSize(1)
   $containedBy!: (string | number)[];
 
@@ -309,7 +304,6 @@ export class ContainedByClause extends Clause {
 // **$overlaps Clause**
 export class OverlapsClause extends Clause {
   @IsArray()
-  @IsStringOrNumber({ each: true })
   @ArrayMinSize(1)
   $overlaps!: (string | number)[];
 

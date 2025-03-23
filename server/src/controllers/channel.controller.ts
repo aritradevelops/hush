@@ -9,12 +9,20 @@ export class ChannelController extends CrudController<typeof Channel, ChannelSer
     super(channelService, Channel);
   }
   @GET()
-  async groupChats(req: Request, res: Response) {
-    const result = await this.service.groupChats(req.user?.id!)
+  async privateChannels(req: Request, res: Response) {
+    const result = await this.service.privateChannels(req, res)
     return {
-      message: req.t('group_chats'),
+      message: req.t('private_channels'),
       data: result
     }
   }
-};
+  @GET()
+  async groupChannels(req: Request, res: Response) {
+    const result = await this.service.groupChannels(req, res)
+    return {
+      message: req.t('group_channels'),
+      data: result
+    }
+  }
+}
 export default new ChannelController();
