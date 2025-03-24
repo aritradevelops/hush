@@ -1,46 +1,41 @@
 'use client'
-import { useQuery } from '@tanstack/react-query';
-import { fetchChats, fetchPinnedChats, fetchUnreadChats } from './api';
-import { Chat } from './types';
-import { useState } from 'react';
-import { Search } from 'lucide-react';
+import httpClient from '@/lib/http-client';
 import Link from 'next/link';
-import { ChatList } from './components/chat-list';
+import { Chat } from './types';
 
 type FilterType = 'all' | 'unread' | 'groups';
 
 export default function ChatsPage() {
+  // httpClient.fetchNewContacts(['84e19396-f813-42f0-9235-7034beeea565'], '')
+  // httpClient.privateChannels('')
   return (
-    <div className="w-full flex h-screen">
-      <ChatList />
-      <div className="w-full flex-1 flex items-center justify-center">
-        <div className="w-full max-w-2xl text-center px-8">
-          <h1 className="text-4xl font-bold mb-4">Welcome to Hush</h1>
-          <p className="text-xl text-muted-foreground mb-12">
-            Your private, secure messaging platform
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FeatureCard
-              title="End-to-End Encryption"
-              description="Your messages are encrypted from start to finish, ensuring complete privacy."
-              icon="🔒"
-            />
-            <FeatureCard
-              title="Real-time Messaging"
-              description="Send and receive messages instantly with real-time updates."
-              icon="⚡"
-            />
-            <FeatureCard
-              title="Group Chats"
-              description="Create and manage group conversations with ease."
-              icon="👥"
-            />
-            <FeatureCard
-              title="Message Status"
-              description="Know when your messages are delivered and read."
-              icon="✓"
-            />
-          </div>
+    <div className="w-full flex-1 flex items-center justify-center">
+      <div className="w-full max-w-2xl text-center px-8">
+        <h1 className="text-4xl font-bold mb-4">Welcome to Hush</h1>
+        <p className="text-xl text-muted-foreground mb-12">
+          Your private, secure messaging platform
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FeatureCard
+            title="End-to-End Encryption"
+            description="Your messages are encrypted from start to finish, ensuring complete privacy."
+            icon="🔒"
+          />
+          <FeatureCard
+            title="Real-time Messaging"
+            description="Send and receive messages instantly with real-time updates."
+            icon="⚡"
+          />
+          <FeatureCard
+            title="Group Chats"
+            description="Create and manage group conversations with ease."
+            icon="👥"
+          />
+          <FeatureCard
+            title="Message Status"
+            description="Know when your messages are delivered and read."
+            icon="✓"
+          />
         </div>
       </div>
     </div>

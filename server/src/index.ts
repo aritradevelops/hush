@@ -6,10 +6,13 @@ import app from "./app";
 import db from "./lib/db";
 import env from "./lib/env";
 import hookManager from "./lib/hook-manager";
-import webSocketManager from './lib/web-socket-manager';
 import logger from "./utils/logger";
+import socketIO from './socket-io';
+
 const httpServer = createServer(app);
-webSocketManager.init(httpServer)
+
+socketIO.init(httpServer)
+
 const server = httpServer.listen(env.get('PORT'), async () => {
   await db.init();
   await hookManager.init();

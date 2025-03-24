@@ -1,57 +1,55 @@
 'use client'
-import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { fetchChatById } from '../api'
-import { ChatList } from '../components/chat-list'
-import { Chat } from '../types'
+import { useParams } from 'next/navigation'
+import { GroupChannel, PrivateChannel } from '@/lib/http-client'
+import httpClient from '@/lib/http-client'
+import { UUID } from 'crypto'
 
 export default function ChatPage() {
   const params = useParams()
   const chatId = params.id as string
 
-  const { data: chat, isLoading } = useQuery({
-    queryKey: ['chat', chatId],
-    queryFn: () => fetchChatById(chatId),
-    enabled: !!chatId
+  const { data: allChats } = useQuery({
+    queryKey: ['chats'],
+    queryFn: () => httpClient.getAllChannels('')
   })
 
+  const chat = allChats?.find(c => c.id === chatId) as GroupChannel | PrivateChannel | undefined
+  const { data: messages } = useQuery({
+    queryKey: ['messages', chatId],
+    queryFn: () => httpClient.getMessages(chatId as UUID)
+  })
+  console.log(messages)
   return (
-    <div className="flex h-full">
-      <ChatList />
-      <div className="flex-1 flex flex-col">
-        {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    <div className="flex-1 flex flex-col">
+      {!chat ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Chat Not Found</h2>
+            <p className="text-muted-foreground">The chat you're looking for doesn't exist.</p>
           </div>
-        ) : !chat ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Chat Not Found</h2>
-              <p className="text-muted-foreground">The chat you're looking for doesn't exist.</p>
-            </div>
-          </div>
-        ) : (
-          <ChatView chat={chat} />
-        )}
-      </div>
+        </div>
+      ) : (
+        <ChatView chat={chat} />
+      )}
     </div>
   )
 }
 
-function ChatView({ chat }: { chat: Chat }) {
+function ChatView({ chat }: { chat: GroupChannel | PrivateChannel }) {
   return (
     <div className="flex-1 flex flex-col h-full">
       <div className="border-b p-4">
         <div className="flex items-center gap-4">
           <img
-            src={chat.avatar}
+            src={chat.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${chat.name}`}
             alt={chat.name}
             className="w-12 h-12 rounded-full"
           />
           <div>
             <h2 className="text-lg font-semibold">{chat.name}</h2>
             <p className="text-sm text-muted-foreground">
-              {chat.type === 'private' ? 'Private Chat' : 'Group Chat'}
+              {chat.type === 'direct' ? 'Private Chat' : 'Group Chat'}
             </p>
           </div>
         </div>
