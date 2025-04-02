@@ -30,9 +30,11 @@ export class Db {
     await this.dataSource.destroy();
     logger.notice('Database connection closed');
   }
-  getModel(name: string, entity: EntityTarget<ObjectLiteral>) {
-    return this.dataSource.getRepository(entity);
+
+  getManager() {
+    return this.dataSource.manager
   }
+
   async healthCheck() {
     try {
       await this.dataSource.query('SELECT 1');

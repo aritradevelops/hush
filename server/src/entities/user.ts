@@ -2,10 +2,12 @@
 import { NormalizeEmail, Trim } from "class-sanitizer";
 import { Expose, Transform } from "class-transformer";
 import { IsEmail, IsOptional, IsString, IsStrongPassword, IsUrl, MinLength } from "class-validator-custom-errors";
-import { Column, Entity, Index, Unique } from "typeorm";
+import { Column, Entity, Index, OneToMany, Unique } from "typeorm";
 import Searchable from "../decorators/searchable";
 import { PrimaryColumns } from "../lib/primary-columns";
 import { hash } from "../utils/string";
+import DirectMessage from "./direct-message";
+import Group from "./group";
 
 
 @Entity({ name: 'users' })
@@ -75,6 +77,12 @@ export default class User extends PrimaryColumns {
   @IsOptional()
   @Column({ type: 'text', nullable: true })
   public_key!: string | null;
+
+  // @OneToMany(() => DirectMessage, (directMessage: DirectMessage) => directMessage.members)
+  // direct_messages!: DirectMessage[]
+
+  // @OneToMany(() => Group, (group: Group) => group.members)
+  // groups!: Group[]
 
   toJSON() {
     return {

@@ -12,7 +12,7 @@ export default class GroupMember extends PrimaryColumns {
   @IsUUID('4')
   @Column({ type: 'uuid' })
   /** Refers to the group that the member is a part of. */
-  channel_id!: UUID
+  group_id!: UUID
 
   @Expose()
   @IsUUID('4')

@@ -1,28 +1,8 @@
+import { DirectMessage } from '@/types/entities';
+import { SocketEvent } from '@/types/events';
+import { UUID } from 'crypto';
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { UUID } from 'crypto';
-
-interface Channel {
-  id: UUID;
-  name: string;
-  type: 'private' | 'group';
-  avatar?: string;
-  user_id: UUID;
-  is_pinned: boolean;
-  is_muted: boolean;
-  search: string;
-  is_pending: boolean;
-  have_blocked: boolean;
-  unread_count: string;
-  been_blocked: boolean;
-  last_chat: {
-    id: UUID;
-    message: string;
-    iv: string;
-    created_at: string;
-    sender: string;
-  } | null;
-}
 
 export function useSocket() {
   const socket = useRef<Socket | null>(null);
@@ -47,37 +27,21 @@ export function useSocket() {
     };
   }, []);
 
-  const addContact = async (contactId: UUID): Promise<Channel> => {
-    return new Promise((resolve, reject) => {
-      if (!socket.current) {
-        reject(new Error('Socket not connected'));
-        return;
-      }
-
-      socket.current.emit('add-contact', { contact_id: contactId }, (channel: Channel) => {
-        if (channel) {
-          resolve(channel);
-        } else {
-          reject(new Error('Failed to add contact'));
-        }
-      });
+  const addContact = (contactId: UUID, callback: (dm: DirectMessage) => void) => {
+    if (!socket.current) return;
+    socket.current.emit(SocketEvent.CONTACT_ADD, { contact_id: contactId }, (dm: DirectMessage) => {
+      callback(dm);
     });
   };
-
-  const onNewChannel = (callback: (channel: Channel) => void) => {
+  const sendMessage = (channelId: UUID, encryptedMessage: string, iv: string) => {
     if (!socket.current) return;
-
-    socket.current.on('new-channel', callback);
-
-    return () => {
-      socket.current?.off('new-channel', callback);
-    };
-  };
+    socket.current.emit(SocketEvent.MESSAGE_SEND, { channel_id: channelId, encrypted_message: encryptedMessage, iv });
+  }
 
   return {
     socket: socket.current,
     isConnected: socket.current?.connected || false,
     addContact,
-    onNewChannel,
+    sendMessage,
   };
 }

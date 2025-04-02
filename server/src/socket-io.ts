@@ -5,14 +5,19 @@ import { isAuthSocket } from "./middlewares/is-auth";
 import { UUID } from "crypto";
 import { Socket } from "socket.io";
 import logger from "./utils/logger";
+import env from "./lib/env";
 export class SocketIO {
   private io!: Server;
 
   init(httpServer: HttpServer) {
-    this.io = new Server(httpServer)
+    this.io = new Server(httpServer, {
+      cors: {
+        origin: env.get('CLIENT_URL'),
+        credentials: true,
+      },
+    })
     this.io.use(isAuthSocket)
     this.io.on('connection', socket => {
-
       const authenticateSocket = socket as AuthenticatedSocket
       socketController.handleConnection(authenticateSocket)
     })

@@ -1,0 +1,49 @@
+import { UUID } from "crypto"
+import { IndexDb } from "../indexdb"
+import { Base64Utils } from "../base64"
+import httpClient from "../http-client"
+import { RSAKeyPair } from "../encryption"
+
+export class KeysManager {
+  private readonly ENCRYPTION_KEY_IDENTIFIER = "hush_encryption_key"
+  private readonly SHARED_SECRET_IDENTIFIER = "shared_secret"
+  private readonly PUBLIC_KEY_IDENTIFIER = "public_key"
+  private readonly indexDb: IndexDb
+  constructor() {
+    this.indexDb = new IndexDb("hush_app", "hush_app")
+  }
+
+  async getEncryptionKey() {
+    return await this.indexDb.get<string>(this.ENCRYPTION_KEY_IDENTIFIER)
+  }
+  async setEncryptionKey(key: string) {
+    await this.indexDb.set(this.ENCRYPTION_KEY_IDENTIFIER, key)
+  }
+  async getSharedSecret(channelId: UUID) {
+    const secretStr = await this.indexDb.get<string>(`${this.SHARED_SECRET_IDENTIFIER}_${channelId}`)
+    if (secretStr) return Base64Utils.decode(secretStr)
+    const response = await httpClient.getSharedSecret(channelId)
+    const encryptedSharedSecret = response.data.encrypted_shared_secret
+    const encryptionKey = await this.getEncryptionKey()
+    if (!encryptionKey) throw new Error("Encryption key not found")
+    const sharedSecret = await RSAKeyPair.decryptWithPrivateKey(encryptedSharedSecret, encryptionKey)
+    await this.setSharedSecret(channelId, Base64Utils.encode(sharedSecret))
+    return sharedSecret
+  }
+  async setSharedSecret(channelId: UUID, secret: string) {
+    await this.indexDb.set(`${this.SHARED_SECRET_IDENTIFIER}_${channelId}`, secret)
+  }
+  async getPublicKey(userId: UUID) {
+    const key = await this.indexDb.get<string>(`${this.PUBLIC_KEY_IDENTIFIER}_${userId}`)
+    if (key) return key
+    const response = await httpClient.getPublicKey(userId)
+    const publicKey = response.data.public_key
+    await this.setPublicKey(userId, publicKey)
+    return publicKey
+  }
+  async setPublicKey(userId: UUID, publicKey: string) {
+    await this.indexDb.set(`${this.PUBLIC_KEY_IDENTIFIER}_${userId}`, publicKey)
+  }
+}
+
+export default new KeysManager()

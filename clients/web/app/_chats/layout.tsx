@@ -1,7 +1,7 @@
 import React from 'react'
 import Menu from './menu'
 import ChatSidebar from './chat-sidebar'
-import { EncryptionKeyModal } from './encryption-modal'
+import { EncryptionKeyModal } from '../(chat-app)/chats/components/encryption-modal'
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   return (

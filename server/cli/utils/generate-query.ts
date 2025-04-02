@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import minify from 'pg-minify';
-import { camelToPascal, snakeToCamel } from '../../src/utils/string';
+import { camelToPascal, kebabToPascal, snakeToCamel } from '../../src/utils/string';
 
 const QUERY_DIR = path.join('./', 'queries');
 const OUTPUT_DIR = path.join('./', 'src', 'queries');
@@ -32,7 +32,7 @@ export function generateQuery() {
     const queryDirs = fs.readdirSync(QUERY_DIR, { withFileTypes: true }).filter(dir => dir.isDirectory());
 
     for (const dir of queryDirs) {
-      const queryClass = new QueryClassGenerator(camelToPascal(dir.name));
+      const queryClass = new QueryClassGenerator(kebabToPascal(dir.name));
       const dirPath = path.join(QUERY_DIR, dir.name);
 
       // Read SQL files in each directory

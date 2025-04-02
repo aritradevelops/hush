@@ -1,12 +1,14 @@
-import { z } from 'zod'
-import { ForgotPasswordSchema, LoginSchema, RegisterSchema, ResetPasswordSchema } from '@/schemas/auth'
-import { Fields } from '@/hooks/use-form'
+import { constants } from '@/config/constants';
+import { Fields } from '@/hooks/use-form';
+import { ForgotPasswordSchema, LoginSchema, RegisterSchema, ResetPasswordSchema } from '@/schemas/auth';
+import { ApiListResponse, ListParams } from '@/types/api';
+import { Channel, Chat, Contact, DirectMessage, DirectMessageWithLastChat, GroupMember, GroupWithLastChat, User } from '@/types/entities';
 import { UUID } from 'crypto';
-import qs from 'qs'
-import { Chat } from '@/app/(chat-app)/chats/types';
+import qs from 'qs';
+import { z } from 'zod';
 
 export class HttpClient {
-  private baseUrl = `${process.env.NEXT_PUBLIC_SERVER_URL}/v1`
+  private baseUrl = `${constants.SERVER_URL}/v1`
 
   async register(data: z.infer<typeof RegisterSchema>): Promise<{ fields: Partial<Fields<z.infer<typeof RegisterSchema>>>; success: boolean; message: string }> {
     try {
@@ -69,18 +71,11 @@ export class HttpClient {
     }
   }
 
-  async fetchNewContacts(existingContacts: UUID[], search: string) {
+  async fetchNewContacts(search: string) {
     const queryParams = {
       search,
-      where_clause: {
-        id: {
-          $not: {
-            $in: existingContacts
-          }
-        }
-      }
     }
-    const response = await fetch(`${this.baseUrl}/users/list?${qs.stringify(queryParams)}`, {
+    const response = await fetch(`${this.baseUrl}/users/new-users?${qs.stringify(queryParams)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -164,37 +159,6 @@ export class HttpClient {
       return { success: false, message: (error as Error).message, fields: {} }
     }
   }
-  private async getChannels<T>(type: 'private' | 'group', search: string) {
-    const response = await fetch(`${this.baseUrl}/channels/${type}-channels?search=${search}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include'
-    })
-    return await response.json() as { message: string, data: T[] }
-  }
-  async getAllChannels(search: string) {
-    const [privateChannels, groupChannels] = await Promise.all([
-      this.getChannels<PrivateChannel>('private', search),
-      this.getChannels<GroupChannel>('group', search)])
-    const allChats: (GroupChannel | PrivateChannel)[] = []
-    let i = 0, j = 0;
-    while (i < privateChannels.data.length, j < groupChannels.data.length) {
-      if (new Date(privateChannels.data[i].last_event_time) > new Date(groupChannels.data[j].last_event_time)) {
-        allChats.push(privateChannels.data[i++])
-      } else {
-        allChats.push(groupChannels.data[j++])
-      }
-    }
-    while (i < privateChannels.data.length) {
-      allChats.push(privateChannels.data[i++])
-    }
-    while (j < groupChannels.data.length) {
-      allChats.push(groupChannels.data[j++])
-    }
-    return allChats
-  }
 
   async addContact(id: UUID) {
     const response = await fetch(`${this.baseUrl}/contacts/add-contact/${id}`, {
@@ -204,74 +168,114 @@ export class HttpClient {
     const result = await response.json() as { message: string, data: { id: UUID } }
     return result.data
   }
-  async sendMessage(message: string, iv: string) {
-    const response = await fetch(`${this.baseUrl}/messages/`, {
+
+  private async list<T>(module: string, query: ListParams = {}) {
+    const response = await fetch(`${this.baseUrl}/${module}/list?${qs.stringify(query)}`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+    const data = await response.json() as ApiListResponse<T>
+    if ('errors' in data) {
+      throw new Error(data.message)
+    }
+    return data
+  }
+
+  async listChannels(query: ListParams = {}) {
+    return await this.list<Channel>('channels', query)
+  }
+  async listContacts(query: ListParams = {}) {
+    return await this.list<Contact>('contacts', query)
+  }
+  async listUsers(query: ListParams = {}) {
+    return await this.list<User>('users', query)
+  }
+  async getDirectMessageDetails(id: UUID) {
+    const response = await fetch(`${this.baseUrl}/direct-messages/details/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    })
+    return await response.json() as { message: string, data: DirectMessage & { contact: Contact | null } & { chat_user: User } }
+  }
+
+  async listGroupMembers(query: ListParams = {}) {
+    return await this.list<GroupMember>('group-members', query)
+  }
+  async listDirectMessagesWithLastChat() {
+    const response = await fetch(`${this.baseUrl}/direct-messages/list-with-last-chat`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
+      credentials: 'include'
+    })
+    return await response.json() as { message: string, data: DirectMessageWithLastChat[] }
+  }
+  async listGroupsWithLastChat() {
+    const response = await fetch(`${this.baseUrl}/groups/list-with-last-chat`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: 'GET',
+      credentials: 'include'
+    })
+    return await response.json() as { message: string, data: GroupWithLastChat[] }
+  }
+
+  async getSharedSecret(channelId: UUID) {
+    const response = await fetch(`${this.baseUrl}/secrets/channel/${channelId}`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+    return await response.json() as { message: string, data: { encrypted_shared_secret: string } }
+  }
+  async getPublicKey(id: UUID) {
+    const response = await fetch(`${this.baseUrl}/users/public-key/${id}`, {
+      method: 'GET',
+      credentials: 'include'
+    })
+    return await response.json() as { message: string, data: { public_key: string } }
+  }
+  async addPublicKey(publicKey: string) {
+    const response = await fetch(`${this.baseUrl}/users/add-public-key`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ public_key: publicKey }),
+      credentials: 'include'
+    })
+    return await response.json() as { message: string, data: { id: UUID } }
+  }
+  async setSharedSecret(channelId: UUID, encryptedFor: UUID, encryptedSharedSecret: string) {
+    const response = await fetch(`${this.baseUrl}/secrets/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, iv }),
+      body: JSON.stringify({ channel_id: channelId, encrypted_shared_secret: encryptedSharedSecret, user_id: encryptedFor }),
+      credentials: 'include'
     })
+    return await response.json() as { message: string, data: { id: UUID } }
   }
-  async getMessages(channelId: UUID) {
-    const queryParams = {
+  async listMessages(channelId: UUID, page = 1) {
+    const query: ListParams = {
+      page,
       where_clause: {
         channel_id: {
           $eq: channelId
         }
-      },
+      }
     }
-    const response = await fetch(`${this.baseUrl}/chats/list?${qs.stringify(queryParams)}`, {
+    const response = await fetch(`${this.baseUrl}/chats/list?${qs.stringify(query)}`, {
       method: 'GET',
       credentials: 'include'
     })
     return await response.json() as { message: string, data: Chat[] }
   }
-
 }
-
 const httpClient = new HttpClient()
 export default httpClient
-
-export interface PrivateChannel {
-  id: UUID;
-  name: string;
-  type: 'direct' | 'group';
-  avatar?: string;
-  user_id: UUID;
-  is_pinned: boolean;
-  is_muted: boolean;
-  search: string;
-  is_pending: boolean;
-  have_blocked: boolean;
-  unread_count: number;
-  been_blocked: boolean;
-  last_event_time: string;
-  last_chat: {
-    id: UUID;
-    message: string;
-    created_at: string;
-    sender: string;
-  } | null;
-}
-
-export interface GroupChannel {
-  id: UUID;
-  name: string;
-  picture: string;
-  type: 'direct' | 'group';
-  avatar?: string;
-  user_id: UUID;
-  is_pinned: boolean;
-  is_muted: boolean;
-  joined_at: string;
-  left_at: string;
-  unread_count: number;
-  last_event_time: string;
-  last_chat: {
-    id: UUID;
-    message: string;
-    created_at: string;
-    sender: string;
-  } | null;
-}

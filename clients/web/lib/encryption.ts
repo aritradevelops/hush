@@ -145,7 +145,7 @@ export class RSAKeyPair {
 * - GCM mode ensures message integrity by generating an authentication tag.
 * - A unique IV (Initialization Vector) is required for each encryption operation.
 */
-class AESGCM {
+export class AESGCM {
   /**
    * Generates a 256-bit random AES key.
    * 

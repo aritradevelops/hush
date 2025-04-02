@@ -39,8 +39,6 @@ export const isAuthRequest = () => {
 export const isAuthSocket = async (socket: Socket, next: (err?: Error) => void) => {
 
   // @ts-ignore
-  console.log(socket.user)
-  // @ts-ignore
   if (socket.user) return next()
   let cookieStr = socket.request.headers.cookie
   let accessToken: string | undefined

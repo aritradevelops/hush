@@ -18,7 +18,7 @@ export default class Secret extends PrimaryColumns {
   @MinLength(3)
   @Column()
   @Trim()
-  room_id!: string;
+  channel_id!: string;
 
   @Expose()
   @IsString()

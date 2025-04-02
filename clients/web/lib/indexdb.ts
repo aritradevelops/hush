@@ -1,8 +1,10 @@
+import { UUID } from "crypto";
+
 export class IndexDb {
   private dbName: string;
   private storeName: string;
   private db: IDBDatabase | null = null;
-
+  private PRIVATE_KEY_IDENTIFIER = "hush_encryption_key"
   constructor(dbName: string, storeName: string) {
     this.dbName = dbName;
     this.storeName = storeName;
@@ -81,6 +83,20 @@ export class IndexDb {
       request.onerror = () => reject(request.error);
     });
   }
+
+  // async getPrivateKey() {
+  //   return await this.get<string>(this.PRIVATE_KEY_IDENTIFIER)
+  // }
+  // async setPrivateKey(key: string) {
+  //   await this.set(this.PRIVATE_KEY_IDENTIFIER, key)
+  // }
+
+  // async getSharedSecret(channelId: UUID) {
+  //   return await this.get<string>(`shared_secret_${channelId}`)
+  // }
+  // async setSharedSecret(channelId: UUID, secret: string) {
+  //   await this.set(`shared_secret_${channelId}`, secret)
+  // }
 
   /** Close the database connection */
   close(): void {

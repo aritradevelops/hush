@@ -2,25 +2,23 @@
 
 import type React from "react"
 
-import { useEffect, useRef, useState } from "react"
-import { Download, Key, Lock, Upload } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Message } from "@/components/message"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useIndexDb } from "@/hooks/use-indexdb"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { RSAKeyPair } from "@/lib/encryption"
-import { Message } from "@/components/message"
-const PRIVATE_KEY_IDENTIFIER = 'hush_encryption_key'
+import secretManager from "@/lib/internal/keys-manager"
+import { Download, Key, Lock, Upload } from "lucide-react"
+import { useEffect, useState } from "react"
+import httpClient from "@/lib/http-client"
 
 export function EncryptionKeyModal() {
   const [open, setOpen] = useState(false)
-  const db = useIndexDb()
   useEffect(() => {
-    db.get<{ key: string, value: string }>(PRIVATE_KEY_IDENTIFIER).then(data => {
+    secretManager.getEncryptionKey().then(data => {
       console.log(data)
       if (!data) setOpen(true)
     })
@@ -35,9 +33,9 @@ export function EncryptionKeyModal() {
   const handleGenerateKey = async () => {
     setGenerating(true)
     const { privateKey, publicKey } = await RSAKeyPair.generate()
-    //TODO: sync with the server
+    await httpClient.addPublicKey(publicKey)
     // store on db
-    await db.set(PRIVATE_KEY_IDENTIFIER, privateKey)
+    await secretManager.setEncryptionKey(privateKey)
     const privateKeyPem = RSAKeyPair.formatPEM(privateKey, "PRIVATE KEY")
     const pemFile = new Blob([privateKeyPem], { type: "application/x-pem-file" });
     setKey(privateKey)
@@ -65,7 +63,7 @@ export function EncryptionKeyModal() {
       const privateKey = RSAKeyPair.importPem(privateKeyPem)
       console.log(privateKey)
       setKey(privateKey)
-      db.set(PRIVATE_KEY_IDENTIFIER, privateKey)
+      await secretManager.setEncryptionKey(privateKey)
       setOpen(false)
     } catch (error) {
       setImportError("Failed to import key. Please ensure it's a valid encryption key file.")

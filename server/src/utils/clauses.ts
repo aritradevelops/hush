@@ -1,4 +1,4 @@
-import { ArrayMinSize, IsArray, IsNumber, IsObject, IsOptional, IsString, ValidateNested, validateSync } from "class-validator-custom-errors";
+import { ArrayMinSize, IsArray, IsNumber, IsObject, IsOptional, IsString, isUUID, ValidateNested, validateSync } from "class-validator-custom-errors";
 import { SchemaValidationError } from "../errors/http/schema-validation.error";
 import { plainToInstance, Type } from "class-transformer";
 
@@ -82,6 +82,7 @@ export type UnknownClauseInterface =
   | AndClauseInterface
   | OrClauseInterface
   | NotClauseInterface
+  | ContainsClauseInterface
   | ContainedByClauseInterface
   | OverlapsClauseInterface;
 
@@ -286,7 +287,11 @@ export class ContainsClause extends Clause implements ContainsClauseInterface {
   $contains!: (string | number)[];
 
   toSql(column: string): string {
-    return `${column} @> ARRAY[${this.$contains.map(v => `'${v}'`).join(", ")}]`;
+    let query = `${column} @> ARRAY[${this.$contains.map(v => `'${v}'`).join(", ")}]`;
+    if (isUUID(this.$contains[0])) {
+      query += '::uuid[]';
+    }
+    return query;
   }
 }
 

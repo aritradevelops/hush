@@ -4569,6 +4569,536 @@ paths:
       security:
         - auth:
             - delete.group-members
+  /direct-messages:
+    get:
+      tags:
+        - DirectMessage
+      summary: list DirectMessages
+      description: Retrieve a list of DirectMessages
+      operationId: list-direct-messages-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DirectMessage"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.direct-messages
+  /direct-messages/create:
+    post:
+      tags:
+        - DirectMessage
+      summary: create a new DirectMessage
+      description: create a new DirectMessage
+      operationId: create-direct-messages-post
+      requestBody:
+        description: create a new DirectMessage
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DirectMessage"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/DirectMessage"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.direct-messages
+  /direct-messages/view/{id}:
+    get:
+      tags:
+        - DirectMessage
+      summary: view details of an existing DirectMessage
+      description: Retrieve details of an existing DirectMessage by ID
+      operationId: view-direct-messages-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the DirectMessage
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/DirectMessage"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.direct-messages
+  /direct-messages/update/{id}:
+    put:
+      tags:
+        - DirectMessage
+      summary: update an existing DirectMessage
+      description: update an existing DirectMessage
+      operationId: update-direct-messages-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the DirectMessage
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing DirectMessage. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DirectMessage"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/DirectMessage"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.direct-messages
+  /direct-messages/delete/{id}:
+    delete:
+      tags:
+        - DirectMessage
+      summary: delete an existing DirectMessage
+      description: delete an existing DirectMessage
+      operationId: delete-direct-messages-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the DirectMessage
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/DirectMessage"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.direct-messages
+  /groups:
+    get:
+      tags:
+        - Group
+      summary: list Groups
+      description: Retrieve a list of Groups
+      operationId: list-groups-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Group"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.groups
+  /groups/create:
+    post:
+      tags:
+        - Group
+      summary: create a new Group
+      description: create a new Group
+      operationId: create-groups-post
+      requestBody:
+        description: create a new Group
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Group"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Group"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.groups
+  /groups/view/{id}:
+    get:
+      tags:
+        - Group
+      summary: view details of an existing Group
+      description: Retrieve details of an existing Group by ID
+      operationId: view-groups-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Group
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Group"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.groups
+  /groups/update/{id}:
+    put:
+      tags:
+        - Group
+      summary: update an existing Group
+      description: update an existing Group
+      operationId: update-groups-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Group
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Group. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Group"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Group"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.groups
+  /groups/delete/{id}:
+    delete:
+      tags:
+        - Group
+      summary: delete an existing Group
+      description: delete an existing Group
+      operationId: delete-groups-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Group
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Group"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.groups
 components:
   schemas:
     Book:
@@ -4805,7 +5335,7 @@ components:
         encrypted_shared_secret:
           minLength: 3
           type: string
-        room_id:
+        channel_id:
           minLength: 3
           type: string
         user_id:
@@ -4814,7 +5344,7 @@ components:
       type: object
       required:
         - encrypted_shared_secret
-        - room_id
+        - channel_id
         - user_id
     Oauth:
       properties:
@@ -4866,7 +5396,7 @@ components:
         - is_blocked
     GroupMember:
       properties:
-        channel_id:
+        group_id:
           format: uuid
           type: string
         user_id:
@@ -4878,10 +5408,21 @@ components:
           type: boolean
       type: object
       required:
-        - channel_id
+        - group_id
         - user_id
         - has_pinned
         - has_muted
+    Group:
+      properties:
+        name:
+          minLength: 3
+          type: string
+        description:
+          minLength: 3
+          type: string
+      type: object
+      required:
+        - name
   securitySchemes:
     petstore_auth:
       type: oauth2

@@ -6,8 +6,8 @@ import app from "./app";
 import db from "./lib/db";
 import env from "./lib/env";
 import hookManager from "./lib/hook-manager";
-import logger from "./utils/logger";
 import socketIO from './socket-io';
+import logger from "./utils/logger";
 
 const httpServer = createServer(app);
 

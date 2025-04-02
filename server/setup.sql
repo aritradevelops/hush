@@ -11,12 +11,17 @@ VALUES
   ('33333333-3333-3333-3333-333333333333', 'Charlie Brown', 'charlie@example.com', '$2b$10$gIbMLWMSTNyg1z6eUgeEl.Bo4ZMkK8MqN2B6oINJtr8KOJiKExuPa', '2', '33333333-3333-3333-3333-333333333333', 'charlie_public_key'),
   ('44444444-4444-4444-4444-444444444444', 'Diana Prince', 'diana@example.com', '$2b$10$gIbMLWMSTNyg1z6eUgeEl.Bo4ZMkK8MqN2B6oINJtr8KOJiKExuPa', '2', '44444444-4444-4444-4444-444444444444', 'diana_public_key');
 
--- Create private channels for direct messages
-INSERT INTO channels (id, type, status, created_by, metadata)
+-- Create direct messages
+INSERT INTO direct_messages (id, member_ids, created_by, status)
 VALUES
-  ('a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', '0', '2', '11111111-1111-1111-1111-111111111111', '{}'),
-  ('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1', '0', '2', '11111111-1111-1111-1111-111111111111','{}'),
-  ('c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1', '1', '2', '22222222-2222-2222-2222-222222222222', '{"group_name": "Team Chat", "group_description": "Team discussion group"}');
+  ('a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', ARRAY['11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222']::uuid[], '11111111-1111-1111-1111-111111111111', '2'),
+  ('b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1', ARRAY['11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333']::uuid[], '11111111-1111-1111-1111-111111111111', '2');
+
+-- Create groups
+INSERT INTO groups (id, name, member_ids, created_by, status)
+VALUES
+  ('c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1', 'Team Chat', ARRAY['11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '33333333-3333-3333-3333-333333333333']::uuid[], '11111111-1111-1111-1111-111111111111', '2');
+
 
 -- Create contacts (relationships between users)
 INSERT INTO contacts (id, user_id, name, channel_id, status, created_by, is_pinned, is_muted, is_blocked)
@@ -30,7 +35,7 @@ VALUES
   ('c2c2c2c2-c2c2-c2c2-c2c2-c2c2c2c2c2c2', '11111111-1111-1111-1111-111111111111', 'Alice', 'b1b1b1b1-b1b1-b1b1-b1b1-b1b1b1b1b1b1', '2', '33333333-3333-3333-3333-333333333333', true, false, false);
 
 -- Add members to the group chat
-INSERT INTO group_members (id, channel_id, user_id, status, created_by, has_pinned, has_muted)
+INSERT INTO group_members (id, group_id, user_id, status, created_by, has_pinned, has_muted)
 VALUES
   ('d1d1d1d1-d1d1-d1d1-d1d1-d1d1d1d1d1d1', 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1', '11111111-1111-1111-1111-111111111111', '2', '22222222-2222-2222-2222-222222222222', true, false),
   ('d2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2', 'c1c1c1c1-c1c1-c1c1-c1c1-c1c1c1c1c1c1', '22222222-2222-2222-2222-222222222222', '2', '22222222-2222-2222-2222-222222222222', false, false),
@@ -64,4 +69,14 @@ WHERE id = '22222222-2222-2222-2222-222222222222';
 UPDATE users 
 SET contacts = ARRAY['11111111-1111-1111-1111-111111111111']::text[]
 WHERE id = '33333333-3333-3333-3333-333333333333';
+
+
+
+
+
+
+
+
+
+
 
