@@ -10,9 +10,9 @@ import { usePathname } from 'next/navigation'
 import { Logo } from '@/components/logo'
 
 const MenuOptions = [
-  { name: "chats", path: "./chats", icon: <MessageSquareText size={24} />, tooltip: "Chats" },
-  { name: "profile", path: "./profile", icon: <User size={24} />, tooltip: "Profile" },
-  { name: "settings", path: "./settings", icon: <Settings size={24} />, tooltip: "Settings" }
+  { name: "chats", path: "/chats", icon: <MessageSquareText size={24} />, tooltip: "Chats" },
+  { name: "profile", path: "/profile", icon: <User size={24} />, tooltip: "Profile" },
+  { name: "settings", path: "/settings", icon: <Settings size={24} />, tooltip: "Settings" }
 ]
 
 export default function Menu() {
@@ -64,7 +64,7 @@ const MenuItem = ({ name, path, icon, tooltip }: {
   tooltip: string;
 }) => {
   const pathname = usePathname()
-  const isActive = pathname === path
+  const isActive = pathname.startsWith(path)
 
   return (
     <TooltipProvider>

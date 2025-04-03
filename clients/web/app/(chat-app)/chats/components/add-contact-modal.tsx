@@ -1,15 +1,15 @@
 'use client'
-import { Search, X } from 'lucide-react';
-import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSocket } from '@/hooks/use-socket';
+import { useSocket } from '@/contexts/socket-context';
+import { Base64Utils } from '@/lib/base64';
 import { AESGCM, RSAKeyPair } from '@/lib/encryption';
 import httpClient from '@/lib/http-client';
 import keysManager from '@/lib/internal/keys-manager';
 import { ReactQueryKeys } from '@/types/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UUID } from 'crypto';
+import { X } from 'lucide-react';
+import { useState } from 'react';
 import { ChatSearchBar } from './chat-search-bar';
-import { Base64Utils } from '@/lib/base64';
 
 interface AddContactModalProps {
   isOpen: boolean;

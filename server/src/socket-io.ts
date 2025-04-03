@@ -1,11 +1,11 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
-import socketController from "./controllers/socket.controller";
 import { isAuthSocket } from "./middlewares/is-auth";
 import { UUID } from "crypto";
 import { Socket } from "socket.io";
 import logger from "./utils/logger";
 import env from "./lib/env";
+import socketController from "./controllers/socket.controller";
 export class SocketIO {
   private io!: Server;
 
@@ -17,6 +17,7 @@ export class SocketIO {
       },
     })
     this.io.use(isAuthSocket)
+    socketController.init(this.io)
     this.io.on('connection', socket => {
       const authenticateSocket = socket as AuthenticatedSocket
       socketController.handleConnection(authenticateSocket)

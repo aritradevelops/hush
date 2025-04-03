@@ -1,27 +1,30 @@
 import { UUID } from "crypto";
-import type { AuthenticatedSocket } from "../socket-io";
 import Bind from "../decorators/bind";
-import logger from "../utils/logger";
-import directMessageRepository from "../repositories/direct-message.repository";
-import contactRepository from "../repositories/contact.repository";
-import userRepository from "../repositories/user.repository";
-import { NotFoundError } from "../errors/http/not-found.error";
 import DirectMessage from "../entities/direct-message";
-import chatRepository from "../repositories/chat.repository";
-import { plainToClass, plainToInstance } from "class-transformer";
-import { ListParams } from "../schemas/list-params";
+import { NotFoundError } from "../errors/http/not-found.error";
 import db from "../lib/db";
 import channelsQuery from "../queries/channels.query";
+import chatRepository from "../repositories/chat.repository";
+import contactRepository from "../repositories/contact.repository";
+import directMessageRepository from "../repositories/direct-message.repository";
+import userRepository from "../repositories/user.repository";
+import type { AuthenticatedSocket } from "../socket-io";
+import logger from "../utils/logger";
+import { Server } from "socket.io";
 
 // TODO: figure out a way to validate client sent data
 export class SocketController {
   private activeConnections: Map<UUID, AuthenticatedSocket> = new Map();
+  private io!: Server
+  init(io: Server) {
+    this.io = io
+  }
   public handleConnection(socket: AuthenticatedSocket) {
-    socket.on(SocketEvent.CONNECT, this.onConnect)
-    socket.on(SocketEvent.CONTACT_ADD, (data, callback) => {
+    this.onConnect(socket);
+    socket.on(SocketClientEmittedEvents.CONTACT_ADD, (data, callback) => {
       this.onContactAdd(socket, data, callback)
     })
-    socket.on(SocketEvent.MESSAGE_SEND, (data) => {
+    socket.on(SocketClientEmittedEvents.MESSAGE_SEND, (data) => {
       this.onMessageSend(socket, data)
     })
 
@@ -35,6 +38,7 @@ export class SocketController {
     const query = channelsQuery.getAllChannelIdsForUser()
     const result = await db.getManager().query(query, [socket.user.id])
     for (const channel of result) {
+      logger.info(`${socket.user.id} is joining ${channel.id}`)
       socket.join(channel.id)
     }
   }
@@ -75,18 +79,14 @@ export class SocketController {
       iv: data.iv,
       created_by: socket.user.id
     })
-    socket.except(socket.id).to(data.channel_id).emit(SocketEvent.MESSAGE_SEND, insertResult.raw[0])
+    this.io.to(data.channel_id).emit(SocketServerEmittedEvents.MESSAGE_RECEIVED, insertResult.raw[0])
   }
 }
 
 export default new SocketController();
 
 // Socket Event Names
-export enum SocketEvent {
-  // Connection Events
-  CONNECT = 'connect',
-  DISCONNECT = 'disconnect',
-
+export enum SocketClientEmittedEvents {
   // Contact Events
   CONTACT_ADD = 'contact:add',
   CONTACT_BLOCK = 'contact:block',
@@ -119,4 +119,7 @@ export enum SocketEvent {
   // Typing Events
   TYPING_START = 'typing:start',
   TYPING_STOP = 'typing:stop',
+}
+export enum SocketServerEmittedEvents {
+  MESSAGE_RECEIVED = 'message:received'
 }

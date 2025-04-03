@@ -7,6 +7,8 @@ import { ChatOptions } from '@/app/(chat-app)/chats/components/chat-options';
 import { ChatSearchBar } from '@/app/(chat-app)/chats/components/chat-search-bar';
 import { EncryptionKeyModal } from '@/app/(chat-app)/chats/components/encryption-modal';
 import { useChats } from '@/hooks/use-chats';
+import { UUID } from 'crypto';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 
 export default function ChatsLayout({
@@ -14,10 +16,12 @@ export default function ChatsLayout({
 }: {
   children: React.ReactNode
 }) {
+  const params = useParams()
+  const chatId = params.id as UUID
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false);
-
+  const [activeChatId, setActiveChatId] = useState<UUID | null>(chatId || null);
   const { data: chats, isLoading: isLoadingChats, isError: isErrorChats } = useChats(activeFilter, searchQuery);
   const pinnedChats = chats?.filter(c => c.isPinned);
 
@@ -46,7 +50,7 @@ export default function ChatsLayout({
                     <h2 className="text-sm font-medium text-muted-foreground mb-2">Pinned Chats</h2>
                     <div className="space-y-2">
                       {pinnedChats.map((chat) => (
-                        <ChatItem key={chat.id} chat={chat} />
+                        <ChatItem key={chat.id} chat={chat} activeChatId={activeChatId} setActiveChatId={setActiveChatId} />
                       ))}
                     </div>
                   </div>
@@ -59,7 +63,7 @@ export default function ChatsLayout({
                     </h2>
                     <div className="space-y-2">
                       {chats.map((chat) => (
-                        <ChatItem key={chat.id} chat={chat} />
+                        <ChatItem key={chat.id} chat={chat} activeChatId={activeChatId} setActiveChatId={setActiveChatId} />
                       ))}
                     </div>
                   </div>

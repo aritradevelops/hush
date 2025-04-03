@@ -1,7 +1,5 @@
-export enum SocketEvent {
-  // Connection Events
-  CONNECT = 'connect',
-  DISCONNECT = 'disconnect',
+export enum SocketClientEmittedEvent {
+
 
   // Contact Events
   CONTACT_ADD = 'contact:add',
@@ -31,6 +29,19 @@ export enum SocketEvent {
   MESSAGE_READ = 'message:read',
   MESSAGE_SEND = 'message:send',
   MESSAGE_UNPIN = 'message:unpin',
+
+  // Typing Events
+  TYPING_START = 'typing:start',
+  TYPING_STOP = 'typing:stop',
+}
+
+export enum SocketServerEmittedEvent {
+  // Connection Events
+  CONNECT = 'connect',
+  DISCONNECT = 'disconnect',
+
+  // Message Events
+  MESSAGE_RECEIVED = 'message:received',
 
   // Typing Events
   TYPING_START = 'typing:start',

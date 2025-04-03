@@ -1,9 +1,7 @@
 'use client'
 import httpClient from '@/lib/http-client';
 import Link from 'next/link';
-import { Chat } from './types';
 
-type FilterType = 'all' | 'unread' | 'groups';
 
 export default function ChatsPage() {
   // httpClient.fetchNewContacts(['84e19396-f813-42f0-9235-7034beeea565'], '')
@@ -49,47 +47,6 @@ function FeatureCard({ title, description, icon }: { title: string; description:
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-muted-foreground">{description}</p>
     </div>
-  );
-}
-
-function ChatItem({ chat }: { chat: Chat }) {
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  return (
-    <Link href={`/chats/${chat.id}`} className="block">
-      <div className="flex items-center p-4 hover:bg-accent rounded-lg cursor-pointer w-full max-w-5xl">
-        <img
-          src={chat.avatar}
-          alt={chat.name}
-          className="w-14 h-14 rounded-full mr-4"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-center">
-            <h3 className="font-medium text-lg">{chat.name}</h3>
-            <span className="text-sm text-muted-foreground">
-              {formatTime(chat.last_message.created_at)}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <p className="text-sm text-muted-foreground truncate flex-1">
-              <span className="font-medium text-foreground">
-                {chat.last_message.sender.name}:
-              </span>
-              {' '}
-              {chat.last_message.message}
-            </p>
-            {chat.unread_count > 0 && (
-              <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-1 text-sm shrink-0">
-                {chat.unread_count}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
   );
 }
 

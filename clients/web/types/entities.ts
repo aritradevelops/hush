@@ -1,5 +1,5 @@
 import { UUID } from "crypto";
-
+type timestamp = string;
 // Common For all entities
 export enum Status {
   DRAFT = 'DRAFT',
@@ -13,9 +13,9 @@ export enum Status {
 export interface PrimaryColumns {
   id: UUID;
   status: Status;
-  created_at: Date;
-  updated_at: Date | null;
-  deleted_at: Date | null;
+  created_at: timestamp;
+  updated_at: timestamp | null;
+  deleted_at: timestamp | null;
   created_by: UUID;
   updated_by: UUID | null;
   deleted_by: UUID | null;
@@ -53,9 +53,9 @@ export interface User extends PrimaryColumns {
   email: string;
   avatar?: string;
   password?: string | null;
-  email_verification_hash: string | null;
-  reset_password_hash: string | null;
-  reset_password_hash_expiry: Date | null;
+  email_verification_hash: timestamp | null;
+  reset_password_hash: timestamp | null;
+  reset_password_hash_expiry: timestamp | null;
   contacts: string[];
   public_key: string | null;
 }

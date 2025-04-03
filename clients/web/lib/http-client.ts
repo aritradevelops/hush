@@ -261,20 +261,17 @@ export class HttpClient {
     })
     return await response.json() as { message: string, data: { id: UUID } }
   }
-  async listMessages(channelId: UUID, page = 1) {
+  async listMessages(channelId: UUID, perPage: number, page = 1) {
     const query: ListParams = {
       page,
+      per_page: perPage,
       where_clause: {
         channel_id: {
           $eq: channelId
         }
       }
     }
-    const response = await fetch(`${this.baseUrl}/chats/list?${qs.stringify(query)}`, {
-      method: 'GET',
-      credentials: 'include'
-    })
-    return await response.json() as { message: string, data: Chat[] }
+    return await this.list<Chat>('chats', query)
   }
 }
 const httpClient = new HttpClient()

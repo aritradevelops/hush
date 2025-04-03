@@ -22,7 +22,8 @@ LEFT JOIN LATERAL (
   SELECT c.*
   FROM contacts c
   WHERE c.channel_id = dm.id
-  AND c.user_id = $1::uuid
+  AND c.user_id = CASE WHEN dm.member_ids[1] = $1::uuid THEN dm.member_ids[2] ELSE dm.member_ids[1] END
+  AND c.created_by = $1::uuid
   LIMIT 1
 ) AS contact ON TRUE
 WHERE dm.member_ids @> ARRAY[$1]::uuid[] AND dm.id = $2::uuid

@@ -2,6 +2,17 @@
 export interface ApiListResponseSuccess<T> {
   message: string;
   data: T[];
+  info: {
+    total: number;
+    page: number;
+    per_page: number;
+    trash: boolean;
+    order_by: string;
+    order: OrderDirection;
+    search: string;
+    where_clause: ClauseMap;
+    select: string;
+  }
 }
 
 export interface ApiListResponseError<T> {

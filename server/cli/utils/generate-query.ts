@@ -42,7 +42,7 @@ export function generateQuery() {
         const filePath = path.join(dirPath, file.name);
         const queryContent = fs.readFileSync(filePath, 'utf8');
 
-        const parser = new QueryParser(queryContent);
+        const parser = new QueryParser(queryContent, filePath);
         const functionName = snakeToCamel(file.name.replace('.sql', ''));
 
         queryClass.addQuery(functionName, parser.sql, parser.docString);
@@ -110,7 +110,7 @@ export default new ${this.moduleName}Query();`;
  * Class to parse SQL queries and extract metadata.
  */
 class QueryParser {
-  constructor(private query: string) { }
+  constructor(private query: string, private filePath: string) { }
 
   /**
    * Extracts the SQL query, removes comments, and minifies it.
@@ -121,7 +121,7 @@ class QueryParser {
       if (!rawSql) throw new Error("Invalid SQL format");
       return minify(rawSql);
     } catch (error) {
-      console.error("❌ Error parsing SQL:", error);
+      console.error("❌ Error parsing SQL:", error, { filePath: this.filePath });
       return "";
     }
   }
@@ -141,7 +141,7 @@ class QueryParser {
    * ${docContent.split('\n').map(line => line.trim()).join('\n   * ')}
    */`;
     } catch (error) {
-      console.error("❌ Error extracting documentation:", error);
+      console.error("❌ Error extracting documentation:", error, { filePath: this.filePath });
       return `  /**
    * Error extracting documentation.
    */`;
