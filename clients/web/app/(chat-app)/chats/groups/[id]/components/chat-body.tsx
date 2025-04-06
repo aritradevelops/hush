@@ -5,10 +5,10 @@ import httpClient from "@/lib/http-client"
 import { formatTime } from "@/lib/time"
 import { cn } from "@/lib/utils"
 import { ApiListResponseSuccess } from "@/types/api"
-import { Chat, Contact, DirectMessage, User } from "@/types/entities"
+import { Group, GroupMember, Contact, User, Chat } from "@/types/entities"
 import { SocketServerEmittedEvent } from "@/types/events"
 import { ReactQueryKeys } from "@/types/react-query"
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
+import { useQueryClient, useInfiniteQuery } from "@tanstack/react-query"
 import { UUID } from "crypto"
 import { useParams } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -16,7 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 //! else the scroll bar won't show and infinite scroll won't work
 // TODO: figure out a solution for this
 const PER_PAGE = 25
-export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | null } & { chat_user: User } }) {
+export function ChatsBody({ group }: { group?: Group & { me: User, members: (GroupMember & { contact: Contact | null })[] } }) {
   const params = useParams()
   const chatId = params.id as string
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -28,21 +28,21 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
   const queryClient = useQueryClient()
   useEffect(() => {
     if (!socket) return
-    function onTypingStart({ channel_id, user_id }: { channel_id: UUID, user_id: UUID }) {
+    function onTypingStart({ channel_id }: { channel_id: UUID }) {
       console.log('Typing start');
       if (channel_id !== chatId) return
       console.log('here')
       setIsTyping(true)
     }
-    function onTypingStop({ channel_id, user_id }: { channel_id: UUID, user_id: UUID }) {
+    function onTypingStop({ channel_id }: { channel_id: UUID }) {
       console.log('Typing stop');
       if (channel_id !== chatId) return
       console.log('here2')
       setIsTyping(false)
     }
     function onMessage(message: Chat) {
-      if (message.channel_id !== chatId) return
-      queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
+      console.log('Message received', message);
+      queryClient.setQueryData([ReactQueryKeys.GROUPS_MESSAGES_CHATS, message.channel_id],
         (oldData: { pages: ApiListResponseSuccess<Chat>[], pageParams: number[] }) => {
           return {
             pages: [{ ...oldData.pages[0], data: [message, ...oldData.pages[0].data] }],
@@ -59,7 +59,7 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
       socket.off(SocketServerEmittedEvent.TYPING_STOP, onTypingStop)
       socket.off(SocketServerEmittedEvent.MESSAGE_RECEIVED, onMessage)
     }
-  }, [socket, isTyping, queryClient])
+  }, [socket, isTyping])
   // Use infinite query to fetch paginated messages
   const {
     data,
@@ -68,7 +68,7 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
     hasNextPage,
     isFetchingNextPage
   } = useInfiniteQuery({
-    queryKey: [ReactQueryKeys.DIRECT_MESSAGES_CHATS, chatId],
+    queryKey: [ReactQueryKeys.GROUPS_MESSAGES_CHATS, chatId],
     queryFn: async ({ pageParam = 1 }) => {
       return await httpClient.listMessages(chatId as UUID, PER_PAGE, pageParam);
     },
@@ -77,7 +77,7 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
       // If we received messages, there might be more pages
       return lastPage.info.total > lastPage.info.per_page * lastPage.info.page ? lastPage.info.page + 1 : undefined;
     },
-    enabled: !!dm
+    enabled: !!group
   })
 
   // Combine all messages from all pages
@@ -128,7 +128,7 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
   }, [handleScroll, allMessages, initialScrollDone, messagesLoading, scrollToBottom]);
 
   // If no messages data is available yet, show skeleton
-  if (!dm || messagesLoading) return <ChatsBodySkeleton />;
+  if (!group || messagesLoading) return <ChatsBodySkeleton />;
 
   return (
     <div
@@ -154,28 +154,21 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
 
       {/* Render all messages */}
       {uniqueMessages.map((message) => (
-        <ChatMessage key={message.id} message={message} dm={dm} />
+        <ChatMessage key={message.id} message={message} group={group} />
       ))}
-
-      {/* Warning for non-contact users */}
-      {dm && !dm.contact && (
-        <div className="sticky top-0 left-0 right-0 z-10 flex justify-center mb-4">
-          <Message message="This person is not on your contact list" variant={"warning"} />
-        </div>
-      )}
     </div>
   )
 }
 
 export function ChatMessage({
   message,
-  dm
+  group
 }: {
   message: Chat,
-  dm: DirectMessage & { contact: Contact | null } & { chat_user: User }
+  group: Group & { me: User, members: (GroupMember & { contact: Contact | null })[] }
 }) {
   const [isHovered, setIsHovered] = useState(false);
-  const isOwnMessage = message.created_by !== dm.chat_user.id;
+  const isOwnMessage = message.created_by === group.me.id;
 
   return (
     <div

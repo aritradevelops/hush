@@ -2,7 +2,7 @@ import { constants } from '@/config/constants';
 import { Fields } from '@/hooks/use-form';
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema, ResetPasswordSchema } from '@/schemas/auth';
 import { ApiListResponse, ListParams } from '@/types/api';
-import { Channel, Chat, Contact, DirectMessage, DirectMessageWithLastChat, GroupMember, GroupWithLastChat, User } from '@/types/entities';
+import { Channel, Chat, Contact, DirectMessage, DirectMessageWithLastChat, Group, GroupMember, GroupWithLastChat, User } from '@/types/entities';
 import { UUID } from 'crypto';
 import qs from 'qs';
 import { z } from 'zod';
@@ -160,15 +160,6 @@ export class HttpClient {
     }
   }
 
-  async addContact(id: UUID) {
-    const response = await fetch(`${this.baseUrl}/contacts/add-contact/${id}`, {
-      method: 'POST',
-      credentials: 'include'
-    })
-    const result = await response.json() as { message: string, data: { id: UUID } }
-    return result.data
-  }
-
   private async list<T>(module: string, query: ListParams = {}) {
     const response = await fetch(`${this.baseUrl}/${module}/list?${qs.stringify(query)}`, {
       method: 'GET',
@@ -199,6 +190,16 @@ export class HttpClient {
       credentials: 'include'
     })
     return await response.json() as { message: string, data: DirectMessage & { contact: Contact | null } & { chat_user: User } }
+  }
+  async getGroupDetails(id: UUID) {
+    const response = await fetch(`${this.baseUrl}/groups/details/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    })
+    return await response.json() as { message: string, data: Group & { members: (GroupMember & { contact: Contact | null })[], me: User } }
   }
 
   async listGroupMembers(query: ListParams = {}) {

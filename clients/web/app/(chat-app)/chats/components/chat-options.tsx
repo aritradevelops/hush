@@ -24,23 +24,25 @@ const options: Option[] = [
     modal: <CreateGroupModal isOpen={true} onClose={() => { }} />
   }
 ];
+export type ModalType = 'add-contact' | 'create-group' | null;
+
 export interface ChatOptionsProps {
-  setIsAddContactModalOpen: (isOpen: boolean) => void;
+  openModal: (modalType: ModalType) => void;
 }
 
-export function ChatOptions({ setIsAddContactModalOpen }: ChatOptionsProps) {
+export function ChatOptions({ openModal }: ChatOptionsProps) {
   return (
     <div className="flex gap-2">
-      {options.map(o =>
+      {options.map(option => (
         <button
-          onClick={() => setIsAddContactModalOpen(true)}
+          onClick={() => openModal(option.value as ModalType)}
           className="p-2 rounded-lg bg-accent hover:bg-accent/80 transition-colors cursor-pointer"
-          title={o.label}
-          key={o.value}
+          title={option.label}
+          key={option.value}
         >
-          {o.icon}
+          {option.icon}
         </button>
-      )}
+      ))}
     </div>
   );
 } 

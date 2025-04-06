@@ -52,11 +52,6 @@ export interface User extends PrimaryColumns {
   name: string;
   email: string;
   avatar?: string;
-  password?: string | null;
-  email_verification_hash: timestamp | null;
-  reset_password_hash: timestamp | null;
-  reset_password_hash_expiry: timestamp | null;
-  contacts: string[];
   public_key: string | null;
 }
 

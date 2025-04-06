@@ -6,5 +6,6 @@ export enum ReactQueryKeys {
   CONTACTS = 'contacts',
   GROUPS = 'groups',
   GROUP_MEMBERS = 'group-members',
+  GROUPS_MESSAGES_CHATS = 'groups-messages-chats',
   NEW_CONTACTS = 'new-contacts',
 }

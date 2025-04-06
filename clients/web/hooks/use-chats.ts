@@ -1,10 +1,13 @@
 // THIS WILL PROBABLY BE A CONTEXT IN LATER VERSIONS
 
+import { useSocket } from "@/contexts/socket-context";
 import httpClient from "@/lib/http-client";
-import { ChannelType, ChannelWithLastChat, Contact, DirectMessageWithLastChat, GroupMember, GroupWithLastChat } from "@/types/entities";
-import { useQuery } from "@tanstack/react-query";
-import { UUID } from "crypto";
+import { ChannelType, ChannelWithLastChat, Chat, DirectMessageWithLastChat, GroupMember, GroupWithLastChat } from "@/types/entities";
+import { SocketServerEmittedEvent } from "@/types/events";
 import { ReactQueryKeys } from "@/types/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { UUID } from "crypto";
+import { useEffect } from "react";
 
 export function useChats(filter: 'all' | 'unread' | 'groups', searchQuery: string) {
   const { data: directMessages, isLoading: isLoadingDirectMessages, isError: isErrorDirectMessages } = useQuery({
@@ -23,6 +26,21 @@ export function useChats(filter: 'all' | 'unread' | 'groups', searchQuery: strin
     queryFn: () => httpClient.listGroupMembers(),
     select: (res) => res.data,
   })
+  const queryClient = useQueryClient()
+
+  const { socket } = useSocket()
+  useEffect(() => {
+    if (!socket) return
+    function onMessage(_: Chat) {
+      queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.DIRECT_MESSAGES] })
+      queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.GROUPS] })
+      queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.GROUP_MEMBERS] })
+    }
+    socket.on(SocketServerEmittedEvent.MESSAGE_RECEIVED, onMessage)
+    return () => {
+      socket.off(SocketServerEmittedEvent.MESSAGE_RECEIVED, onMessage)
+    }
+  }, [socket])
 
   const groupMemberMap = groupMembers ? groupMembers.reduce((final, curr) => {
     final[curr.channel_id] = curr

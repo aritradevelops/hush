@@ -5099,6 +5099,271 @@ paths:
       security:
         - auth:
             - delete.groups
+  /chat-statuses:
+    get:
+      tags:
+        - ChatStatus
+      summary: list ChatStatuss
+      description: Retrieve a list of ChatStatuss
+      operationId: list-chat-statuses-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChatStatus"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.chat-statuses
+  /chat-statuses/create:
+    post:
+      tags:
+        - ChatStatus
+      summary: create a new ChatStatus
+      description: create a new ChatStatus
+      operationId: create-chat-statuses-post
+      requestBody:
+        description: create a new ChatStatus
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatStatus"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ChatStatus"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.chat-statuses
+  /chat-statuses/view/{id}:
+    get:
+      tags:
+        - ChatStatus
+      summary: view details of an existing ChatStatus
+      description: Retrieve details of an existing ChatStatus by ID
+      operationId: view-chat-statuses-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the ChatStatus
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/ChatStatus"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.chat-statuses
+  /chat-statuses/update/{id}:
+    put:
+      tags:
+        - ChatStatus
+      summary: update an existing ChatStatus
+      description: update an existing ChatStatus
+      operationId: update-chat-statuses-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the ChatStatus
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing ChatStatus. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatStatus"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ChatStatus"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.chat-statuses
+  /chat-statuses/delete/{id}:
+    delete:
+      tags:
+        - ChatStatus
+      summary: delete an existing ChatStatus
+      description: delete an existing ChatStatus
+      operationId: delete-chat-statuses-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the ChatStatus
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/ChatStatus"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.chat-statuses
 components:
   schemas:
     Book:
@@ -5423,6 +5688,14 @@ components:
       type: object
       required:
         - name
+    ChatStatus:
+      properties:
+        title:
+          minLength: 3
+          type: string
+      type: object
+      required:
+        - title
   securitySchemes:
     petstore_auth:
       type: oauth2

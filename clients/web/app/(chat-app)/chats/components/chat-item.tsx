@@ -51,7 +51,7 @@ export function ChatItem({ chat, activeChatId, setActiveChatId }: { chat: NonNul
         isActive && "bg-accent/80"
       )}>
         <img
-          src={chat.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${chat.name}`}
+          src={chat.avatar || (chat.type === ChannelType.DIRECT_MESSAGE ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${chat.name}` : `https://api.dicebear.com/9.x/initials/svg?seed=${chat.name}`)}
           alt={chat.name}
           className="w-14 h-14 rounded-full mr-4"
         />

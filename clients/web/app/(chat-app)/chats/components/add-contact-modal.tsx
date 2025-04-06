@@ -33,13 +33,11 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
   const handleAddContact = async (contactId: UUID) => {
     addContact(contactId, async (dm) => {
       const sharedSecret = AESGCM.generateKey();
-      // TODO: fetch the public key of all the members of the dm
-      // TODO: encrypt the shared secret with the public key of the contact
-      // TODO: save the encrypted shared secret to the server
-      // TODO: save the shared secret to the locally for me
-      const publicKey = await keysManager.getPublicKey(contactId);
-      const encryptedSharedSecret = await RSAKeyPair.encryptWithPublicKey(sharedSecret, publicKey);
-      await httpClient.setSharedSecret(dm.id, contactId, encryptedSharedSecret);
+      for (const memberId of dm.member_ids) {
+        const publicKey = await keysManager.getPublicKey(memberId);
+        const encryptedSharedSecret = await RSAKeyPair.encryptWithPublicKey(sharedSecret, publicKey);
+        await httpClient.setSharedSecret(dm.id, memberId, encryptedSharedSecret);
+      }
       // save the shared secret to the locally
       await keysManager.setSharedSecret(dm.id, Base64Utils.encode(sharedSecret))
       queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.DIRECT_MESSAGES] });

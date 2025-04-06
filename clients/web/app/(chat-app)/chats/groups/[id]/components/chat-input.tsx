@@ -1,26 +1,26 @@
 import { useSocket } from "@/contexts/socket-context";
 import { AESGCM } from "@/lib/encryption";
 import keysManager from "@/lib/internal/keys-manager";
-import { DirectMessage, Contact, User } from "@/types/entities";
+import { Group, GroupMember, Contact, User } from "@/types/entities";
 import { useRef, useState } from "react";
 
-export function ChatInput({ dm }: { dm?: DirectMessage & { contact: Contact | null } & { chat_user: User } }) {
+export function ChatInput({ group }: { group?: Group & { members: (GroupMember & { contact: Contact | null })[] } }) {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const { sendMessage, emitTypingStart, emitTypingStop } = useSocket()
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  if (!dm) return <ChatInputSkeleton />
+  if (!group) return <ChatInputSkeleton />
   const handleSendMessage = async () => {
     if (!message.trim()) return; // Don't send empty messages
 
     setSending(true)
     // find the shared secret for the dm
-    const sharedSecret = await keysManager.getSharedSecret(dm.id)
+    const sharedSecret = await keysManager.getSharedSecret(group.id)
     // encrypt the message
     const { encrypted, iv } = await AESGCM.encrypt(message, sharedSecret)
     // send the message
-    sendMessage(dm.id, encrypted, iv)
+    sendMessage(group.id, encrypted, iv)
     setMessage('')
     setSending(false)
   }
@@ -33,12 +33,12 @@ export function ChatInput({ dm }: { dm?: DirectMessage & { contact: Contact | nu
   }
 
   const handleTyping = () => {
-    emitTypingStart(dm.id);
+    emitTypingStart(group.id);
 
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
 
     typingTimeout.current = setTimeout(() => {
-      emitTypingStop(dm.id)
+      emitTypingStop(group.id)
     }, 1000); // Stops detecting after 1 second of inactivity
   };
   return (

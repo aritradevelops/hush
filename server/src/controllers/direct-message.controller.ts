@@ -1,13 +1,12 @@
 
+import { UUID } from "crypto";
 import { Request, Response } from "express";
-import DirectMessage from "../entities/direct-message";
-import { PrimaryColumns } from "../lib/primary-columns";
-import directMessageService, { DirectMessageService } from "../services/direct-message.service";
-import { ClauseMap } from "../utils/clauses";
-import CrudController from "../utils/crud-controller";
 import { GET } from "../decorators/method";
-import { kebabToPascal } from "../utils/string";
+import DirectMessage from "../entities/direct-message";
 import { NotFoundError } from "../errors/http/not-found.error";
+import directMessageService, { DirectMessageService } from "../services/direct-message.service";
+import CrudController from "../utils/crud-controller";
+import { kebabToPascal } from "../utils/string";
 export class DirectMessageController extends CrudController<typeof DirectMessage, DirectMessageService> {
   constructor() {
     super(directMessageService, DirectMessage);
@@ -23,7 +22,8 @@ export class DirectMessageController extends CrudController<typeof DirectMessage
   }
   @GET()
   async details(req: Request, res: Response) {
-    const result = await this.service.getDetailsById(req, res);
+    const id = req.params.id as UUID;
+    const result = await this.service.getDetailsById(req, res, id);
     if (!result) throw new NotFoundError()
     return {
       message: req.t('controller.get', { module: kebabToPascal(req.params.module as string) }),

@@ -5,6 +5,8 @@ import groupService, { GroupService } from "../services/group.service";
 import { GET } from "../decorators/method";
 import { kebabToPascal } from "../utils/string";
 import CrudController from "../utils/crud-controller";
+import { UUID } from "crypto";
+import { singularize } from "inflection";
 export class GroupController extends CrudController<typeof Group, GroupService> {
   constructor() {
     super(groupService, Group);
@@ -20,5 +22,14 @@ export class GroupController extends CrudController<typeof Group, GroupService> 
     };
   }
 
+  @GET()
+  async details(req: Request, res: Response) {
+    const id = req.params.id as UUID;
+    const result = await this.service.getDetailsById(req, res, id);
+    return {
+      message: req.t('controller.view', { module: singularize(kebabToPascal(req.params.module as string)) }),
+      data: result
+    };
+  }
 };
 export default new GroupController();

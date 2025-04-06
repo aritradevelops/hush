@@ -19,7 +19,6 @@ export function EncryptionKeyModal() {
   const [open, setOpen] = useState(false)
   useEffect(() => {
     secretManager.getEncryptionKey().then(data => {
-      console.log(data)
       if (!data) setOpen(true)
     })
   })

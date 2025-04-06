@@ -8,9 +8,6 @@ export class UserService extends CrudService<UserRepository> {
   constructor() {
     super(userRepository);
   }
-  addContact(id: string, contact: string) {
-    return this.repository.addContact(id, contact)
-  }
   async publicKey(id: UUID) {
     const result = await this.repository.view({ id: id })
     if (!result) throw new BadRequestError()

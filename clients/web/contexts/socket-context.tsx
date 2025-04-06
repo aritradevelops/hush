@@ -1,8 +1,6 @@
 // lib/socket-context.tsx
-import { ApiListResponseSuccess } from '@/types/api';
-import { Chat, DirectMessage } from '@/types/entities';
+import { DirectMessage, Group } from '@/types/entities';
 import { SocketClientEmittedEvent, SocketServerEmittedEvent } from '@/types/events';
-import { ReactQueryKeys } from '@/types/react-query';
 import { useQueryClient } from '@tanstack/react-query';
 import { UUID } from 'crypto';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
@@ -13,6 +11,9 @@ interface SocketContextType {
   isConnected: boolean;
   addContact: (contactId: UUID, callback: (dm: DirectMessage) => void) => void;
   sendMessage: (channelId: UUID, encryptedMessage: string, iv: string) => void;
+  emitTypingStart: (channelId: UUID) => void;
+  emitTypingStop: (channelId: UUID) => void;
+  createGroup: (data: { name: string, description?: string, memberIds: UUID[] }, callback?: (group: Group) => void) => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -32,18 +33,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       socket.current.on(SocketServerEmittedEvent.CONNECT, () => {
         console.log('Connected to socket server');
         setIsConnected(true);
-      });
-
-      socket.current.on(SocketServerEmittedEvent.MESSAGE_RECEIVED, (message: Chat) => {
-        console.log('Message received', message);
-        queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
-          (oldData: { pages: ApiListResponseSuccess<Chat>[], pageParams: number[] }) => {
-            return {
-              pages: [{ ...oldData.pages[0], data: [message, ...oldData.pages[0].data] }],
-              pageParams: oldData.pageParams
-            }
-          }
-        );
       });
 
       socket.current.on(SocketServerEmittedEvent.DISCONNECT, () => {
@@ -78,11 +67,30 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const createGroup = (data: { name: string, description?: string, memberIds: UUID[] }, callback?: (group: Group) => void) => {
+    if (!socket.current) return;
+    socket.current.emit(SocketClientEmittedEvent.GROUP_CREATE, { ...data, member_ids: data.memberIds }, (group: Group) => {
+      if (callback) {
+        callback(group)
+      }
+    });
+  }
+  const emitTypingStart = (channelId: UUID) => {
+    if (!socket.current) return;
+    socket.current.emit(SocketClientEmittedEvent.TYPING_START, { channel_id: channelId });
+  };
+  const emitTypingStop = (channelId: UUID) => {
+    if (!socket.current) return;
+    socket.current.emit(SocketClientEmittedEvent.TYPING_STOP, { channel_id: channelId });
+  };
   const value = {
     socket: socket.current,
     isConnected,
     addContact,
     sendMessage,
+    emitTypingStart,
+    emitTypingStop,
+    createGroup
   };
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;

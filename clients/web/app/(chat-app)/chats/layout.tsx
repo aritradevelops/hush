@@ -1,11 +1,12 @@
 'use client'
 import { AddContactModal } from '@/app/(chat-app)/chats/components/add-contact-modal';
+import { CreateGroupModal } from '@/app/(chat-app)/chats/components/create-group-modal';
 import { ChatFilters, FilterType } from '@/app/(chat-app)/chats/components/chat-filters';
 import { ChatItem } from '@/app/(chat-app)/chats/components/chat-item';
 import { ChatListSkeleton } from '@/app/(chat-app)/chats/components/chat-list-skeleton';
 import { ChatOptions } from '@/app/(chat-app)/chats/components/chat-options';
 import { ChatSearchBar } from '@/app/(chat-app)/chats/components/chat-search-bar';
-import { EncryptionKeyModal } from '@/app/(chat-app)/chats/components/encryption-modal';
+import { EncryptionKeyModal } from '@/app/(chat-app)/chats/components/encryption-key-modal';
 import { useChats } from '@/hooks/use-chats';
 import { UUID } from 'crypto';
 import { useParams } from 'next/navigation';
@@ -20,7 +21,7 @@ export default function ChatsLayout({
   const chatId = params.id as UUID
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddContactModalOpen, setIsAddContactModalOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<'add-contact' | 'create-group' | null>(null);
   const [activeChatId, setActiveChatId] = useState<UUID | null>(chatId || null);
   const { data: chats, isLoading: isLoadingChats, isError: isErrorChats } = useChats(activeFilter, searchQuery);
   const pinnedChats = chats?.filter(c => c.isPinned);
@@ -32,7 +33,7 @@ export default function ChatsLayout({
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl font-bold">Hush</h1>
-              <ChatOptions setIsAddContactModalOpen={setIsAddContactModalOpen} />
+              <ChatOptions openModal={setActiveModal} />
             </div>
             <ChatSearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
           </div>
@@ -79,8 +80,12 @@ export default function ChatsLayout({
       </div>
       {children}
       <AddContactModal
-        isOpen={isAddContactModalOpen}
-        onClose={() => setIsAddContactModalOpen(false)}
+        isOpen={activeModal === 'add-contact'}
+        onClose={() => setActiveModal(null)}
+      />
+      <CreateGroupModal
+        isOpen={activeModal === 'create-group'}
+        onClose={() => setActiveModal(null)}
       />
       <EncryptionKeyModal />
     </div>
