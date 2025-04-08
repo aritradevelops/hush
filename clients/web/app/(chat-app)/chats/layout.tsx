@@ -1,13 +1,13 @@
 'use client'
 import { AddContactModal } from '@/app/(chat-app)/chats/components/add-contact-modal';
-import { CreateGroupModal } from '@/app/(chat-app)/chats/components/create-group-modal';
 import { ChatFilters, FilterType } from '@/app/(chat-app)/chats/components/chat-filters';
-import { ChatItem } from '@/app/(chat-app)/chats/components/chat-item';
+import { ChannelPreview } from '@/app/(chat-app)/chats/components/channel-preview';
 import { ChatListSkeleton } from '@/app/(chat-app)/chats/components/chat-list-skeleton';
 import { ChatOptions } from '@/app/(chat-app)/chats/components/chat-options';
 import { ChatSearchBar } from '@/app/(chat-app)/chats/components/chat-search-bar';
+import { CreateGroupModal } from '@/app/(chat-app)/chats/components/create-group-modal';
 import { EncryptionKeyModal } from '@/app/(chat-app)/chats/components/encryption-key-modal';
-import { useChats } from '@/hooks/use-chats';
+import { useChannels } from '@/hooks/use-channels';
 import { UUID } from 'crypto';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -23,8 +23,8 @@ export default function ChatsLayout({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModal, setActiveModal] = useState<'add-contact' | 'create-group' | null>(null);
   const [activeChatId, setActiveChatId] = useState<UUID | null>(chatId || null);
-  const { data: chats, isLoading: isLoadingChats, isError: isErrorChats } = useChats(activeFilter, searchQuery);
-  const pinnedChats = chats?.filter(c => c.isPinned);
+  const { data: channels, isLoading: isLoadingChannels, isError: isErrorChannels } = useChannels(activeFilter, searchQuery, activeChatId);
+  const pinnedChats = channels?.filter(c => c.has_pinned);
 
   return (
     <div className="flex-1 flex">
@@ -42,7 +42,7 @@ export default function ChatsLayout({
 
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
-            {isLoadingChats ? (
+            {isLoadingChannels ? (
               <ChatListSkeleton />
             ) : (
               <>
@@ -50,21 +50,21 @@ export default function ChatsLayout({
                   <div className="mb-6">
                     <h2 className="text-sm font-medium text-muted-foreground mb-2">Pinned Chats</h2>
                     <div className="space-y-2">
-                      {pinnedChats.map((chat) => (
-                        <ChatItem key={chat.id} chat={chat} activeChatId={activeChatId} setActiveChatId={setActiveChatId} />
+                      {pinnedChats.map((channel) => (
+                        <ChannelPreview key={channel.id} channel={channel} activeChatId={activeChatId} setActiveChatId={setActiveChatId} />
                       ))}
                     </div>
                   </div>
                 ) : null}
 
-                {chats && chats.length > 0 ? (
+                {channels && channels.length > 0 ? (
                   <div>
                     <h2 className="text-sm font-medium text-muted-foreground mb-2">
                       {activeFilter === 'all' ? 'All Chats' : activeFilter === 'unread' ? 'Unread' : 'Groups'}
                     </h2>
                     <div className="space-y-2">
-                      {chats.map((chat) => (
-                        <ChatItem key={chat.id} chat={chat} activeChatId={activeChatId} setActiveChatId={setActiveChatId} />
+                      {channels.map((channel) => (
+                        <ChannelPreview key={channel.id} channel={channel} activeChatId={activeChatId} setActiveChatId={setActiveChatId} />
                       ))}
                     </div>
                   </div>

@@ -1,17 +1,22 @@
-import { Request, Response, NextFunction } from "express";
-import { jwtVerify } from "jose";
-import env from "../lib/env";
-import { UnauthenticatedError } from "../errors/http/unauthenticated.error";
-import { UUID } from "node:crypto";
-import { Socket } from "socket.io";
 import * as cookie from "cookie";
+import { NextFunction, Request, Response } from "express";
+import { jwtVerify } from "jose";
+import { Socket } from "socket.io";
+import { UnauthenticatedError } from "../errors/http/unauthenticated.error";
+import { UnauthorizedError } from "../errors/http/unauthorized.error";
+import env from "../lib/env";
+import { userPermissions } from "../lib/permissions";
 import logger from "../utils/logger";
 // TODO: handle this via decorator
-const publcRoutes = ['auth_sign-in', 'auth_sign-up', 'auth_verify-email', 'auth_forgot-password', 'auth_reset-password', 'oauth_callback']
+const publicRoutes = ['auth_sign-in', 'auth_sign-up', 'auth_verify-email', 'auth_forgot-password', 'auth_reset-password', 'auth_refresh', 'oauth_callback']
 export const isAuthRequest = () => {
   return async function (req: Request, res: Response, next: NextFunction) {
     const identifier = req.params.module + '_' + req.params.action
-    if (publcRoutes.includes(identifier)) {
+    if (publicRoutes.includes(identifier)) {
+      // @ts-ignore
+      req.user = {
+        scope: 'ALL'
+      }
       return next();
     }
     let accessToken = req.cookies.access_token
@@ -23,15 +28,15 @@ export const isAuthRequest = () => {
       const verified = await jwtVerify(accessToken, Buffer.from(env.get('JWT_SECRET')), {
         algorithms: ['HS256']
       })
+      const scope = userPermissions[`${req.params.module}_${req.params.action}`]
+      if (!scope) throw new UnauthorizedError()
       // @ts-ignore
       req.user = {
-        scope: 'ROOT',
+        scope,
         ...verified.payload
       }
     } catch (err) {
-      if (req.url.startsWith('/v1')) next(new UnauthenticatedError())
-      else res.redirect('/login')
-      return
+      return next(err as Error)
     }
     return next();
   };

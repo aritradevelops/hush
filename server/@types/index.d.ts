@@ -1,4 +1,4 @@
-type SCOPES = 'SELF' | 'ORGANIZATION' | 'ACCOUNT' | 'ROOT';
+type SCOPES = 'SELF' | 'ALL';
 declare namespace Express {
   interface Request {
     user?: {

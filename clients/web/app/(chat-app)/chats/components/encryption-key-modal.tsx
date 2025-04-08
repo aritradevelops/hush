@@ -14,14 +14,22 @@ import secretManager from "@/lib/internal/keys-manager"
 import { Download, Key, Lock, Upload } from "lucide-react"
 import { useEffect, useState } from "react"
 import httpClient from "@/lib/http-client"
+import { useMe } from "@/contexts/user-context"
 
 export function EncryptionKeyModal() {
   const [open, setOpen] = useState(false)
+  const { user } = useMe()
+  // Since UserDataLoader ensures user is loaded, we can be sure user exists here
   useEffect(() => {
-    secretManager.getEncryptionKey().then(data => {
-      if (!data) setOpen(true)
-    })
-  })
+    if (user) {
+      // Use email as a unique identifier for the key storage
+      secretManager.getEncryptionKey(user.email).then(data => {
+        if (!data) {
+          setOpen(true)
+        }
+      })
+    }
+  }, [user])
 
   const [key, setKey] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
@@ -30,11 +38,14 @@ export function EncryptionKeyModal() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const handleGenerateKey = async () => {
+    if (!user) {
+      return
+    }
     setGenerating(true)
     const { privateKey, publicKey } = await RSAKeyPair.generate()
-    await httpClient.addPublicKey(publicKey)
-    // store on db
-    await secretManager.setEncryptionKey(privateKey)
+    await httpClient.createPublicKey({ key: publicKey, user_id: user.id })
+    // store on db with user email as identifier
+    await secretManager.setEncryptionKey(privateKey, user.email)
     const privateKeyPem = RSAKeyPair.formatPEM(privateKey, "PRIVATE KEY")
     const pemFile = new Blob([privateKeyPem], { type: "application/x-pem-file" });
     setKey(privateKey)
@@ -60,9 +71,9 @@ export function EncryptionKeyModal() {
       // TODO: validate
       const privateKeyPem = await selectedFile.text()
       const privateKey = RSAKeyPair.importPem(privateKeyPem)
-      console.log(privateKey)
       setKey(privateKey)
-      await secretManager.setEncryptionKey(privateKey)
+      // Store with user email as identifier if available
+      await secretManager.setEncryptionKey(privateKey, user?.email)
       setOpen(false)
     } catch (error) {
       setImportError("Failed to import key. Please ensure it's a valid encryption key file.")
@@ -75,7 +86,8 @@ export function EncryptionKeyModal() {
       setOpen(false)
     }
   }
-
+  // Still render the modal even if user data isn't loaded yet
+  // Only disable actions that require user data
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
@@ -134,11 +146,11 @@ export function EncryptionKeyModal() {
               <CardFooter className="flex justify-between">
                 {downloadLink ? (
                   <Button className="w-full">
-                    <a href={downloadLink} download="hush_private_key.pem" className="w-full flex justify-center items-center"><Download className="mr-2 h-4 w-4" />
+                    <a href={downloadLink} download={`${user!.email}_hush_private_key.pem`} className="w-full flex justify-center items-center"><Download className="mr-2 h-4 w-4" />
                       Download Key</a>
                   </Button>
                 ) : (
-                  <Button onClick={handleGenerateKey} className="w-full">
+                  <Button onClick={handleGenerateKey} className="w-full" disabled={generating}>
                     <Key className="mr-2 h-4 w-4" />
                     {generating ? 'Generating Key...' : 'Generate Key'}
                   </Button>

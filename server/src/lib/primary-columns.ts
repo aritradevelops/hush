@@ -3,29 +3,29 @@ import { BaseEntity, Column, CreateDateColumn, Entity, Index, PrimaryGeneratedCo
 
 
 
-export enum Status {
-  DRAFT,
-  PENDING,
-  ACTIVE,
-  INACTIVE,
-  LOCKED,
-  DEACTIVATED
-}
+// export enum Status {
+//   DRAFT,
+//   PENDING,
+//   ACTIVE,
+//   INACTIVE,
+//   LOCKED,
+//   DEACTIVATED
+// }
 
 export class PrimaryColumns extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: UUID;
 
-  @Column({ type: 'enum', enum: Status, default: Status.ACTIVE })
-  status!: Status
+  // @Column({ type: 'enum', enum: Status, default: Status.ACTIVE })
+  // status!: Status
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   created_at!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updated_at!: Date | null;
 
-  @Column({ nullable: true, type: Date })
+  @Column({ nullable: true, type: 'timestamptz' })
   deleted_at!: Date | null;
 
   @Column({ type: "uuid" })

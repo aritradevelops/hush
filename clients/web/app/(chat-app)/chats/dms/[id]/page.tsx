@@ -2,7 +2,7 @@
 import { ChatsBody } from "@/app/(chat-app)/chats/dms/[id]/components/chat-body"
 import { ChatHeader } from "@/app/(chat-app)/chats/dms/[id]/components/chat-header"
 import { ChatInput } from "@/app/(chat-app)/chats/dms/[id]/components/chat-input"
-import httpClient from "@/lib/http-client"
+import httpClient from "@/lib/http-client-old"
 import { ReactQueryKeys } from "@/types/react-query"
 import { useQuery } from "@tanstack/react-query"
 import { UUID } from "crypto"

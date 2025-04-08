@@ -5364,6 +5364,2392 @@ paths:
       security:
         - auth:
             - delete.chat-statuses
+  /blocked-users:
+    get:
+      tags:
+        - BlockedUser
+      summary: list BlockedUsers
+      description: Retrieve a list of BlockedUsers
+      operationId: list-blocked-users-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BlockedUser"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.blocked-users
+  /blocked-users/create:
+    post:
+      tags:
+        - BlockedUser
+      summary: create a new BlockedUser
+      description: create a new BlockedUser
+      operationId: create-blocked-users-post
+      requestBody:
+        description: create a new BlockedUser
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockedUser"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/BlockedUser"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.blocked-users
+  /blocked-users/view/{id}:
+    get:
+      tags:
+        - BlockedUser
+      summary: view details of an existing BlockedUser
+      description: Retrieve details of an existing BlockedUser by ID
+      operationId: view-blocked-users-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the BlockedUser
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/BlockedUser"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.blocked-users
+  /blocked-users/update/{id}:
+    put:
+      tags:
+        - BlockedUser
+      summary: update an existing BlockedUser
+      description: update an existing BlockedUser
+      operationId: update-blocked-users-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the BlockedUser
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing BlockedUser. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockedUser"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/BlockedUser"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.blocked-users
+  /blocked-users/delete/{id}:
+    delete:
+      tags:
+        - BlockedUser
+      summary: delete an existing BlockedUser
+      description: delete an existing BlockedUser
+      operationId: delete-blocked-users-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the BlockedUser
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/BlockedUser"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.blocked-users
+  /channel-participants:
+    get:
+      tags:
+        - ChannelParticipant
+      summary: list ChannelParticipants
+      description: Retrieve a list of ChannelParticipants
+      operationId: list-channel-participants-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChannelParticipant"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.channel-participants
+  /channel-participants/create:
+    post:
+      tags:
+        - ChannelParticipant
+      summary: create a new ChannelParticipant
+      description: create a new ChannelParticipant
+      operationId: create-channel-participants-post
+      requestBody:
+        description: create a new ChannelParticipant
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChannelParticipant"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ChannelParticipant"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.channel-participants
+  /channel-participants/view/{id}:
+    get:
+      tags:
+        - ChannelParticipant
+      summary: view details of an existing ChannelParticipant
+      description: Retrieve details of an existing ChannelParticipant by ID
+      operationId: view-channel-participants-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the ChannelParticipant
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/ChannelParticipant"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.channel-participants
+  /channel-participants/update/{id}:
+    put:
+      tags:
+        - ChannelParticipant
+      summary: update an existing ChannelParticipant
+      description: update an existing ChannelParticipant
+      operationId: update-channel-participants-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the ChannelParticipant
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing ChannelParticipant. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChannelParticipant"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ChannelParticipant"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.channel-participants
+  /channel-participants/delete/{id}:
+    delete:
+      tags:
+        - ChannelParticipant
+      summary: delete an existing ChannelParticipant
+      description: delete an existing ChannelParticipant
+      operationId: delete-channel-participants-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the ChannelParticipant
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/ChannelParticipant"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.channel-participants
+  /chat-media:
+    get:
+      tags:
+        - ChatMedia
+      summary: list ChatMedias
+      description: Retrieve a list of ChatMedias
+      operationId: list-chat-media-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChatMedia"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.chat-media
+  /chat-media/create:
+    post:
+      tags:
+        - ChatMedia
+      summary: create a new ChatMedia
+      description: create a new ChatMedia
+      operationId: create-chat-media-post
+      requestBody:
+        description: create a new ChatMedia
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatMedia"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ChatMedia"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.chat-media
+  /chat-media/view/{id}:
+    get:
+      tags:
+        - ChatMedia
+      summary: view details of an existing ChatMedia
+      description: Retrieve details of an existing ChatMedia by ID
+      operationId: view-chat-media-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the ChatMedia
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/ChatMedia"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.chat-media
+  /chat-media/update/{id}:
+    put:
+      tags:
+        - ChatMedia
+      summary: update an existing ChatMedia
+      description: update an existing ChatMedia
+      operationId: update-chat-media-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the ChatMedia
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing ChatMedia. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatMedia"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ChatMedia"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.chat-media
+  /chat-media/delete/{id}:
+    delete:
+      tags:
+        - ChatMedia
+      summary: delete an existing ChatMedia
+      description: delete an existing ChatMedia
+      operationId: delete-chat-media-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the ChatMedia
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/ChatMedia"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.chat-media
+  /chat-reactions:
+    get:
+      tags:
+        - ChatReaction
+      summary: list ChatReactions
+      description: Retrieve a list of ChatReactions
+      operationId: list-chat-reactions-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChatReaction"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.chat-reactions
+  /chat-reactions/create:
+    post:
+      tags:
+        - ChatReaction
+      summary: create a new ChatReaction
+      description: create a new ChatReaction
+      operationId: create-chat-reactions-post
+      requestBody:
+        description: create a new ChatReaction
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatReaction"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ChatReaction"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.chat-reactions
+  /chat-reactions/view/{id}:
+    get:
+      tags:
+        - ChatReaction
+      summary: view details of an existing ChatReaction
+      description: Retrieve details of an existing ChatReaction by ID
+      operationId: view-chat-reactions-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the ChatReaction
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/ChatReaction"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.chat-reactions
+  /chat-reactions/update/{id}:
+    put:
+      tags:
+        - ChatReaction
+      summary: update an existing ChatReaction
+      description: update an existing ChatReaction
+      operationId: update-chat-reactions-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the ChatReaction
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing ChatReaction. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatReaction"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ChatReaction"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.chat-reactions
+  /chat-reactions/delete/{id}:
+    delete:
+      tags:
+        - ChatReaction
+      summary: delete an existing ChatReaction
+      description: delete an existing ChatReaction
+      operationId: delete-chat-reactions-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the ChatReaction
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/ChatReaction"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.chat-reactions
+  /email-verification-requests:
+    get:
+      tags:
+        - EmailVerificationRequest
+      summary: list EmailVerificationRequests
+      description: Retrieve a list of EmailVerificationRequests
+      operationId: list-email-verification-requests-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EmailVerificationRequest"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.email-verification-requests
+  /email-verification-requests/create:
+    post:
+      tags:
+        - EmailVerificationRequest
+      summary: create a new EmailVerificationRequest
+      description: create a new EmailVerificationRequest
+      operationId: create-email-verification-requests-post
+      requestBody:
+        description: create a new EmailVerificationRequest
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailVerificationRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/EmailVerificationRequest"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.email-verification-requests
+  /email-verification-requests/view/{id}:
+    get:
+      tags:
+        - EmailVerificationRequest
+      summary: view details of an existing EmailVerificationRequest
+      description: Retrieve details of an existing EmailVerificationRequest by ID
+      operationId: view-email-verification-requests-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the EmailVerificationRequest
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/EmailVerificationRequest"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.email-verification-requests
+  /email-verification-requests/update/{id}:
+    put:
+      tags:
+        - EmailVerificationRequest
+      summary: update an existing EmailVerificationRequest
+      description: update an existing EmailVerificationRequest
+      operationId: update-email-verification-requests-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the EmailVerificationRequest
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing EmailVerificationRequest. Every key is optional
+          here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailVerificationRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/EmailVerificationRequest"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.email-verification-requests
+  /email-verification-requests/delete/{id}:
+    delete:
+      tags:
+        - EmailVerificationRequest
+      summary: delete an existing EmailVerificationRequest
+      description: delete an existing EmailVerificationRequest
+      operationId: delete-email-verification-requests-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the EmailVerificationRequest
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/EmailVerificationRequest"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.email-verification-requests
+  /passwords:
+    get:
+      tags:
+        - Password
+      summary: list Passwords
+      description: Retrieve a list of Passwords
+      operationId: list-passwords-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Password"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.passwords
+  /passwords/create:
+    post:
+      tags:
+        - Password
+      summary: create a new Password
+      description: create a new Password
+      operationId: create-passwords-post
+      requestBody:
+        description: create a new Password
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Password"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Password"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.passwords
+  /passwords/view/{id}:
+    get:
+      tags:
+        - Password
+      summary: view details of an existing Password
+      description: Retrieve details of an existing Password by ID
+      operationId: view-passwords-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the Password
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/Password"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.passwords
+  /passwords/update/{id}:
+    put:
+      tags:
+        - Password
+      summary: update an existing Password
+      description: update an existing Password
+      operationId: update-passwords-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the Password
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing Password. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Password"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/Password"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.passwords
+  /passwords/delete/{id}:
+    delete:
+      tags:
+        - Password
+      summary: delete an existing Password
+      description: delete an existing Password
+      operationId: delete-passwords-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the Password
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/Password"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.passwords
+  /public-keys:
+    get:
+      tags:
+        - PublicKey
+      summary: list PublicKeys
+      description: Retrieve a list of PublicKeys
+      operationId: list-public-keys-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublicKey"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.public-keys
+  /public-keys/create:
+    post:
+      tags:
+        - PublicKey
+      summary: create a new PublicKey
+      description: create a new PublicKey
+      operationId: create-public-keys-post
+      requestBody:
+        description: create a new PublicKey
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublicKey"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/PublicKey"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.public-keys
+  /public-keys/view/{id}:
+    get:
+      tags:
+        - PublicKey
+      summary: view details of an existing PublicKey
+      description: Retrieve details of an existing PublicKey by ID
+      operationId: view-public-keys-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the PublicKey
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/PublicKey"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.public-keys
+  /public-keys/update/{id}:
+    put:
+      tags:
+        - PublicKey
+      summary: update an existing PublicKey
+      description: update an existing PublicKey
+      operationId: update-public-keys-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the PublicKey
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing PublicKey. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublicKey"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/PublicKey"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.public-keys
+  /public-keys/delete/{id}:
+    delete:
+      tags:
+        - PublicKey
+      summary: delete an existing PublicKey
+      description: delete an existing PublicKey
+      operationId: delete-public-keys-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the PublicKey
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/PublicKey"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.public-keys
+  /reset-password-requests:
+    get:
+      tags:
+        - ResetPasswordRequest
+      summary: list ResetPasswordRequests
+      description: Retrieve a list of ResetPasswordRequests
+      operationId: list-reset-password-requests-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ResetPasswordRequest"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.reset-password-requests
+  /reset-password-requests/create:
+    post:
+      tags:
+        - ResetPasswordRequest
+      summary: create a new ResetPasswordRequest
+      description: create a new ResetPasswordRequest
+      operationId: create-reset-password-requests-post
+      requestBody:
+        description: create a new ResetPasswordRequest
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ResetPasswordRequest"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.reset-password-requests
+  /reset-password-requests/view/{id}:
+    get:
+      tags:
+        - ResetPasswordRequest
+      summary: view details of an existing ResetPasswordRequest
+      description: Retrieve details of an existing ResetPasswordRequest by ID
+      operationId: view-reset-password-requests-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the ResetPasswordRequest
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/ResetPasswordRequest"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.reset-password-requests
+  /reset-password-requests/update/{id}:
+    put:
+      tags:
+        - ResetPasswordRequest
+      summary: update an existing ResetPasswordRequest
+      description: update an existing ResetPasswordRequest
+      operationId: update-reset-password-requests-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the ResetPasswordRequest
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing ResetPasswordRequest. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/ResetPasswordRequest"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.reset-password-requests
+  /reset-password-requests/delete/{id}:
+    delete:
+      tags:
+        - ResetPasswordRequest
+      summary: delete an existing ResetPasswordRequest
+      description: delete an existing ResetPasswordRequest
+      operationId: delete-reset-password-requests-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the ResetPasswordRequest
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/ResetPasswordRequest"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.reset-password-requests
+  /user-chat-interactions:
+    get:
+      tags:
+        - UserChatInteraction
+      summary: list UserChatInteractions
+      description: Retrieve a list of UserChatInteractions
+      operationId: list-user-chat-interactions-get
+      parameters:
+        - name: search
+          in: query
+          description: Search query string
+          required: false
+          schema:
+            type: string
+            example: ""
+        - name: order_by
+          in: query
+          description: Field to order by
+          required: false
+          schema:
+            type: string
+            example: created_at
+        - name: order
+          in: query
+          description: Order direction
+          required: false
+          schema:
+            type: string
+            enum:
+              - DESC
+              - ASC
+            example: DESC
+        - name: page
+          in: query
+          description: Page number
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: trash
+          in: query
+          description: Include trashed items
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: where_clause
+          in: query
+          description: Additional filtering criteria
+          required: false
+          schema:
+            type: object
+            example: {}
+        - name: select
+          in: query
+          description: Specific fields to select
+          required: false
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entities retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/UserChatInteraction"
+                  info:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 100
+                      page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 10
+                      trash:
+                        type: boolean
+                        example: false
+                      order_by:
+                        type: string
+                        example: created_at
+                      order:
+                        type: string
+                        example: DESC
+                      search:
+                        type: string
+                        example: ""
+                      where_clause:
+                        type: object
+                        example: {}
+                      select:
+                        type: string
+                        example: ""
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - list.user-chat-interactions
+  /user-chat-interactions/create:
+    post:
+      tags:
+        - UserChatInteraction
+      summary: create a new UserChatInteraction
+      description: create a new UserChatInteraction
+      operationId: create-user-chat-interactions-post
+      requestBody:
+        description: create a new UserChatInteraction
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserChatInteraction"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/UserChatInteraction"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - create.user-chat-interactions
+  /user-chat-interactions/view/{id}:
+    get:
+      tags:
+        - UserChatInteraction
+      summary: view details of an existing UserChatInteraction
+      description: Retrieve details of an existing UserChatInteraction by ID
+      operationId: view-user-chat-interactions-get
+      parameters:
+        - name: id
+          in: path
+          description: ID of the UserChatInteraction
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity retrieved successfully
+                  data:
+                    $ref: "#/components/schemas/UserChatInteraction"
+        "400":
+          description: Invalid input
+        "404":
+          description: Entity not found
+      security:
+        - auth:
+            - view.user-chat-interactions
+  /user-chat-interactions/update/{id}:
+    put:
+      tags:
+        - UserChatInteraction
+      summary: update an existing UserChatInteraction
+      description: update an existing UserChatInteraction
+      operationId: update-user-chat-interactions-put
+      parameters:
+        - name: id
+          in: path
+          description: id of the UserChatInteraction
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update an existing UserChatInteraction. Every key is optional here.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserChatInteraction"
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity created successfully
+                  data:
+                    $ref: "#/components/schemas/UserChatInteraction"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - update.user-chat-interactions
+  /user-chat-interactions/delete/{id}:
+    delete:
+      tags:
+        - UserChatInteraction
+      summary: delete an existing UserChatInteraction
+      description: delete an existing UserChatInteraction
+      operationId: delete-user-chat-interactions-delete
+      parameters:
+        - name: id
+          in: path
+          description: id of the UserChatInteraction
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Entity deleted successfully
+                  data:
+                    $ref: "#/components/schemas/UserChatInteraction"
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+      security:
+        - auth:
+            - delete.user-chat-interactions
 components:
   schemas:
     Book:
@@ -5538,26 +7924,18 @@ components:
           minLength: 3
           type: string
         email:
-          minLength: 3
-          type: string
           format: email
-        avatar:
+          type: string
+        email_verified:
+          type: boolean
+        dp:
           format: url
-          type: string
-        password:
-          $ref: "#/definitions/Object"
-        reset_password_hash:
-          type: string
-        contacts:
-          items:
-            type: string
-          type: array
-        public_key:
           type: string
       type: object
       required:
         - name
         - email
+        - email_verified
     Session:
       properties:
         user_ip:
@@ -5576,25 +7954,22 @@ components:
         - title
     Chat:
       properties:
-        message:
-          minLength: 3
+        channel_id:
+          format: uuid
+          type: string
+        encrypted_message:
           type: string
         iv:
-          minLength: 3
           type: string
-        channel_id:
-          minLength: 3
-          type: string
+        replied_to:
           format: uuid
-        unread:
-          minLength: 3
-          type: boolean
+          type: string
       type: object
       required:
-        - message
-        - iv
         - channel_id
-        - unread
+        - encrypted_message
+        - iv
+        - replied_to
     Secret:
       properties:
         encrypted_shared_secret:
@@ -5623,42 +7998,28 @@ components:
       properties:
         type:
           enum:
-            - PRIVATE
+            - DM
             - GROUP
             - 0
             - 1
           type: string
         metadata:
-          $ref: "#/definitions/ChannelMetadata"
           type: object
       type: object
       required:
         - type
     Contact:
       properties:
-        name:
+        nickname:
           minLength: 3
           type: string
         user_id:
           format: uuid
           type: string
-        channel_id:
-          format: uuid
-          type: string
-        is_pinned:
-          type: boolean
-        is_muted:
-          type: boolean
-        is_blocked:
-          type: boolean
       type: object
       required:
-        - name
+        - nickname
         - user_id
-        - channel_id
-        - is_pinned
-        - is_muted
-        - is_blocked
     GroupMember:
       properties:
         group_id:
@@ -5696,6 +8057,134 @@ components:
       type: object
       required:
         - title
+    EmailVerificationRequest:
+      properties:
+        user_id:
+          format: uuid
+          type: string
+        hash:
+          type: string
+        expires_at:
+          pattern: \d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d.\d+Z?
+          type: string
+      type: object
+      required:
+        - user_id
+        - hash
+        - expires_at
+    Password:
+      properties:
+        user_id:
+          format: uuid
+          type: string
+        password:
+          type: string
+      type: object
+      required:
+        - user_id
+        - password
+    ResetPasswordRequest:
+      properties:
+        user_id:
+          format: uuid
+          type: string
+        hash:
+          type: string
+        expires_at:
+          pattern: \d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d.\d+Z?
+          type: string
+      type: object
+      required:
+        - user_id
+        - hash
+        - expires_at
+    BlockedUser:
+      properties:
+        user_id:
+          format: uuid
+          type: string
+      type: object
+      required:
+        - user_id
+    ChannelParticipant:
+      properties:
+        user_id:
+          format: uuid
+          type: string
+        channel_id:
+          format: uuid
+          type: string
+        has_muted:
+          type: boolean
+        has_pinned:
+          type: boolean
+      type: object
+      required:
+        - user_id
+        - channel_id
+    ChatMedia:
+      properties:
+        name:
+          type: string
+        chat_id:
+          format: uuid
+          type: string
+        cloud_storage_url:
+          format: url
+          type: string
+        mime_type:
+          type: string
+      type: object
+      required:
+        - name
+        - chat_id
+        - cloud_storage_url
+        - mime_type
+    ChatReaction:
+      properties:
+        chat_id:
+          format: uuid
+          type: string
+        emoji:
+          format: uuid
+          type: string
+      type: object
+      required:
+        - chat_id
+        - emoji
+    UserChatInteraction:
+      properties:
+        chat_id:
+          format: uuid
+          type: string
+        channel_id:
+          format: uuid
+          type: string
+        status:
+          enum:
+            - DELIVERED
+            - RECEIVED
+            - SEEN
+            - 0
+            - 1
+            - 2
+          type: string
+      type: object
+      required:
+        - chat_id
+        - channel_id
+        - status
+    PublicKey:
+      properties:
+        user_id:
+          format: uuid
+          type: string
+        key:
+          type: string
+      type: object
+      required:
+        - user_id
+        - key
   securitySchemes:
     petstore_auth:
       type: oauth2

@@ -124,7 +124,7 @@ export class OauthService extends CrudService<UserRepository> {
       const result = await this.repository.create({
         email: guser.email,
         name: guser.name,
-        avatar: guser.picture,
+        dp: guser.picture,
         created_by: '9d78bc6f-8fba-4387-81b2-f53d4b41e5b4'
       })
       user = result.raw[0] as User
@@ -137,7 +137,7 @@ export class OauthService extends CrudService<UserRepository> {
       const result = await this.repository.create({
         email: fuser.email,
         name: fuser.name,
-        avatar: fuser.picture.data.url,
+        dp: fuser.picture.data.url,
         created_by: '9d78bc6f-8fba-4387-81b2-f53d4b41e5b4'
       })
       user = result.raw[0] as User

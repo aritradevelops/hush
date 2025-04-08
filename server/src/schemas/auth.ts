@@ -1,11 +1,17 @@
 import { Trim } from "class-sanitizer";
-import { IsBase64, IsEmail, IsIn, IsString, IsStrongPassword, Validate, ValidateBy, ValidateIf } from "class-validator-custom-errors";
+import { IsBase64, IsEmail, IsIn, IsString, IsStrongPassword, MinLength, Validate, ValidateBy, ValidateIf } from "class-validator-custom-errors";
 
 export class SignIn {
   @IsEmail()
   email!: string;
   @IsString()
   password!: string;
+}
+
+export class SignUp extends SignIn {
+  @IsString()
+  @MinLength(3)
+  name!: string
 }
 
 export class VerifyEmail {

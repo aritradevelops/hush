@@ -19,7 +19,7 @@ export class JwtService {
       .sign(new TextEncoder().encode(env.get('JWT_SECRET')))
 
     await sessionRepository.create({
-      user_ip: 'some',
+      user_ip: '127.0.0.1',
       user_id: user.id,
       refresh_token,
       user_agent: 'randomuseragent',

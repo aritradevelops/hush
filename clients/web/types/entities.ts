@@ -1,5 +1,6 @@
 import { UUID } from "crypto";
 type timestamp = string;
+
 // Common For all entities
 export enum Status {
   DRAFT = 'DRAFT',
@@ -10,7 +11,7 @@ export enum Status {
   DEACTIVATED = 'DEACTIVATED'
 }
 
-export interface PrimaryColumns {
+export type PrimaryColumns = {
   id: UUID;
   status: Status;
   created_at: timestamp;
@@ -22,7 +23,7 @@ export interface PrimaryColumns {
 }
 
 // Chat
-export interface Chat extends PrimaryColumns {
+export type Chat = PrimaryColumns & {
   message: string;
   iv: string;
   channel_id: UUID;
@@ -30,7 +31,7 @@ export interface Chat extends PrimaryColumns {
 }
 
 // Contact
-export interface Contact extends PrimaryColumns {
+export type Contact = PrimaryColumns & {
   name: string;
   user_id: UUID;
   channel_id: UUID;
@@ -40,7 +41,7 @@ export interface Contact extends PrimaryColumns {
 }
 
 // Group Member
-export interface GroupMember extends PrimaryColumns {
+export type GroupMember = PrimaryColumns & {
   channel_id: UUID;
   user_id: UUID;
   has_pinned: boolean;
@@ -48,35 +49,61 @@ export interface GroupMember extends PrimaryColumns {
 }
 
 // User
-export interface User extends PrimaryColumns {
+export type User = PrimaryColumns & {
   name: string;
   email: string;
-  avatar?: string;
-  public_key: string | null;
+  dp?: string;
 }
 
-
 // Direct Message
-export interface DirectMessage extends PrimaryColumns {
+export type DirectMessage = PrimaryColumns & {
   member_ids: [UUID, UUID];
   last_chat: Chat | null;
 }
-export type DirectMessageWithLastChat = DirectMessage & { last_chat: Chat | null } & { contact: Contact | null } & { chat_user: User }
+export type DirectMessageWithLastChat = DirectMessage & {
+  last_chat: Chat | null;
+  contact: Contact | null;
+  chat_user: User;
+}
 
 // Group
-export interface Group extends PrimaryColumns {
+export type Group = PrimaryColumns & {
   name: string;
   description?: string;
   image?: string;
   members: UUID[];
 }
-export type GroupWithLastChat = Group & { last_chat: Chat | null }
+export type GroupWithLastChat = Group & {
+  last_chat: Chat | null;
+}
+
+export type PublicKey = PrimaryColumns & {
+  user_id: UUID
+  key: string
+}
+
+export type SharedSecret = PrimaryColumns & {
+  encrypted_shared_secret: string
+  channel_id: UUID
+  user_id: UUID
+}
+
 // Channel
 export enum ChannelType {
-  DIRECT_MESSAGE = 'direct-message',
+  DIRECT_MESSAGE = 'dm',
   GROUP = 'group',
 }
 
-
-export type Channel = DirectMessageWithLastChat & { type: ChannelType.DIRECT_MESSAGE } | GroupWithLastChat & { type: ChannelType.GROUP }
-export type ChannelWithLastChat = Channel & { last_chat: Chat | null }
+export type ChannelOverview = {
+  id: UUID;
+  type: ChannelType;
+  name: string;
+  image: string | null;
+  has_muted: boolean;
+  has_pinned: boolean;
+  has_blocked: boolean;
+  has_left: boolean;
+  permissible_last_message_timestamp: Date | null;
+  last_chat: Chat & { sender_name: string, sender_image?: string } | null;
+  unread_count: number;
+}

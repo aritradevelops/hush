@@ -3,7 +3,7 @@ import Bind from "../decorators/bind";
 import DirectMessage from "../entities/direct-message";
 import { NotFoundError } from "../errors/http/not-found.error";
 import db from "../lib/db";
-import channelsQuery from "../queries/channels.query";
+import channelsQuery from "../queries/channel.query";
 import chatRepository from "../repositories/chat.repository";
 import contactRepository from "../repositories/contact.repository";
 import directMessageRepository from "../repositories/direct-message.repository";
@@ -14,6 +14,9 @@ import { Server } from "socket.io";
 import Group from "../entities/group";
 import groupRepository from "../repositories/group.repository";
 import groupMemberRepository from "../repositories/group-member.repository";
+import channelRepository from "../repositories/channel.repository";
+import { ChannelType } from "../entities/channel";
+import channelParticipantRepository from "../repositories/channel-participant.repository";
 
 // TODO: figure out a way to validate client sent data
 export class SocketController {
@@ -48,7 +51,7 @@ export class SocketController {
   private async onConnect(socket: AuthenticatedSocket) {
     logger.info(`User connected: ${socket.user.id}`)
     this.activeConnections.set(socket.user.id, socket)
-    const query = channelsQuery.getAllChannelIdsForUser()
+    const query = channelsQuery.getAllValidChannelIdsForUser()
     const result = await db.getManager().query(query, [socket.user.id])
     for (const channel of result) {
       logger.info(`${socket.user.id} is joining ${channel.id}`)
@@ -63,37 +66,39 @@ export class SocketController {
   }
   @Bind
   private async onContactAdd(socket: AuthenticatedSocket, data: { contact_id: UUID }, callback: (dm: DirectMessage) => void) {
-    // find existing direct message or create new one
-    // const directMessage = await directMessageRepository.findOrCreate(socket.user.id, data.contact_id)
-    let directMessage = await directMessageRepository.findByMemberIds(socket.user.id, data.contact_id)
-    if (!directMessage) {
-      const insertResult = await directMessageRepository.create({
-        member_ids: [socket.user.id, data.contact_id],
-        created_by: socket.user.id
-      })
-      directMessage = insertResult.raw[0]
+    // find existing direct channel or create new one
+    let directChannel = await channelRepository.getDmByMemberIds(socket.user.id, data.contact_id)
+    console.log('directChannel', directChannel)
+    if (!directChannel) {
+      const insertResult = await channelRepository.create({ type: ChannelType.DM, created_by: socket.user.id })
+      directChannel = insertResult.raw[0]
+      await Promise.all([socket.user.id, data.contact_id].map(e =>
+        channelParticipantRepository.create({
+          channel_id: directChannel.id,
+          user_id: e,
+          created_by: socket.user.id
+        })))
     }
     const user = await userRepository.view({ id: data.contact_id })
     if (!user) throw new NotFoundError()
     // create new contact
     await contactRepository.create({
-      name: user.name,
-      channel_id: directMessage.id,
+      nickname: user.name,
       user_id: data.contact_id,
       created_by: socket.user.id
     })
     // add both of them to the new room
-    socket.join(directMessage.id)
+    socket.join(directChannel.id)
     if (this.activeConnections.has(data.contact_id)) {
-      this.activeConnections.get(data.contact_id)!.join(directMessage.id)
+      this.activeConnections.get(data.contact_id)!.join(directChannel.id)
     }
-    callback(directMessage)
+    callback(directChannel)
   }
   @Bind
   private async onMessageSend(socket: AuthenticatedSocket, data: { channel_id: UUID, encrypted_message: string, iv: string }) {
     const insertResult = await chatRepository.create({
       channel_id: data.channel_id,
-      message: data.encrypted_message,
+      encrypted_message: data.encrypted_message,
       iv: data.iv,
       created_by: socket.user.id
     })

@@ -3,7 +3,7 @@
 import { useSocket } from '@/contexts/socket-context';
 import { Base64Utils } from '@/lib/base64';
 import { AESGCM, RSAKeyPair } from '@/lib/encryption';
-import httpClient from '@/lib/http-client';
+import httpClient from '@/lib/http-client-old';
 import keysManager from '@/lib/internal/keys-manager';
 import { Contact } from '@/types/entities';
 import { ReactQueryKeys } from '@/types/react-query';

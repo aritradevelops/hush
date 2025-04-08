@@ -36,5 +36,6 @@
   "invalid_json_body": "The given payload is not valid JSON.",
   "invalid_or_unverified_domain": "There is no account for this domain or the domain verification is pending.",
   "email_verification_failed": "Invalid or expired verification link. Please contact the administrator.",
-  "email_verification_success": "Email verified successfully. Please continue to login."
+  "email_verification_success": "Email verified successfully. Please continue to login.",
+  "resource_not_found": "Sorry! The {{resource}} could not be found!"
 }

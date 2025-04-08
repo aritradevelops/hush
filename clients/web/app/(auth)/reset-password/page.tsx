@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useForm } from "@/hooks/use-form"
-import httpClient from "@/lib/http-client"
+import httpClient from "@/lib/http-client-old"
 import { RegisterSchema, ResetPasswordSchema } from "@/schemas/auth"
 import { useRouter, useSearchParams } from "next/navigation"
 

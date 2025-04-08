@@ -1,15 +1,17 @@
 
+import { UUID } from 'crypto';
 import { Request, Response } from 'express';
-import { Hook } from "../lib/hook-manager";
-import logger from "../utils/logger";
+import ResetPassword from '../emails/reset-password';
+import Verification from '../emails/verification';
 import User from '../entities/user';
-import mailer from '../lib/mailer';
-import Welcome from '../emails/welcome';
-import userRepository from '../repositories/user.repository';
 import { InternalServerError } from '../errors/http/internal-server.error';
 import env from '../lib/env';
-import Verification from '../emails/verification';
-import ResetPassword from '../emails/reset-password';
+import { Hook } from "../lib/hook-manager";
+import mailer from '../lib/mailer';
+import emailVerificationRequestRepository from '../repositories/email-verification-request.repository';
+import resetPasswordRequestRepository from '../repositories/reset-password-request.repository';
+import userRepository from '../repositories/user.repository';
+import logger from "../utils/logger";
 
 class AuthHook extends Hook {
   before(req: Request, res: Response, data: any): void {
@@ -21,28 +23,30 @@ class AuthHook extends Hook {
 }
 export class SignUp extends AuthHook {
   async after(req: Request, res: Response, resp: { message: string, data: User }) {
-    // for production send email
-    if (env.get('APP_ENV') === 'production') {
-      const { data, error } = await mailer.send({
-        to: [resp.data.email],
-        from: 'Hush <notify@authinifinity.com>',
-        subject: 'Verify your email',
-      }, new Verification(`${env.get('CLIENT_URL')}/verify-email?hash=${resp.data.email_verification_hash}`, 'Hush'))
+    try {
+      const emailVerificationRequest = await emailVerificationRequestRepository.view({ created_by: resp.data.id })
+      if (!emailVerificationRequest) throw new Error(`no emailVerificationRequest found for user ${resp.data.email}`)
+      // for production send email
+      if (env.get('APP_ENV') === 'production') {
+        const { data, error } = await mailer.send({
+          to: [resp.data.email],
+          from: 'Hush <notify@authinifinity.com>',
+          subject: 'Verify your email',
+        }, new Verification(`${env.get('CLIENT_URL')}/verify-email?hash=${emailVerificationRequest.hash}`, 'Hush'))
 
-      if (error) {
-        logger.critical(error)
-        // rollback
-        await userRepository.destroy({ id: resp.data.id });
-        throw new InternalServerError()
+        if (error) throw new Error(`Failed to sent email verification email to user ${resp.data.email} due to : ${error}`)
+        logger.info("Verification email sent to", resp.data.email);
+        // @ts-ignore
+        resp.data.resend_id = data?.id
+      } else {
+        logger.info("Email verification link:", `${env.get('CLIENT_URL')}/verify-email?hash=${emailVerificationRequest.hash}`)
       }
-      logger.info("Verification email sent to", resp.data.email);
-      // @ts-ignore
-      resp.data.resend_id = data?.id
-    } else {
-      logger.info("Email verification link:", `${env.get('CLIENT_URL')}/verify-email?hash=${resp.data.email_verification_hash}`)
+    } catch (error) {
+      logger.critical(error as Error)
+      // rollback
+      await userRepository.destroy({ id: resp.data.id });
+      throw new InternalServerError()
     }
-    // @ts-ignore
-    delete resp.data.email_verification_hash
   }
 }
 export class VerifyEmail extends AuthHook {
@@ -52,24 +56,28 @@ export class VerifyEmail extends AuthHook {
 }
 
 export class ForgotPassword extends AuthHook {
-  async after(req: Request, res: Response, resp: { message: string, data: { reset_password_hash: string, email: string } }) {
-    // for production send email
-    if (env.get('APP_ENV') === 'production') {
-      const { data, error } = await mailer.send({
-        to: [resp.data.email],
-        from: 'Hush <notify@authinifinity.com>',
-        subject: 'Reset Your Password',
-      }, new ResetPassword(`https://${env.get('CLIENT_URL')}/reset-password?hash=${resp.data.reset_password_hash}`, 'Hush'))
+  async after(req: Request, res: Response, resp: { message: string, data: { user_id: UUID, email: string } }) {
+    try {
+      const resetPasswordRequest = await resetPasswordRequestRepository.view({ created_by: resp.data.user_id })
+      if (!resetPasswordRequest) throw new Error(`no resetPasswordRequest found for user ${resp.data.email}`)
+      // for production send email
+      if (env.get('APP_ENV') === 'production') {
+        const { data, error } = await mailer.send({
+          to: [resp.data.email],
+          from: 'Hush <notify@authinifinity.com>',
+          subject: 'Reset Your Password',
+        }, new ResetPassword(`${env.get('CLIENT_URL')}/reset-password?hash=${resetPasswordRequest.hash}`, 'Hush'))
 
-      if (error) {
-        logger.critical(error)
-        throw new InternalServerError()
+        if (error) throw new Error(`Failed to sent reset password email to user ${resp.data.email} due to : ${error}`)
+        logger.info("Reset password email sent to", resp.data.email);
+        // @ts-ignore
+        resp.data.resend_id = data?.id
+      } else {
+        logger.info("Reset Password Link:", `${env.get('CLIENT_URL')}/reset-password?hash=${resetPasswordRequest.hash}`)
       }
-      logger.info("Reset password email sent to", resp.data.email);
-      // @ts-ignore
-      resp.data.resend_id = data?.id
-    } else {
-      logger.info("Reset Password Link:", `http://${env.get('CLIENT_URL')}/reset-password?hash=${resp.data.reset_password_hash}`)
+    } catch (error) {
+      logger.critical(error as Error)
+      throw new InternalServerError()
     }
   }
 }

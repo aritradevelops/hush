@@ -1,5 +1,7 @@
 
 export enum ReactQueryKeys {
+  ME = 'me',
+  CHANNEL_OVERVIEW = 'channel-overview',
   DIRECT_MESSAGES = 'direct-messages',
   DIRECT_MESSAGE_DETAILS = 'direct-message-details',
   DIRECT_MESSAGES_CHATS = 'direct-messages-chats',

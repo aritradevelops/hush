@@ -1,7 +1,20 @@
 
-export interface ApiListResponseSuccess<T> {
-  message: string;
-  data: T[];
+export interface ApiSuccessResponse<R extends any = any> {
+  message: string
+  data: R
+}
+
+export interface ApiErrorResponse<R extends any = Record<string, unknown>> {
+  message: string
+  errors: {
+    field?: keyof R;
+    message: string;
+  }[]
+}
+
+export type ApiResponse<D extends any = any> = ApiSuccessResponse<D> | ApiErrorResponse<D>
+
+export interface ApiListResponseSuccess<T> extends ApiSuccessResponse<T[]> {
   info: {
     total: number;
     page: number;

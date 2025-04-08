@@ -8,10 +8,7 @@ import Searchable from "../decorators/searchable";
 import { PrimaryColumns } from "../lib/primary-columns";
 
 @Entity({ name: 'contacts' })
-/** Contact represents one-to-one contact relation from created_by to user_id. 
- * i.e for a direct channel there will be two contacts representing relations from
- * each direction. A contact is_blocked means that the `created_by` has blocked the `user_id`
-*/
+/** Contact represents a user that has been added as a known user. */
 export default class Contact extends PrimaryColumns {
   @Expose()
   @IsString()
@@ -20,7 +17,7 @@ export default class Contact extends PrimaryColumns {
   @Searchable()
   @Column()
   /** Refers to the contact name or the custom name set by the user(created_by). */
-  name!: string;
+  nickname!: string;
 
   @Expose()
   @IsUUID('4')
@@ -28,28 +25,7 @@ export default class Contact extends PrimaryColumns {
   /** Refers to the user being contacted. */
   user_id!: UUID
 
-  @Expose()
-  @IsUUID('4')
-  @Column({ type: 'uuid' })
-  /** Refers to the `direct` channel b/w the created_by and the user_id. */
-  channel_id!: UUID
-
-  @Expose()
-  @IsBoolean()
-  @Column({ type: 'boolean', default: false })
-  /** Indicates if the contact is pinned. */
-  is_pinned!: boolean
-
-  @Expose()
-  @IsBoolean()
-  @Column({ type: 'boolean', default: false })
-  /** Indicates if the contact is muted. */
-  is_muted!: boolean
-
-  @Expose()
-  @IsBoolean()
-  @Column({ type: 'boolean', default: false })
-  /** Indicates if the contact is blocked. */
-  is_blocked!: boolean
-
+  get contacted_by() {
+    return this.created_by;
+  }
 }

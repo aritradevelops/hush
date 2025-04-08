@@ -1,5 +1,5 @@
 'use client'
-import httpClient from '@/lib/http-client';
+import httpClient from '@/lib/http-client-old';
 import Link from 'next/link';
 
 

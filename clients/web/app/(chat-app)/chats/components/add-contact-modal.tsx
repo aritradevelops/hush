@@ -1,5 +1,6 @@
 'use client'
 import { useSocket } from '@/contexts/socket-context';
+import { useMe } from '@/contexts/user-context';
 import { Base64Utils } from '@/lib/base64';
 import { AESGCM, RSAKeyPair } from '@/lib/encryption';
 import httpClient from '@/lib/http-client';
@@ -20,26 +21,32 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
   const { addContact } = useSocket();
+  const { user } = useMe()
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: [ReactQueryKeys.NEW_CONTACTS, searchQuery],
     queryFn: async () => {
       if (!searchQuery.trim()) return [];
-      const response = await httpClient.fetchNewContacts(searchQuery);
+      const response = await httpClient.listUnknownsUsers(searchQuery);
       return response.data;
     },
   });
 
   const handleAddContact = async (contactId: UUID) => {
-    addContact(contactId, async (dm) => {
+    addContact(contactId, async (ch) => {
       const sharedSecret = AESGCM.generateKey();
-      for (const memberId of dm.member_ids) {
-        const publicKey = await keysManager.getPublicKey(memberId);
-        const encryptedSharedSecret = await RSAKeyPair.encryptWithPublicKey(sharedSecret, publicKey);
-        await httpClient.setSharedSecret(dm.id, memberId, encryptedSharedSecret);
+      const publicKeys = await httpClient.listPublicKeysForUsers([user.id, contactId])
+      for (const publicKey of publicKeys.data) {
+        const encryptedSharedSecret = await RSAKeyPair.encryptWithPublicKey(sharedSecret, publicKey.key);
+        await httpClient.createSharedSecret({
+          encrypted_shared_secret: encryptedSharedSecret,
+          channel_id: ch.id,
+          user_id: publicKey.user_id
+        });
+
       }
       // save the shared secret to the locally
-      await keysManager.setSharedSecret(dm.id, Base64Utils.encode(sharedSecret))
+      await keysManager.setSharedSecret(ch.id, Base64Utils.encode(sharedSecret))
       queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.DIRECT_MESSAGES] });
       queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CONTACTS] });
       onClose();
@@ -91,7 +98,7 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
                 >
                   <div className="flex items-center">
                     <img
-                      src={contact.avatar}
+                      src={contact.dp}
                       alt={contact.name}
                       className="w-12 h-12 rounded-full"
                     />

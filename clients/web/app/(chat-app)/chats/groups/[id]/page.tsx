@@ -1,6 +1,6 @@
 
 'use client'
-import httpClient from "@/lib/http-client"
+import httpClient from "@/lib/http-client-old"
 import { ReactQueryKeys } from "@/types/react-query"
 import { useQuery } from "@tanstack/react-query"
 import { UUID } from "crypto"

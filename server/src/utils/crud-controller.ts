@@ -10,6 +10,7 @@ import { ListParams } from "../schemas/list-params";
 import type CrudService from "./crud-service";
 import { capitalize, pluralize, singularize } from "inflection";
 import { kebabToCamel, kebabToPascal } from "./string";
+
 export default abstract class CrudController<U extends typeof PrimaryColumns = typeof PrimaryColumns, V extends CrudService = CrudService> extends Controller<U, V> {
   constructor(protected service: V, protected schema: U) {
     super(service, schema);

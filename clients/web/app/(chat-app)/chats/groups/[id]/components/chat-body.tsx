@@ -1,7 +1,7 @@
 import { EncryptedMessage } from "@/components/internal/encrypted-message"
 import { Message } from "@/components/message"
 import { useSocket } from "@/contexts/socket-context"
-import httpClient from "@/lib/http-client"
+import httpClient from "@/lib/http-client-old"
 import { formatTime } from "@/lib/time"
 import { cn } from "@/lib/utils"
 import { ApiListResponseSuccess } from "@/types/api"
