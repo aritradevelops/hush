@@ -32,12 +32,9 @@ export type Chat = PrimaryColumns & {
 
 // Contact
 export type Contact = PrimaryColumns & {
-  name: string;
+  nickname: string;
   user_id: UUID;
   channel_id: UUID;
-  is_pinned: boolean;
-  is_muted: boolean;
-  is_blocked: boolean;
 }
 
 // Group Member
@@ -93,6 +90,17 @@ export enum ChannelType {
   DIRECT_MESSAGE = 'dm',
   GROUP = 'group',
 }
+
+export type Channel = PrimaryColumns & {
+  type: '0' | '1'
+  metadata?: {
+    name: string
+    description: string
+    image?: string
+  }
+}
+
+
 
 export type ChannelOverview = {
   id: UUID;

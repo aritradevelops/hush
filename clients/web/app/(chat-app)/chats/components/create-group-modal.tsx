@@ -3,7 +3,7 @@
 import { useSocket } from '@/contexts/socket-context';
 import { Base64Utils } from '@/lib/base64';
 import { AESGCM, RSAKeyPair } from '@/lib/encryption';
-import httpClient from '@/lib/http-client-old';
+import httpClient from '@/lib/http-client';
 import keysManager from '@/lib/internal/keys-manager';
 import { Contact } from '@/types/entities';
 import { ReactQueryKeys } from '@/types/react-query';
@@ -29,7 +29,7 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
 
   // Fetch existing contacts
   const { data: contacts = [], isLoading } = useQuery({
-    queryKey: [ReactQueryKeys.NEW_CONTACTS, searchQuery],
+    queryKey: [ReactQueryKeys.CONTACTS, searchQuery],
     queryFn: async () => {
       if (!searchQuery.trim()) return [];
       const response = await httpClient.listContacts({ search: searchQuery });
@@ -79,20 +79,17 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
       createGroup({ name: groupName.trim(), description: groupDescription.trim(), memberIds }, async (group: { id: UUID }) => {
         // Generate a shared secret for the group
         const sharedSecret = AESGCM.generateKey();
+        const publicKeys = await httpClient.listPublicKeysForUsers(memberIds);
         // Encrypt the shared secret for each member
-        for (const memberId of memberIds) {
-          const publicKey = await keysManager.getPublicKey(memberId);
-          const encryptedSharedSecret = await RSAKeyPair.encryptWithPublicKey(sharedSecret, publicKey);
-          await httpClient.setSharedSecret(group.id, memberId, encryptedSharedSecret);
+        for (const publicKey of publicKeys.data) {
+          const encryptedSharedSecret = await RSAKeyPair.encryptWithPublicKey(sharedSecret, publicKey.key);
+          await httpClient.createSharedSecret({ channel_id: group.id, user_id: publicKey.user_id, encrypted_shared_secret: encryptedSharedSecret });
         }
 
         // Save the shared secret locally
         await keysManager.setSharedSecret(group.id, Base64Utils.encode(sharedSecret));
 
-        // Invalidate queries to refresh data
-        queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.GROUPS] });
-        queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.DIRECT_MESSAGES] });
-
+        queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] });
         setIsSubmitting(false);
         onClose();
       });
@@ -161,11 +158,11 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
                     className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground text-sm"
                   >
                     <img
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${contact.name}`}
-                      alt={contact.name}
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${contact.nickname}`}
+                      alt={contact.nickname}
                       className="w-4 h-4 rounded-full"
                     />
-                    <span>{contact.name}</span>
+                    <span>{contact.nickname}</span>
                     <button
                       className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5"
                       onClick={() => toggleContactSelection(contact)}
@@ -215,12 +212,12 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
                 >
                   <div className="flex items-center">
                     <img
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${contact.name}`}
-                      alt={contact.name}
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${contact.nickname}`}
+                      alt={contact.nickname}
                       className="w-10 h-10 rounded-full"
                     />
                     <div className="ml-3">
-                      <h3 className="font-medium">{contact.name}</h3>
+                      <h3 className="font-medium">{contact.nickname}</h3>
                       <p className="text-sm text-muted-foreground">random@email.com</p>
                     </div>
                   </div>

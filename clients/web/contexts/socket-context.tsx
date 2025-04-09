@@ -1,5 +1,5 @@
 // lib/socket-context.tsx
-import { DirectMessage, Group } from '@/types/entities';
+import { Channel, Group } from '@/types/entities';
 import { SocketClientEmittedEvent, SocketServerEmittedEvent } from '@/types/events';
 import { useQueryClient } from '@tanstack/react-query';
 import { UUID } from 'crypto';
@@ -9,11 +9,11 @@ import { io, Socket } from 'socket.io-client';
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
-  addContact: (contactId: UUID, callback: (dm: DirectMessage) => void) => void;
+  addContact: (contactId: UUID, callback: (dm: Channel) => void) => void;
   sendMessage: (channelId: UUID, encryptedMessage: string, iv: string) => void;
   emitTypingStart: (channelId: UUID) => void;
   emitTypingStop: (channelId: UUID) => void;
-  createGroup: (data: { name: string, description?: string, memberIds: UUID[] }, callback?: (group: Group) => void) => void;
+  createGroup: (data: { name: string, description?: string, memberIds: UUID[] }, callback?: (group: Channel) => void) => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -51,9 +51,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     };
   }, [queryClient]);
 
-  const addContact = (contactId: UUID, callback: (dm: DirectMessage) => void) => {
+  const addContact = (contactId: UUID, callback: (dm: Channel) => void) => {
     if (!socket.current) return;
-    socket.current.emit(SocketClientEmittedEvent.CONTACT_ADD, { contact_id: contactId }, (dm: DirectMessage) => {
+    socket.current.emit(SocketClientEmittedEvent.CONTACT_ADD, { contact_id: contactId }, (dm: Channel) => {
       callback(dm);
     });
   };
@@ -67,9 +67,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const createGroup = (data: { name: string, description?: string, memberIds: UUID[] }, callback?: (group: Group) => void) => {
+  const createGroup = (data: { name: string, description?: string, memberIds: UUID[] }, callback?: (group: Channel) => void) => {
     if (!socket.current) return;
-    socket.current.emit(SocketClientEmittedEvent.GROUP_CREATE, { ...data, member_ids: data.memberIds }, (group: Group) => {
+    socket.current.emit(SocketClientEmittedEvent.GROUP_CREATE, { ...data, member_ids: data.memberIds }, (group: Channel) => {
       if (callback) {
         callback(group)
       }

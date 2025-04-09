@@ -22,7 +22,7 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
   const queryClient = useQueryClient();
   const { addContact } = useSocket();
   const { user } = useMe()
-
+  const [adding, setAdding] = useState(false)
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: [ReactQueryKeys.NEW_CONTACTS, searchQuery],
     queryFn: async () => {
@@ -33,6 +33,7 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
   });
 
   const handleAddContact = async (contactId: UUID) => {
+    setAdding(true)
     addContact(contactId, async (ch) => {
       const sharedSecret = AESGCM.generateKey();
       const publicKeys = await httpClient.listPublicKeysForUsers([user.id, contactId])
@@ -47,9 +48,9 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
       }
       // save the shared secret to the locally
       await keysManager.setSharedSecret(ch.id, Base64Utils.encode(sharedSecret))
-      queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.DIRECT_MESSAGES] });
-      queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CONTACTS] });
+      queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] });
       onClose();
+      setAdding(false)
     });
   };
 
@@ -109,10 +110,10 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
                   </div>
                   <button
                     onClick={() => handleAddContact(contact.id)}
-                    disabled={false}
+                    disabled={adding}
                     className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    {false ? 'Adding...' : 'Add'}
+                    {adding ? 'Adding...' : 'Add'}
                   </button>
                 </div>
               ))}

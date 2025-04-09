@@ -2,7 +2,7 @@ import { constants } from '@/config/constants';
 import { Fields, Obj } from "@/hooks/use-form";
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema, ResetPasswordSchema } from "@/schemas/auth";
 import { ApiErrorResponse, ApiListResponse, ApiListResponseSuccess, ApiResponse, ListParams } from "@/types/api";
-import { ChannelOverview, PrimaryColumns, PublicKey, SharedSecret, User } from "@/types/entities";
+import { ChannelOverview, Contact, PrimaryColumns, PublicKey, SharedSecret, User } from "@/types/entities";
 import { UUID } from "crypto";
 import qs from "qs";
 import { z } from 'zod';
@@ -169,6 +169,12 @@ export class HttpClient {
       }
     }
     const result = await this.list<PublicKey>('public-keys', query)
+    if ('errors' in result) throw new Error(result.message)
+    return result
+  }
+
+  async listContacts(query: ListParams = {}) {
+    const result = await this.list<Contact>('contacts', query)
     if ('errors' in result) throw new Error(result.message)
     return result
   }
