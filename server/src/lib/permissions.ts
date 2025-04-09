@@ -11,5 +11,6 @@ export const userPermissions: Record<string, SCOPES> = {
 
   'secrets_create': 'SELF',
   'secrets_list': 'ALL',
-  'secrets_view': 'ALL'
+  'secrets_view': 'ALL',
+  'contacts_list': 'SELF'
 }

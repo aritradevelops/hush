@@ -1,7 +1,7 @@
 
 import { Trim } from "class-sanitizer";
 import { Expose } from "class-transformer";
-import { IsBoolean, IsString, IsUUID, MinLength } from "class-validator-custom-errors";
+import { IsString, IsUUID, MinLength } from "class-validator-custom-errors";
 import { UUID } from "crypto";
 import { Column, Entity } from "typeorm";
 import Searchable from "../decorators/searchable";

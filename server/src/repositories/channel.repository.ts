@@ -32,7 +32,7 @@ export class ChannelRepository extends Repository<typeof Channel> {
   async getDmByMemberIds(userId: UUID, contactId: UUID) {
     const query = channelQuery.getDmByMemberIds();
     const result = await this.entity.query(query, [userId, contactId]);
-    return result[0];
+    return result[0] as Channel | undefined
   }
 };
 export default new ChannelRepository();

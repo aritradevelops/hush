@@ -1,22 +1,17 @@
 import { UUID } from "crypto";
+import { Server } from "socket.io";
 import Bind from "../decorators/bind";
-import DirectMessage from "../entities/direct-message";
+import Channel, { ChannelType } from "../entities/channel";
 import { NotFoundError } from "../errors/http/not-found.error";
 import db from "../lib/db";
 import channelsQuery from "../queries/channel.query";
+import channelParticipantRepository from "../repositories/channel-participant.repository";
+import channelRepository from "../repositories/channel.repository";
 import chatRepository from "../repositories/chat.repository";
-import contactRepository from "../repositories/contact.repository";
-import directMessageRepository from "../repositories/direct-message.repository";
 import userRepository from "../repositories/user.repository";
 import type { AuthenticatedSocket } from "../socket-io";
 import logger from "../utils/logger";
-import { Server } from "socket.io";
-import Group from "../entities/group";
-import groupRepository from "../repositories/group.repository";
-import groupMemberRepository from "../repositories/group-member.repository";
-import channelRepository from "../repositories/channel.repository";
-import { ChannelType } from "../entities/channel";
-import channelParticipantRepository from "../repositories/channel-participant.repository";
+import contactRepository from "../repositories/contact.repository";
 
 // TODO: figure out a way to validate client sent data
 export class SocketController {
@@ -65,32 +60,31 @@ export class SocketController {
     this.activeConnections.delete(socket.user.id)
   }
   @Bind
-  private async onContactAdd(socket: AuthenticatedSocket, data: { contact_id: UUID }, callback: (dm: DirectMessage) => void) {
+  private async onContactAdd(socket: AuthenticatedSocket, data: { contact_id: UUID }, callback: (dm: Channel) => void) {
+    const user = await userRepository.view({ id: data.contact_id })
+    if (!user) throw new NotFoundError()
     // find existing direct channel or create new one
     let directChannel = await channelRepository.getDmByMemberIds(socket.user.id, data.contact_id)
-    console.log('directChannel', directChannel)
     if (!directChannel) {
       const insertResult = await channelRepository.create({ type: ChannelType.DM, created_by: socket.user.id })
-      directChannel = insertResult.raw[0]
-      await Promise.all([socket.user.id, data.contact_id].map(e =>
+      directChannel = insertResult.raw[0] as Channel
+      await Promise.all([socket.user.id, user.id].map(e =>
         channelParticipantRepository.create({
-          channel_id: directChannel.id,
+          channel_id: directChannel!.id,
           user_id: e,
           created_by: socket.user.id
         })))
     }
-    const user = await userRepository.view({ id: data.contact_id })
-    if (!user) throw new NotFoundError()
     // create new contact
     await contactRepository.create({
       nickname: user.name,
-      user_id: data.contact_id,
+      user_id: user.id,
       created_by: socket.user.id
     })
     // add both of them to the new room
     socket.join(directChannel.id)
-    if (this.activeConnections.has(data.contact_id)) {
-      this.activeConnections.get(data.contact_id)!.join(directChannel.id)
+    if (this.activeConnections.has(user.id)) {
+      this.activeConnections.get(user.id)!.join(directChannel.id)
     }
     callback(directChannel)
   }
@@ -113,15 +107,15 @@ export class SocketController {
     socket.to(channel_id).emit(SocketServerEmittedEvents.TYPING_STOP, { channel_id, user_id: socket.user.id })
   }
   @Bind
-  private async onGroupCreate(socket: AuthenticatedSocket, data: { name: string, description?: string, member_ids: UUID[] }, callback: (group: Group) => void) {
-    const insertResult = await groupRepository.create({
-      ...data,
-      member_ids: [...data.member_ids, socket.user.id],
+  private async onGroupCreate(socket: AuthenticatedSocket, data: { name: string, description?: string, member_ids: UUID[] }, callback: (group: Channel) => void) {
+    const insertResult = await channelRepository.create({
+      type: ChannelType.GROUP,
+      metadata: { name: data.name, description: data.description },
       created_by: socket.user.id
     })
     const group = insertResult.raw[0]
     // create group members for all
-    await Promise.all(group.member_ids.map((e: UUID) => groupMemberRepository.create({ user_id: e, created_by: socket.user.id, group_id: group.id })))
+    await Promise.all(group.member_ids.map((e: UUID) => channelParticipantRepository.create({ user_id: e, created_by: socket.user.id, channel_id: group.id })))
     callback(insertResult.raw[0])
   }
 }

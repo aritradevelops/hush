@@ -17,7 +17,7 @@ export class ChannelQuery {
    * @param {uuid} $2 - the second user's id
    */
   getDmByMemberIds() {
-    return `SELECT ch.*, array_agg(SELECT cp.user_id FROM channel_participants cp WHERE cp.channel_id = ch.id AND cp.deleted_at IS NULL) as channel_participants FROM channels ch WHERE ch.type = '0'::channels_type_enum AND channel_participants @> [$1::uuid, $2::uuid] LIMIT 1`;
+    return `SELECT ch.*, array_agg(cp.user_id) as channel_participants FROM channels ch JOIN channel_participants cp ON cp.channel_id = ch.id AND cp.deleted_at IS NULL WHERE ch.type = '0'::channels_type_enum GROUP BY ch.id HAVING array_agg(cp.user_id) @> ARRAY[$1::uuid, $2::uuid] LIMIT 1`;
   }
 
   /**
