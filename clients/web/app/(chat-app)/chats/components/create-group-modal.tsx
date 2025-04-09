@@ -51,11 +51,11 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
   const toggleContactSelection = (contact: Contact) => {
     setSelectedContacts(prev => {
       // Check if contact is already selected
-      const isSelected = prev.some(c => c.id === contact.id);
+      const isSelected = prev.some(c => c.user_id === contact.user_id);
 
       if (isSelected) {
         // Remove contact if already selected
-        return prev.filter(c => c.id !== contact.id);
+        return prev.filter(c => c.user_id !== contact.user_id);
       } else {
         // Add contact if not selected
         return [...prev, contact];
@@ -64,7 +64,7 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
   };
 
   const isContactSelected = (contactId: UUID) => {
-    return selectedContacts.some(contact => contact.id === contactId);
+    return selectedContacts.some(contact => contact.user_id === contactId);
   };
 
   const handleCreateGroup = async () => {
@@ -77,6 +77,7 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
     try {
       const memberIds = selectedContacts.map(contact => contact.user_id);
       createGroup({ name: groupName.trim(), description: groupDescription.trim(), memberIds }, async (group: { id: UUID }) => {
+        console.log('callback', group)
         // Generate a shared secret for the group
         const sharedSecret = AESGCM.generateKey();
         const publicKeys = await httpClient.listPublicKeysForUsers(memberIds);
@@ -154,7 +155,7 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
               <div className="flex flex-wrap gap-2">
                 {selectedContacts.map(contact => (
                   <div
-                    key={contact.id}
+                    key={contact.user_id}
                     className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground text-sm"
                   >
                     <img
@@ -206,9 +207,9 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
             <div className="space-y-2">
               {contacts.map((contact: Contact) => (
                 <div
-                  key={contact.id}
+                  key={contact.user_id}
                   onClick={() => toggleContactSelection(contact)}
-                  className={`flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer ${isContactSelected(contact.id) ? 'bg-accent/80' : 'bg-accent/50 hover:bg-accent/70'}`}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer ${isContactSelected(contact.user_id) ? 'bg-accent/80' : 'bg-accent/50 hover:bg-accent/70'}`}
                 >
                   <div className="flex items-center">
                     <img
@@ -221,8 +222,8 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
                       <p className="text-sm text-muted-foreground">random@email.com</p>
                     </div>
                   </div>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isContactSelected(contact.id) ? 'bg-primary text-primary-foreground' : 'border-2 border-muted-foreground'}`}>
-                    {isContactSelected(contact.id) && <Check className="h-4 w-4" />}
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isContactSelected(contact.user_id) ? 'bg-primary text-primary-foreground' : 'border-2 border-muted-foreground'}`}>
+                    {isContactSelected(contact.user_id) && <Check className="h-4 w-4" />}
                   </div>
                 </div>
               ))}
