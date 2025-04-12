@@ -13,7 +13,6 @@ import translator from "./utils/translator";
 const app = express();
 const router = new Router();
 app.set('trust proxy', true)
-app.set('view engine', 'ejs');
 app.use(cors({ origin: env.get('CLIENT_URL'), credentials: true }))
 app.use(translator.translate());
 app.use(express.json({
