@@ -28,7 +28,7 @@ function MessagePreview({ lastChat, channelId }: { lastChat: ChannelOverview['la
           </span>
         ) : (
           <EncryptedMessage
-            message={lastChat.message}
+            message={lastChat.encrypted_message}
             channel_id={channelId}
             iv={lastChat.iv}
           />

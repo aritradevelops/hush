@@ -1,18 +1,23 @@
 
-import { In, Not } from "typeorm";
+import { UUID } from "crypto";
 import Chat from "../entities/chat";
 import { Repository } from "../lib/repository";
+import chatsQuery from "../queries/chats.query";
+import { ListParams } from "../schemas/list-params";
 
 export class ChatRepository extends Repository<typeof Chat> {
   constructor() {
     super(Chat);
   }
-  getUnreadCounts(channel_ids: string[], myId: string) {
-    return this.entity.createQueryBuilder(this.entity.name)
-      .select(['channel_id', 'created_by', 'COUNT(*) as unread_count']) // Include created_by
-      .where({ channel_id: In(channel_ids), unread: true, created_by: Not(myId) })
-      .groupBy('channel_id, created_by') // Group by both room_id and created_by
-      .execute() as Promise<{ channel_id: string; created_by: string; unread_count: string }[]>;
+  async getChatsForDm(listParams: ListParams, userId: UUID, channelId: UUID) {
+    const query = chatsQuery.getMessagesForDm();
+    const result = await this.entity.query(query, [userId, channelId, (listParams.page - 1) * listParams.per_page, listParams.per_page]);
+    return [result, result[0]?.total_count || 0] as [Chat[], number];
+  }
+  async getChatsForGroup(listParams: ListParams, userId: UUID, channelId: UUID) {
+    const query = chatsQuery.getMessagesForGroup();
+    const result = await this.entity.query(query, [userId, channelId, (listParams.page - 1) * listParams.per_page, listParams.per_page]);
+    return [result, result[0]?.total_count || 0] as [Chat[], number];
   }
 };
 export default new ChatRepository();

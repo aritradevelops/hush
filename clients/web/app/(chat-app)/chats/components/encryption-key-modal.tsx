@@ -24,6 +24,7 @@ export function EncryptionKeyModal() {
     if (user) {
       // Use email as a unique identifier for the key storage
       secretManager.getEncryptionKey(user.email).then(data => {
+        console.log('key', data)
         if (!data) {
           setOpen(true)
         }

@@ -1,12 +1,14 @@
 import { useSocket } from "@/contexts/socket-context";
+import { useMe } from "@/contexts/user-context";
 import { AESGCM } from "@/lib/encryption";
 import keysManager from "@/lib/internal/keys-manager";
-import { Group, GroupMember, Contact, User } from "@/types/entities";
+import { GroupDetails } from "@/types/entities";
 import { useRef, useState } from "react";
 
-export function ChatInput({ group }: { group?: Group & { members: (GroupMember & { contact: Contact | null })[] } }) {
+export function ChatInput({ group }: { group?: GroupDetails }) {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const { user } = useMe()
   const { sendMessage, emitTypingStart, emitTypingStop } = useSocket()
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -16,7 +18,7 @@ export function ChatInput({ group }: { group?: Group & { members: (GroupMember &
 
     setSending(true)
     // find the shared secret for the dm
-    const sharedSecret = await keysManager.getSharedSecret(group.id)
+    const sharedSecret = await keysManager.getSharedSecret(group.id, user.email)
     // encrypt the message
     const { encrypted, iv } = await AESGCM.encrypt(message, sharedSecret)
     // send the message

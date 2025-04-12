@@ -2,7 +2,7 @@
 import { ChatsBody } from "@/app/(chat-app)/chats/dms/[id]/components/chat-body"
 import { ChatHeader } from "@/app/(chat-app)/chats/dms/[id]/components/chat-header"
 import { ChatInput } from "@/app/(chat-app)/chats/dms/[id]/components/chat-input"
-import httpClient from "@/lib/http-client-old"
+import httpClient from "@/lib/http-client"
 import { ReactQueryKeys } from "@/types/react-query"
 import { useQuery } from "@tanstack/react-query"
 import { UUID } from "crypto"
@@ -12,7 +12,7 @@ export default function DMPage() {
   const chatId = params.id as string
   const { data: dm, isLoading: dmLoading } = useQuery({
     queryKey: [ReactQueryKeys.DIRECT_MESSAGE_DETAILS, chatId],
-    queryFn: () => httpClient.getDirectMessageDetails(chatId as UUID),
+    queryFn: () => httpClient.getDmDetails(chatId as UUID),
     select: (data) => data.data
   })
 

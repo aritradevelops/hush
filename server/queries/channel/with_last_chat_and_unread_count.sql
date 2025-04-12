@@ -113,6 +113,7 @@ FROM
         WHEN c.deleted_at IS NULL THEN c.encrypted_message
         ELSE 'deleted message'
       END AS encrypted_message,
+      c.iv,
       c.created_at,
       c.updated_at,
       c.deleted_at,

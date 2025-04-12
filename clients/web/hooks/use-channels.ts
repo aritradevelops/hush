@@ -23,6 +23,7 @@ export function useChannels(filter: 'all' | 'unread' | 'groups', searchQuery: st
   useEffect(() => {
     if (!socket) return
     function onMessage(chat: Chat) {
+      console.log('new message received', chat)
       if (activeChatId !== chat.channel_id)
         queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] })
     }
@@ -30,7 +31,7 @@ export function useChannels(filter: 'all' | 'unread' | 'groups', searchQuery: st
     return () => {
       socket.off(SocketServerEmittedEvent.MESSAGE_RECEIVED, onMessage)
     }
-  }, [socket])
+  }, [socket, activeChatId])
 
   // handle filter and search query
   if (filter !== 'all') {

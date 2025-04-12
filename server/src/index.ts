@@ -25,6 +25,7 @@ const server = httpServer.listen(env.get('PORT'), async () => {
 
 async function shutDown() {
   server.close(async err => {
+    console.log(err)
     await db.close();
     logger.notice('Server gracefully shutting down');
 

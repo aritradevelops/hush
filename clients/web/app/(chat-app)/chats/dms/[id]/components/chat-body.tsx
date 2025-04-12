@@ -1,11 +1,11 @@
 import { EncryptedMessage } from "@/components/internal/encrypted-message"
 import { Message } from "@/components/message"
 import { useSocket } from "@/contexts/socket-context"
-import httpClient from "@/lib/http-client-old"
+import httpClient from "@/lib/http-client"
 import { formatTime } from "@/lib/time"
 import { cn } from "@/lib/utils"
 import { ApiListResponseSuccess } from "@/types/api"
-import { Chat, Contact, DirectMessage, User } from "@/types/entities"
+import { Chat, Contact, DirectMessage, DmDetails, User } from "@/types/entities"
 import { SocketServerEmittedEvent } from "@/types/events"
 import { ReactQueryKeys } from "@/types/react-query"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
@@ -16,7 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 //! else the scroll bar won't show and infinite scroll won't work
 // TODO: figure out a solution for this
 const PER_PAGE = 25
-export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | null } & { chat_user: User } }) {
+export function ChatsBody({ dm }: { dm?: DmDetails }) {
   const params = useParams()
   const chatId = params.id as string
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -41,6 +41,7 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
       setIsTyping(false)
     }
     function onMessage(message: Chat) {
+      console.log('new message received', message, message.channel_id, chatId)
       if (message.channel_id !== chatId) return
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
         (oldData: { pages: ApiListResponseSuccess<Chat>[], pageParams: number[] }) => {
@@ -70,7 +71,7 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
   } = useInfiniteQuery({
     queryKey: [ReactQueryKeys.DIRECT_MESSAGES_CHATS, chatId],
     queryFn: async ({ pageParam = 1 }) => {
-      return await httpClient.listMessages(chatId as UUID, PER_PAGE, pageParam);
+      return await httpClient.getDmChats(chatId as UUID, pageParam, PER_PAGE);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -80,11 +81,13 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
     enabled: !!dm
   })
 
+  let lastSeenMessageStatus: UUID | null = null
   // Combine all messages from all pages
   const allMessages = data?.pages.flatMap(page => page.data) || [];
   const uniqueMessages = Array.from(
     allMessages.reduce((map, message) => {
       map.set(message.id, message);
+      if (message.status === 'seen') lastSeenMessageStatus = message.id
       return map;
     }, new Map()).values()
   );
@@ -154,7 +157,8 @@ export function ChatsBody({ dm }: { dm?: DirectMessage & { contact: Contact | nu
 
       {/* Render all messages */}
       {uniqueMessages.map((message) => (
-        <ChatMessage key={message.id} message={message} dm={dm} />
+        (message.id === lastSeenMessageStatus) ? <> <span> --- New Messages ---</span><ChatMessage key={message.id} message={message} dm={dm} /> </>
+          : <ChatMessage key={message.id} message={message} dm={dm} />
       ))}
 
       {/* Warning for non-contact users */}
@@ -172,7 +176,7 @@ export function ChatMessage({
   dm
 }: {
   message: Chat,
-  dm: DirectMessage & { contact: Contact | null } & { chat_user: User }
+  dm: DmDetails
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const isOwnMessage = message.created_by !== dm.chat_user.id;
@@ -203,7 +207,7 @@ export function ChatMessage({
         )}
       >
         <EncryptedMessage
-          message={message.message}
+          message={message.encrypted_message}
           iv={message.iv}
           channel_id={message.channel_id}
           className={cn("items-center", isOwnMessage ? "text-secondary-foreground" : "text-primary-foreground")}

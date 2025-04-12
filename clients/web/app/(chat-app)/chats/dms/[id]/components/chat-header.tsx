@@ -1,11 +1,11 @@
 import { useSocket } from "@/contexts/socket-context";
-import { DirectMessage, Contact, User } from "@/types/entities";
+import { DirectMessage, Contact, User, DmDetails } from "@/types/entities";
 import { ReactQueryKeys } from "@/types/react-query";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserX, UserPlus } from "lucide-react";
 
-export function ChatHeader({ dm }: { dm?: DirectMessage & { contact: Contact | null } & { chat_user: User } }) {
+export function ChatHeader({ dm }: { dm?: DmDetails }) {
   const { addContact } = useSocket()
   const queryClient = useQueryClient()
 
@@ -24,13 +24,13 @@ export function ChatHeader({ dm }: { dm?: DirectMessage & { contact: Contact | n
     <div className="border-b p-4">
       <div className="flex items-center gap-4">
         <img
-          src={dm.chat_user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dm.chat_user.name}`}
+          src={dm.chat_user.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dm.chat_user.name}`}
           alt={dm.chat_user.name}
           className="w-12 h-12 rounded-full"
         />
         <div>
           <div className="flex justify-center gap-2 items-center">
-            <h2 className="text-lg font-semibold">{dm.contact?.name || dm.chat_user.name}</h2>
+            <h2 className="text-lg font-semibold">{dm.contact?.nickname || dm.chat_user.name}</h2>
             <div className="flex gap-2">
               {!dm.contact && (
                 <TooltipProvider>

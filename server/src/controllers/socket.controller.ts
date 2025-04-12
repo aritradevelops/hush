@@ -108,7 +108,6 @@ export class SocketController {
   }
   @Bind
   private async onGroupCreate(socket: AuthenticatedSocket, data: { name: string, description?: string, member_ids: UUID[] }, callback: (group: Channel) => void) {
-    console.log('data', data)
     const insertResult = await channelRepository.create({
       type: ChannelType.GROUP,
       metadata: { name: data.name, description: data.description },

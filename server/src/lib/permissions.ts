@@ -5,6 +5,8 @@ export const userPermissions: Record<string, SCOPES> = {
   'users_unknowns': 'ALL',
 
   'channels_overview': 'SELF',
+  'channels_dms': 'SELF',
+  'channels_groups': 'SELF',
 
   'public-keys_create': 'SELF',
   'public-keys_list': 'ALL',
@@ -12,5 +14,9 @@ export const userPermissions: Record<string, SCOPES> = {
   'secrets_create': 'SELF',
   'secrets_list': 'ALL',
   'secrets_view': 'ALL',
-  'contacts_list': 'SELF'
+  'contacts_list': 'SELF',
+
+  'chats_dms': 'SELF',
+  'chats_groups': 'SELF',
+  'secrets_channel': 'SELF'
 }

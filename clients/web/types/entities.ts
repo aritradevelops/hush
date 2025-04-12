@@ -1,19 +1,9 @@
 import { UUID } from "crypto";
 type timestamp = string;
 
-// Common For all entities
-export enum Status {
-  DRAFT = 'DRAFT',
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  LOCKED = 'LOCKED',
-  DEACTIVATED = 'DEACTIVATED'
-}
 
 export type PrimaryColumns = {
   id: UUID;
-  status: Status;
   created_at: timestamp;
   updated_at: timestamp | null;
   deleted_at: timestamp | null;
@@ -24,7 +14,7 @@ export type PrimaryColumns = {
 
 // Chat
 export type Chat = PrimaryColumns & {
-  message: string;
+  encrypted_message: string;
   iv: string;
   channel_id: UUID;
   unread: boolean;
@@ -114,4 +104,15 @@ export type ChannelOverview = {
   permissible_last_message_timestamp: Date | null;
   last_chat: Chat & { sender_name: string, sender_image?: string } | null;
   unread_count: number;
+}
+
+export type DmDetails = Channel & {
+  chat_user: User;
+  contact: Contact | null;
+  has_blocked: boolean;
+}
+
+export type GroupDetails = Channel & {
+  group_members: (GroupMember & { user: User; contact: Contact | null; is_blocked: boolean })[];
+  has_left: boolean;
 }

@@ -11,6 +11,7 @@ export const defaultErrors = [AssertionError, RangeError, ReferenceError, Syntax
 const errorHandler = () =>
   (err: any, req: Request, res: Response, next: NextFunction) => {
     logger.error(err);
+    console.log(err)
     switch (true) {
       case err instanceof HttpError: {
         res.status(err.status)

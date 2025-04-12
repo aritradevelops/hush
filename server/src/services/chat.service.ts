@@ -1,27 +1,24 @@
 
 import { Request, Response } from "express";
 import { UUID } from "node:crypto";
-import { Not } from "typeorm";
 import { PrimaryColumns } from "../lib/primary-columns";
 import chatRepository, { ChatRepository } from "../repositories/chat.repository";
-import { ListParams } from "../schemas/list-params";
 import CrudService from "../utils/crud-service";
-import { EqualsClause } from "../utils/clauses";
-import userChatInteractionRepository from "../repositories/user-chat-interaction.repository";
-import { UserChatInteractionStatus } from "../entities/user-chat-interaction";
+import Chat from "../entities/chat";
+import { ListParams } from "../schemas/list-params";
 
 
 export class ChatService extends CrudService<ChatRepository> {
   constructor() {
     super(chatRepository);
   }
-  async list(req: Request, res: Response, listParams: ListParams): Promise<[PrimaryColumns[], number]> {
-    const result = await super.list(req, res, listParams)
-    // @ts-ignore
-    const channelId = (req.query['where_clause']['channel_id'] as EqualsClause).$eq as UUID;
-    await userChatInteractionRepository.update({ channel_id: channelId, status: Not(UserChatInteractionStatus.SEEN) }, { status: UserChatInteractionStatus.SEEN })
+  async getChatsForDm(req: Request, res: Response, query: ListParams, channelId: UUID): Promise<[Chat[], number]> {
+    const result = await this.repository.getChatsForDm(query, req.user!.id, channelId);
+    return result;
+  }
+  async getChatsForGroup(req: Request, res: Response, query: ListParams, channelId: UUID): Promise<[Chat[], number]> {
+    const result = await this.repository.getChatsForGroup(query, req.user!.id, channelId);
     return result;
   }
 }
-
 export default new ChatService();

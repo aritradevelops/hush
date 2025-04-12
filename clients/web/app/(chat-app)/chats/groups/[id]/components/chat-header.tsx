@@ -1,19 +1,19 @@
-import { Contact, Group, GroupMember } from "@/types/entities";
+import { GroupDetails } from "@/types/entities";
 
-export function ChatHeader({ group }: { group?: Group & { members: (GroupMember & { contact: Contact | null })[] } }) {
+export function ChatHeader({ group }: { group?: GroupDetails }) {
   if (!group) return <ChatHeaderSkeleton />
 
   return (
     <div className="border-b p-4">
       <div className="flex items-center gap-4">
         <img
-          src={group.image || `https://api.dicebear.com/9.x/initials/svg?seed=${group.name}`}
-          alt={group.name}
+          src={group.metadata?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${group.metadata?.name}`}
+          alt={group.metadata?.name}
           className="w-12 h-12 rounded-full"
         />
         <div>
           <div className="flex justify-center gap-2 items-center">
-            <h2 className="text-lg font-semibold">{group.name}</h2>
+            <h2 className="text-lg font-semibold">{group.metadata?.name}</h2>
           </div>
           <p className="text-sm text-muted-foreground">
             Group Chat

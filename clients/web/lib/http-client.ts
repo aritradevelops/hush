@@ -2,7 +2,7 @@ import { constants } from '@/config/constants';
 import { Fields, Obj } from "@/hooks/use-form";
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema, ResetPasswordSchema } from "@/schemas/auth";
 import { ApiErrorResponse, ApiListResponse, ApiListResponseSuccess, ApiResponse, ListParams } from "@/types/api";
-import { ChannelOverview, Contact, PrimaryColumns, PublicKey, SharedSecret, User } from "@/types/entities";
+import { ChannelOverview, Chat, Contact, DmDetails, GroupDetails, PrimaryColumns, PublicKey, SharedSecret, User } from "@/types/entities";
 import { UUID } from "crypto";
 import qs from "qs";
 import { z } from 'zod';
@@ -10,8 +10,8 @@ import { z } from 'zod';
 const ApiActions = ['create', 'list', 'view', 'update', 'delete'] as const
 const ApiModuleActionMap = {
   users: [...ApiActions, 'me', 'unknowns'],
-  channels: [...ApiActions, 'overview'],
-  chats: [...ApiActions],
+  channels: [...ApiActions, 'overview', 'dms', 'groups'],
+  chats: [...ApiActions, 'dms', 'groups'],
   groups: [...ApiActions],
   contacts: [...ApiActions],
   'group-members': [...ApiActions],
@@ -190,7 +190,45 @@ export class HttpClient {
     if ('errors' in result) throw new Error(result.message)
     return result as ApiListResponseSuccess<ChannelOverview>
   }
+  async getDmDetails(id: UUID) {
+    const { result } = await this.fetch<DmDetails, DmDetails>('channels', { action: 'dms', id })
+    if ('errors' in result) throw new Error(result.message)
+    return result
+  }
+  async getGroupDetails(id: UUID) {
+    const { result } = await this.fetch<GroupDetails, GroupDetails>('channels', { action: 'groups', id })
+    if ('errors' in result) throw new Error(result.message)
+    return result
+  }
 
+  async getDmChats(channelId: UUID, page: number, perPage: number) {
+    const query: ListParams = {
+      page,
+      per_page: perPage,
+      where_clause: {
+        channel_id: {
+          $eq: channelId
+        }
+      }
+    }
+    const { result } = await this.fetch('chats', { action: 'dms', params: query })
+    if ('errors' in result) throw new Error(result.message)
+    return result as ApiListResponseSuccess<Chat & { status: 'sent' | 'delivered' | 'seen' } & { reply: Chat | null }>
+  }
+  async getGroupChats(channelId: UUID, page: number, perPage: number) {
+    const query: ListParams = {
+      page,
+      per_page: perPage,
+      where_clause: {
+        channel_id: {
+          $eq: channelId
+        }
+      }
+    }
+    const { result } = await this.fetch('chats', { action: 'groups', params: query })
+    if ('errors' in result) throw new Error(result.message)
+    return result as ApiListResponseSuccess<Chat & { status: 'sent' | 'delivered' | 'seen' } & { reply: Chat | null }>
+  }
 }
 
 const httpClient = new HttpClient()

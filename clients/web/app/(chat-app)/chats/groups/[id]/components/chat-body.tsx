@@ -1,11 +1,12 @@
 import { EncryptedMessage } from "@/components/internal/encrypted-message"
 import { Message } from "@/components/message"
 import { useSocket } from "@/contexts/socket-context"
-import httpClient from "@/lib/http-client-old"
+import { useMe } from "@/contexts/user-context"
+import httpClient from "@/lib/http-client"
 import { formatTime } from "@/lib/time"
 import { cn } from "@/lib/utils"
 import { ApiListResponseSuccess } from "@/types/api"
-import { Group, GroupMember, Contact, User, Chat } from "@/types/entities"
+import { Chat, GroupDetails } from "@/types/entities"
 import { SocketServerEmittedEvent } from "@/types/events"
 import { ReactQueryKeys } from "@/types/react-query"
 import { useQueryClient, useInfiniteQuery } from "@tanstack/react-query"
@@ -16,7 +17,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 //! else the scroll bar won't show and infinite scroll won't work
 // TODO: figure out a solution for this
 const PER_PAGE = 25
-export function ChatsBody({ group }: { group?: Group & { me: User, members: (GroupMember & { contact: Contact | null })[] } }) {
+export function ChatsBody({ group }: { group?: GroupDetails }) {
   const params = useParams()
   const chatId = params.id as string
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -26,11 +27,21 @@ export function ChatsBody({ group }: { group?: Group & { me: User, members: (Gro
   const { socket } = useSocket()
   const [isTyping, setIsTyping] = useState(false)
   const queryClient = useQueryClient()
+  const memberMap = group?.group_members.reduce((acc, member) => {
+    acc[member.user.id] = {
+      name: member.contact?.nickname || member.user.name,
+      dp: member.user.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.user.name}`,
+      is_blocked: member.is_blocked,
+      is_contact: !!member.contact
+
+    };
+    return acc;
+  }, {} as Record<UUID, { name: string, dp: string, is_blocked: boolean, is_contact: boolean }>)
   useEffect(() => {
-    if (!socket) return
+    if (!socket) return;
     function onTypingStart({ channel_id }: { channel_id: UUID }) {
       console.log('Typing start');
-      if (channel_id !== chatId) return
+      if (channel_id !== chatId) return;
       console.log('here')
       setIsTyping(true)
     }
@@ -70,7 +81,7 @@ export function ChatsBody({ group }: { group?: Group & { me: User, members: (Gro
   } = useInfiniteQuery({
     queryKey: [ReactQueryKeys.GROUPS_MESSAGES_CHATS, chatId],
     queryFn: async ({ pageParam = 1 }) => {
-      return await httpClient.listMessages(chatId as UUID, PER_PAGE, pageParam);
+      return await httpClient.getGroupChats(chatId as UUID, pageParam, PER_PAGE);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -154,7 +165,7 @@ export function ChatsBody({ group }: { group?: Group & { me: User, members: (Gro
 
       {/* Render all messages */}
       {uniqueMessages.map((message) => (
-        <ChatMessage key={message.id} message={message} group={group} />
+        <ChatMessage key={message.id} message={message} group={group} member={memberMap?.[message.created_by]!} />
       ))}
     </div>
   )
@@ -162,13 +173,16 @@ export function ChatsBody({ group }: { group?: Group & { me: User, members: (Gro
 
 export function ChatMessage({
   message,
-  group
+  group,
+  member
 }: {
   message: Chat,
-  group: Group & { me: User, members: (GroupMember & { contact: Contact | null })[] }
+  group: GroupDetails,
+  member: { name: string, dp: string, is_blocked: boolean, is_contact: boolean }
 }) {
+  const { user } = useMe()
   const [isHovered, setIsHovered] = useState(false);
-  const isOwnMessage = message.created_by === group.me.id;
+  const isOwnMessage = message.created_by === user.id;
 
   return (
     <div
@@ -185,6 +199,13 @@ export function ChatMessage({
           {formatTime(message.created_at)}
         </span>
       )}
+      {!isOwnMessage && (
+        <img
+          src={member.dp}
+          alt={member.name}
+          className="w-10 h-10 rounded-full"
+        />
+      )}
 
       {/* Message bubble */}
       <div
@@ -196,9 +217,9 @@ export function ChatMessage({
         )}
       >
         <EncryptedMessage
-          message={message.message}
+          message={message.encrypted_message}
           iv={message.iv}
-          channel_id={message.channel_id}
+          channel_id={group.id}
           className={cn("items-center", isOwnMessage ? "text-secondary-foreground" : "text-primary-foreground")}
         />
       </div>
