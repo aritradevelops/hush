@@ -42,3 +42,4 @@ COPY --from=builder /usr/lib/app/views/ views/
 EXPOSE 3000
 
 CMD ["npm", "run", "prod"]
+# sudo docker run -d -p 3001:3000 --name hush_app_server --env-file ~/projects/hush/server/.env.prod hush_app_server
