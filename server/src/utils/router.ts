@@ -39,7 +39,6 @@ export class Router {
       const route = req.params.module;
       const action = kebabToCamel(req.params.action || "list");
       const controller = this.store.get(route);
-      console.log(controller![action as keyof Controller])
       if (!controller || !controller[action as keyof Controller] ||
         typeof controller[action as keyof Controller] !== "function"
       ) throw new NotFoundError();

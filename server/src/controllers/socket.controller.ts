@@ -114,9 +114,7 @@ export class SocketController {
       created_by: socket.user.id
     })
     const group = insertResult.raw[0]
-    console.log('group', group)
     data.member_ids.push(socket.user.id)
-    console.log(data.member_ids)
     // create group members for all
     await Promise.all(data.member_ids.map((e: UUID) => channelParticipantRepository.create({ user_id: e, created_by: socket.user.id, channel_id: group.id })))
     callback(insertResult.raw[0])

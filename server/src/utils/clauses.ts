@@ -274,7 +274,6 @@ export class NotClause extends Clause implements NotClauseInterface {
 
   toSql(column: string): string {
     const clause = Clause.build(this.$not)
-    console.log(clause)
     clause.validate();
     return `NOT (${clause.toSql(column)})`;
   }
