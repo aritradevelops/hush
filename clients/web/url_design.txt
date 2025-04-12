@@ -1,0 +1,22 @@
+app/
+│── layout.tsx         # Main layout for sidebar and header
+│── chats/
+│   ├── layout.tsx     # Layout for contacts + sidebar
+│   ├── page.tsx       # Renders empty chat section
+│   ├── rooms/
+│   │   ├── [id]/
+│   │   │   ├── page.tsx  # Renders chat of that room
+│   ├── settings/
+│   │   ├── page.tsx   # Settings page
+│   ├── search/
+│   │   ├── page.tsx   # Search results
+
+
+chadcn useful components 
+- tooltip
+- context menu
+- pop over
+- skeleton
+- sonner
+- toast
+- dialog

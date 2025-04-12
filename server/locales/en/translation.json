@@ -1,0 +1,41 @@
+{
+  "greet": "Hello, world!",
+  "errors": {
+    "bad-request": "Sorry! The request is invalid!",
+    "unauthenticated": "Sorry! You are not allowed to access this resource!",
+    "unauthorized": "Sorry! You are not authorized to access this resource!",
+    "not-found": "Sorry! The requested resource could not be found!",
+    "method-not-allowed": "Sorry! The requested method is not allowed for this resource!",
+    "internal-server": "Sorry! Something went wrong with this request!",
+    "schema-validation": "Sorry! The given data does not satisfy the constraints!"
+  },
+  "controller": {
+    "list": "{{module}}(s) fetched successfully!",
+    "create": "{{module}} created successfully!",
+    "update": "{{module}} updated successfully!",
+    "delete": "{{module}} deleted successfully!",
+    "view": "{{module}} fetched successfully!"
+  },
+  "validation": {
+    "minLength": "The minimum length is not attained!",
+    "isStrongPassword": "The password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+    "isEmail": "The email must be a valid email address.",
+    "isUnique": "The email must be unique.",
+    "passwordMismatch": "The passwords do not match."
+  },
+  "db": {
+    "isUnique": "The {{key}} already exists."
+  },
+  "user": {
+    "registered": "Verification email sent! Please check your inbox to verify your email.",
+    "signed_in": "Signed in successfully!",
+    "forgot_password": "Reset password email sent! Please check your inbox to reset your password",
+    "reset_password": "Password reset successfully! Please login with your new password."
+  },
+  "invalid_email_or_password": "The provided email or password is invalid.",
+  "invalid_json_body": "The given payload is not valid JSON.",
+  "invalid_or_unverified_domain": "There is no account for this domain or the domain verification is pending.",
+  "email_verification_failed": "Invalid or expired verification link. Please contact the administrator.",
+  "email_verification_success": "Email verified successfully. Please continue to login.",
+  "resource_not_found": "Sorry! The {{resource}} could not be found!"
+}
