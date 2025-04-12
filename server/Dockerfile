@@ -36,7 +36,6 @@ COPY package*.json ./
 COPY --from=builder /usr/lib/app/dist/ dist/
 COPY --from=builder /usr/lib/app/node_modules node_modules/
 COPY --from=builder /usr/lib/app/locales/ locales/
-COPY --from=builder /usr/lib/app/views/ views/
 
 
 EXPOSE 3000
