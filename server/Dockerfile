@@ -12,7 +12,6 @@ COPY locales locales
 
 COPY @types @types
 
-COPY views views
 RUN ls
 
 RUN npm run build
