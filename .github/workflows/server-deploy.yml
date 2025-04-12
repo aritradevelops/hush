@@ -24,4 +24,4 @@ jobs:
           sudo docker pull aritradevelops/hush_app_server:latest
           sudo docker stop hush_app_server || true
           sudo docker rm -f hush_app_server || true
-          sudo docker run -d -p 3000:3000 --name hush_app_server --env-file ~/projects/hush/.env.prod aritradevelops/hush_app_server:latest
+          sudo docker run -d -p 3000:3000 --name hush_app_server --env-file ~/projects/hush/server/.env.prod aritradevelops/hush_app_server:latest

@@ -21,24 +21,17 @@ export function ChatInput({ dm }: { dm?: DmDetails }) {
     try {
       // find the shared secret for the dm
       const sharedSecret = await keysManager.getSharedSecret(dm.id, user.email)
-      console.log('DEBUG - Encryption data:')
-      console.log('- Shared Secret:', Base64Utils.encode(sharedSecret))
-      console.log('- Original message:', message)
-      
+
       // encrypt the message
       const { encrypted, iv } = await AESGCM.encrypt(message, sharedSecret)
-      console.log('- Encrypted message:', encrypted)
-      console.log('- IV:', iv)
-      console.log('- Message length:', encrypted.length)
-      
+
       // Try test decryption to verify before sending
       try {
         const testDecrypted = await AESGCM.decrypt(encrypted, iv, sharedSecret);
-        console.log('- Test decryption result:', testDecrypted === message ? 'SUCCESS - matches original' : 'FAILURE - does not match')
       } catch (decryptError) {
         console.error('- Test decryption failed:', decryptError)
       }
-      
+
       // send the message
       sendMessage(dm.id, encrypted, iv)
       setMessage('')
