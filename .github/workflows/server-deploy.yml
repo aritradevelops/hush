@@ -1,0 +1,27 @@
+name: Server CD pipeline
+
+on:
+  workflow_run:
+    workflows: ["Server CI Pipeline"]
+    types:
+      - completed
+
+jobs:
+
+  build:
+    environment: Automation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to server
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        privateKey: ${{ secrets.SSH_PRIVATE_KEY }}
+        passphrase: ${{ secrets.DO_PASSPHRASE }}
+        command: |
+          sudo docker pull aritradevelops/hush_app_server:latest
+          sudo docker stop hush_app_server || true
+          sudo docker rm -f hush_app_server || true
+          sudo docker run -d -p 3000:3000 --name hush_app_server --env-file ~/projects/hush/.env.prod aritradevelops/hush_app_server:latest

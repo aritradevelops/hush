@@ -1,0 +1,35 @@
+name: Server CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
+
+jobs:
+  build:
+    environment: Automation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      
+    - name: Install Buildx
+      id: buildx
+      uses: crazy-max/ghaction-docker-buildx@v1
+      with:
+        version: latest
+        
+    - name: Login To Dockerhub
+      env:
+        DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+      
+    - name: Build the Docker image & Push
+      working-directory: ./server
+      run: docker buildx build --push -t aritradevelops/hush_app_server --platform linux/amd64,linux/arm64 .
+    # - name: Push to Dockerhub
+    #   run: docker push aritradevelops/hush_app:latest

@@ -1,0 +1,27 @@
+name: Clients web CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["Clients web CI Pipeline"]
+    types:
+      - completed
+
+jobs:
+
+  build:
+    environment: Automation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to server
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        host: ${{ secrets.SSH_HOST_WEB }}
+        username: ${{ secrets.SSH_USER_WEB }}
+        privateKey: ${{ secrets.SSH_PRIVATE_KEY_WEB }}
+        passphrase: ${{ secrets.DO_PASSPHRASE_WEB }}
+        command: |
+          sudo docker pull aritradevelops/hush_app_web:latest
+          sudo docker stop hush_app_web || true
+          sudo docker rm -f hush_app_web || true
+          sudo docker run -d -p 3000:3000 --name hush_app_web aritradevelops/hush_app_web:latest
