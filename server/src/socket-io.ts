@@ -10,9 +10,11 @@ export class SocketIO {
   private io!: Server;
 
   init(httpServer: HttpServer) {
+    logger.notice('origin received', env.get('CLIENT_URL'))
     this.io = new Server(httpServer, {
       cors: {
         origin: env.get('CLIENT_URL'),
+        methods: ["GET", "POST"],
         credentials: true,
       },
     })
