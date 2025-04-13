@@ -18,9 +18,11 @@ RUN npm ci
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+ARG NEXT_BUILD_ENVS=""
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
+RUN touch .env
+RUN echo $NEXT_BUILD_ENVS > .env
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.

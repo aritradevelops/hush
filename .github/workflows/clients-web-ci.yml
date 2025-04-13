@@ -29,7 +29,9 @@ jobs:
       run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
       
     - name: Build the Docker image & Push
+      env:
+        NEXT_BUILD_ENVS: ${{secrets.NEXT_BUILD_ENVS}}
       working-directory: ./clients/web
-      run: docker buildx build --push -t aritradevelops/hush_app_web --platform linux/amd64,linux/arm64 .
+      run: docker buildx build --build-arg NEXT_BUILD_ENVS=$NEXT_BUILD_ENVS --push -t aritradevelops/hush_app_web --platform linux/amd64,linux/arm64 .
     # - name: Push to Dockerhub
     #   run: docker push aritradevelops/hush_app:latest
