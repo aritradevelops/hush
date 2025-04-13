@@ -9,6 +9,8 @@ import userRepository, { UserRepository } from "../repositories/user.repository"
 import CrudService from "../utils/crud-service";
 import logger from "../utils/logger";
 import jwtService from "./jwt.service";
+import { v4 } from "uuid";
+import { UUID } from "crypto";
 // TODO: build a OauthProvider interface
 // TODO: GoogleOauthProvider, FacebookOauthProvider will provide the concrete implementations
 export interface GoogleTokensResult {
@@ -119,13 +121,16 @@ export class OauthService extends CrudService<UserRepository> {
     return await jwtService.sign(user)
   }
   private async syncAndFetchGoolgeUser(guser: GoogleUserResult) {
+    const id = v4() as UUID
     let user = await this.repository.view({ email: guser.email })
     if (!user) {
       const result = await this.repository.create({
+        id,
         email: guser.email,
+        email_verified: guser.verified_email,
         name: guser.name,
         dp: guser.picture,
-        created_by: '9d78bc6f-8fba-4387-81b2-f53d4b41e5b4'
+        created_by: id
       })
       user = result.raw[0] as User
     }
@@ -133,12 +138,15 @@ export class OauthService extends CrudService<UserRepository> {
   }
   private async syncAndFetchFacebookUser(fuser: FacebookUserResult) {
     let user = await this.repository.view({ email: fuser.email })
+    const id = v4() as UUID
     if (!user) {
       const result = await this.repository.create({
+        id,
         email: fuser.email,
+        email_verified: true,
         name: fuser.name,
         dp: fuser.picture.data.url,
-        created_by: '9d78bc6f-8fba-4387-81b2-f53d4b41e5b4'
+        created_by: id
       })
       user = result.raw[0] as User
     }

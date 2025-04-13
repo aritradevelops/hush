@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { UUID } from 'crypto';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { constants } from '@/config/constants';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -26,7 +27,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only create the socket if it doesn't exist
     if (!socket.current) {
-      socket.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
+      socket.current = io(constants.SERVER_URL, {
         withCredentials: true,
       });
 
