@@ -1,0 +1,4 @@
+1. missing oauth in registration, reset-password page
+2. oauth call is not settings email_verified true
+3. cookies are not setting
+4. chrome auto insert is not removing validation
