@@ -17,7 +17,6 @@ export type Chat = PrimaryColumns & {
   encrypted_message: string;
   iv: string;
   channel_id: UUID;
-  unread: boolean;
 }
 
 // Contact
@@ -115,4 +114,17 @@ export type DmDetails = Channel & {
 export type GroupDetails = Channel & {
   group_members: (GroupMember & { user: User; contact: Contact | null; is_blocked: boolean })[];
   has_left: boolean;
+}
+
+export enum UserChatInteractionStatus {
+  // -1 is not part of the server status but it is kept for the client to show that the message is being sent
+  SENDING = "-1",
+  SENT = "0",
+  DELIVERED = "1",
+  SEEN = "2",
+}
+export type UserChatInteraction = PrimaryColumns & {
+  chat_id: UUID;
+  channel_id: UUID;
+  status: UserChatInteractionStatus;
 }

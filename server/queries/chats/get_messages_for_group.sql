@@ -15,7 +15,7 @@ WITH chats AS (SELECT
     WHEN reply.id IS NULL THEN NULL
     ELSE row_to_json(reply)
   END AS reply,
-  uci.status
+  uci.status::text::integer
 FROM
   chats c
   LEFT JOIN chats reply ON reply.id = c.replied_to

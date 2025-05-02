@@ -12,6 +12,7 @@ export enum SocketClientEmittedEvent {
   CHANNEL_PIN = 'channel:pin',
   CHANNEL_UNMUTE = 'channel:unmute',
   CHANNEL_UNPIN = 'channel:unpin',
+  CHANNEL_SEEN = 'channel:seen',
 
   // Group Events
   GROUP_CREATE = 'group:create',
@@ -26,7 +27,8 @@ export enum SocketClientEmittedEvent {
 
   // Message Events
   MESSAGE_PIN = 'message:pin',
-  MESSAGE_READ = 'message:read',
+  MESSAGE_SEEN = 'message:seen',
+  MESSAGE_RECIEVED = 'message:recieved',
   MESSAGE_SEND = 'message:send',
   MESSAGE_UNPIN = 'message:unpin',
 
@@ -42,6 +44,8 @@ export enum SocketServerEmittedEvent {
 
   // Message Events
   MESSAGE_RECEIVED = 'message:received',
+  MESSAGE_DELIVERED = 'message:delivered',
+  MESSAGE_SEEN = 'message:seen',
 
   // Typing Events
   TYPING_START = 'typing:start',

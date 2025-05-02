@@ -3,16 +3,20 @@ import { useMe } from "@/contexts/user-context";
 import { Base64Utils } from "@/lib/base64";
 import { AESGCM } from "@/lib/encryption";
 import keysManager from "@/lib/internal/keys-manager";
-import { DmDetails } from "@/types/entities";
+import { ApiListResponseSuccess } from "@/types/api";
+import { Chat, DmDetails, UserChatInteractionStatus } from "@/types/entities";
+import { ReactQueryKeys } from "@/types/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { UUID } from "crypto";
 import { useRef, useState } from "react";
-
+import * as uuid from "uuid";
 export function ChatInput({ dm }: { dm?: DmDetails }) {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const { sendMessage, emitTypingStart, emitTypingStop } = useSocket()
   const { user } = useMe()
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
-
+  const queryClient = useQueryClient()
   if (!dm) return <ChatInputSkeleton />
   const handleSendMessage = async () => {
     if (!message.trim()) return; // Don't send empty messages
@@ -21,19 +25,28 @@ export function ChatInput({ dm }: { dm?: DmDetails }) {
     try {
       // find the shared secret for the dm
       const sharedSecret = await keysManager.getSharedSecret(dm.id, user.email)
-
       // encrypt the message
       const { encrypted, iv } = await AESGCM.encrypt(message, sharedSecret)
 
-      // Try test decryption to verify before sending
-      try {
-        const testDecrypted = await AESGCM.decrypt(encrypted, iv, sharedSecret);
-      } catch (decryptError) {
-        console.error('- Test decryption failed:', decryptError)
+      const chat = {
+        id: uuid.v4() as UUID,
+        channel_id: dm.id,
+        encrypted_message: encrypted,
+        iv: iv,
+        created_at: new Date().toISOString(),
       }
-
+      queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, dm.id],
+        (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteractionStatus[] }>[], pageParams: number[] }) => {
+          console.log('chat', chat)
+          return {
+            pages: [{ ...oldData.pages[0], data: [chat, ...oldData.pages[0].data] }],
+            pageParams: oldData.pageParams
+          }
+        }
+      );
       // send the message
-      sendMessage(dm.id, encrypted, iv)
+      sendMessage(chat)
+
       setMessage('')
     } catch (error) {
       console.error('Error in message sending:', error)

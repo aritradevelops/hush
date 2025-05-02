@@ -10,7 +10,14 @@ import { EncryptionKeyModal } from '@/app/(chat-app)/chats/components/encryption
 import { useChannels } from '@/hooks/use-channels';
 import { UUID } from 'crypto';
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSocket } from '@/contexts/socket-context';
+import { SocketClientEmittedEvent, SocketServerEmittedEvent } from '@/types/events';
+import { Chat, User, UserChatInteraction, UserChatInteractionStatus } from '@/types/entities';
+import { useMe } from '@/contexts/user-context';
+import { useQueryClient } from '@tanstack/react-query';
+import { ReactQueryKeys } from '@/types/react-query';
+import { ApiListResponseSuccess } from '@/types/api';
 
 export default function ChatsLayout({
   children,
@@ -25,6 +32,161 @@ export default function ChatsLayout({
   const [activeChatId, setActiveChatId] = useState<UUID | null>(chatId || null);
   const { data: channels, isLoading: isLoadingChannels, isError: isErrorChannels } = useChannels(activeFilter, searchQuery, activeChatId);
   const pinnedChats = channels?.filter(c => c.has_pinned);
+  const { socket } = useSocket()
+  const { user } = useMe()
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!socket) return
+
+    socket.emit(SocketClientEmittedEvent.CHANNEL_SEEN, { channel_id: chatId })
+    console.log('emitting channel seen', chatId)
+    function updateMessageStatus(message: Chat, ucis?: UserChatInteraction[]) {
+      queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
+        (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteraction[] }>[], pageParams: number[] }) => {
+          if (!oldData?.pages) return oldData;
+
+          // Search through all pages to find the message
+          let foundPageIndex = -1;
+          let foundMessageIndex = -1;
+
+          oldData.pages.forEach((page, pageIndex) => {
+            const msgIndex = page.data.findIndex(m => m.id === message.id);
+            if (msgIndex !== -1) {
+              foundPageIndex = pageIndex;
+              foundMessageIndex = msgIndex;
+            }
+          });
+          console.log('foundPageIndex', foundPageIndex, 'foundMessageIndex', foundMessageIndex)
+
+          // If message not found in any page, return unchanged
+          if (foundPageIndex === -1) return oldData;
+
+          // Create new pages array with the updated message
+          const updatedPages = oldData.pages.map((page, pageIndex) => {
+            if (pageIndex !== foundPageIndex) return page;
+
+            const updatedMessages = [...page.data];
+            updatedMessages[foundMessageIndex] = {
+              ...updatedMessages[foundMessageIndex],
+              ucis: ucis
+            };
+            console.log('setting up the uci for the sent message', updatedMessages)
+
+            return { ...page, data: updatedMessages };
+          });
+
+          // Return new reference for the entire structure
+          return {
+            pages: updatedPages,
+            pageParams: oldData.pageParams
+          }
+        }
+      );
+    }
+
+    function onMessage(message: Chat & { ucis: UserChatInteraction[] }, cb: ({ status }: { status: UserChatInteractionStatus }) => void) {
+      console.log('new message received', message, message.channel_id, activeChatId)
+      // if the message was sent by me then mark it as sent
+      if (message.created_by === user.id && message.channel_id === activeChatId) {
+        updateMessageStatus(message, message.ucis)
+      }
+      else {
+        // if the message was not part of active chat then mark it as delivered
+        if (message.channel_id !== activeChatId) {
+          console.log('emitting delivered')
+          cb({ status: UserChatInteractionStatus.DELIVERED })
+          // increase the unread count of the channel
+          queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] })
+        } else {
+          console.log('emitting seen')
+          cb({ status: UserChatInteractionStatus.SEEN })
+          // append the message to the body and mark it as seen
+          queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
+            (oldData: { pages: ApiListResponseSuccess<Chat & { ucis: UserChatInteractionStatus[] }>[], pageParams: number[] }) => {
+              // update the message in the cache
+              return {
+                pages: [{ ...oldData.pages[0], data: [message, ...oldData.pages[0].data] }],
+                pageParams: oldData.pageParams
+              }
+            }
+          );
+        }
+      }
+    }
+
+    function updateSpecificMessageStatus(message: UserChatInteraction & { chat_id: UUID }, status: UserChatInteractionStatus) {
+      queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
+        (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteraction[] }>[], pageParams: number[] }) => {
+          if (!oldData?.pages) return oldData;
+
+          // Search through all pages to find the message
+          let foundPageIndex = -1;
+          let foundMessageIndex = -1;
+
+          oldData.pages.forEach((page, pageIndex) => {
+            const msgIndex = page.data.findIndex(m => m.id === message.chat_id);
+            if (msgIndex !== -1) {
+              foundPageIndex = pageIndex;
+              foundMessageIndex = msgIndex;
+            }
+          });
+          console.log(`found message index ${foundPageIndex} : ${foundMessageIndex}`)
+          // If message not found in any page, return unchanged
+          if (foundPageIndex === -1) return oldData;
+
+          // Create new pages array with the updated message
+          const updatedPages = oldData.pages.map((page, pageIndex) => {
+            if (pageIndex !== foundPageIndex) return page;
+
+            const updatedMessages = [...page.data];
+            updatedMessages[foundMessageIndex] = {
+              ...updatedMessages[foundMessageIndex],
+              ucis: updatedMessages[foundMessageIndex].ucis?.map(uci => {
+                if (uci.created_by === message.updated_by || uci.updated_by === message.updated_by) {
+                  console.log('updating uci', typeof status)
+                  return {
+                    ...uci,
+                    status: status,
+                    updated_at: message.updated_at,
+                    updated_by: message.updated_by
+                  }
+                }
+                return { ...uci }
+              })
+            };
+
+            return { ...page, data: updatedMessages };
+          });
+
+          // Return new reference for the entire structure
+          return {
+            pages: updatedPages,
+            pageParams: oldData.pageParams
+          }
+        }
+      );
+    }
+    function onMessageDelivered(message: UserChatInteraction & { chat_id: UUID }) {
+      console.log('message delivered', message)
+      if (message.channel_id !== activeChatId) return
+      updateSpecificMessageStatus(message, UserChatInteractionStatus.DELIVERED)
+    }
+    function onMessageSeen(message: UserChatInteraction & { chat_id: UUID }) {
+      console.log('message seen', message)
+      if (message.channel_id !== activeChatId) return
+      updateSpecificMessageStatus(message, UserChatInteractionStatus.SEEN)
+    }
+
+    socket.on(SocketServerEmittedEvent.MESSAGE_RECEIVED, onMessage)
+    socket.on(SocketServerEmittedEvent.MESSAGE_DELIVERED, onMessageDelivered)
+    socket.on(SocketServerEmittedEvent.MESSAGE_SEEN, onMessageSeen)
+    return () => {
+      socket.off(SocketServerEmittedEvent.MESSAGE_RECEIVED, onMessage)
+      socket.off(SocketServerEmittedEvent.MESSAGE_DELIVERED, onMessageDelivered)
+      socket.off(SocketServerEmittedEvent.MESSAGE_SEEN, onMessageSeen)
+    }
+  }, [socket, queryClient, activeChatId])
 
   return (
     <div className="flex-1 flex">

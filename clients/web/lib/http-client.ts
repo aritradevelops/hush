@@ -2,7 +2,7 @@ import { constants } from '@/config/constants';
 import { Fields, Obj } from "@/hooks/use-form";
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema, ResetPasswordSchema } from "@/schemas/auth";
 import { ApiErrorResponse, ApiListResponse, ApiListResponseSuccess, ApiResponse, ListParams } from "@/types/api";
-import { ChannelOverview, Chat, Contact, DmDetails, GroupDetails, PrimaryColumns, PublicKey, SharedSecret, User } from "@/types/entities";
+import { ChannelOverview, Chat, Contact, DmDetails, GroupDetails, PrimaryColumns, PublicKey, SharedSecret, User, UserChatInteractionStatus } from "@/types/entities";
 import { UUID } from "crypto";
 import qs from "qs";
 import { z } from 'zod';
@@ -213,7 +213,7 @@ export class HttpClient {
     }
     const { result } = await this.fetch('chats', { action: 'dms', params: query })
     if ('errors' in result) throw new Error(result.message)
-    return result as ApiListResponseSuccess<Chat & { status: 'sent' | 'delivered' | 'seen' } & { reply: Chat | null }>
+    return result as ApiListResponseSuccess<Chat & { ucis: UserChatInteractionStatus[] } & { reply: Chat | null }>
   }
   async getGroupChats(channelId: UUID, page: number, perPage: number) {
     const query: ListParams = {

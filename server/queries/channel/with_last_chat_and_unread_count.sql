@@ -23,9 +23,7 @@ WITH
     -- For groups
     SELECT
       ch.id,
-      'group' AS
-    type
-,
+      'group' AS type,
       ch.metadata ->> 'name' AS name,
       ch.metadata ->> 'image' AS image,
       p.has_muted,
@@ -103,6 +101,8 @@ SELECT
     WHERE
       uci.channel_id = bc.id
       AND uci.status != '2'::user_chat_interactions_status_enum
+      AND uci.created_by = $1::uuid
+      AND uci.deleted_at IS NULL
   ) AS unread_count
 FROM
   base_channels bc

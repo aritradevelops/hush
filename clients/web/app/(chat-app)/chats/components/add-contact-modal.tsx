@@ -99,7 +99,7 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
                 >
                   <div className="flex items-center">
                     <img
-                      src={contact.dp}
+                      src={contact.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${contact.name}`}
                       alt={contact.name}
                       className="w-12 h-12 rounded-full"
                     />

@@ -1,4 +1,4 @@
-import { DeepPartial, FindOptionsWhere } from "typeorm";
+import { DeepPartial, FindOptionsSelect, FindOptionsWhere } from "typeorm";
 import type { ListParams } from "../schemas/list-params";
 import { PrimaryColumns } from "./primary-columns";
 import { Clause } from "../utils/clauses";
@@ -14,7 +14,8 @@ export abstract class Repository<T extends typeof PrimaryColumns = typeof Primar
     const result = await qb.getManyAndCount();
     return result;
   }
-  async create(data: DeepPartial<InstanceType<T>>) {
+
+  async create(data: DeepPartial<InstanceType<T>> | DeepPartial<InstanceType<T>>[]) {
 
     return await this.entity
       .createQueryBuilder()

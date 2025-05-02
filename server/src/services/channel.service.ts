@@ -1,8 +1,8 @@
 
 import { UUID } from "crypto";
+import { Request, Response } from "express";
 import channelRepository, { ChannelRepository } from "../repositories/channel.repository";
 import CrudService from "../utils/crud-service";
-import { Request, Response } from "express";
 
 export class ChannelService extends CrudService<ChannelRepository> {
   constructor() {

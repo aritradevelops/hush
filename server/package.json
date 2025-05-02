@@ -1,7 +1,7 @@
 {
   "name": "barebone",
   "scripts": {
-    "dev": "nodemon --legacy-watch --files src/index.ts src/queries.sql",
+    "dev": "nodemon --legacy-watch --files src/index.ts",
     "test": "tsx src/test.ts",
     "prod": "NODE_ENV=production node dist/index.js",
     "prod:watch": "NODE_ENV=production nodemon --hot dist/index.js",
