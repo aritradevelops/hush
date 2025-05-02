@@ -100,7 +100,7 @@ SELECT
       user_chat_interactions uci
     WHERE
       uci.channel_id = bc.id
-      AND uci.status != '2'::user_chat_interactions_status_enum
+      AND uci.status != 2
       AND uci.created_by = $1::uuid
       AND uci.deleted_at IS NULL
   ) AS unread_count
