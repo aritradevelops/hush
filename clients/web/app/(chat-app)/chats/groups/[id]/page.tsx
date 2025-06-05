@@ -1,12 +1,12 @@
 'use client'
 import httpClient from "@/lib/http-client";
 import { cn } from "@/lib/utils";
-import { Chat, GroupDetails, UserChatInteractionStatus } from "@/types/entities";
+import { Chat, GroupDetails, UserChatInteraction, UserChatInteractionStatus } from "@/types/entities";
 import { ReactQueryKeys } from "@/types/react-query";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
 import { useParams } from "next/navigation";
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Dropzone from 'react-dropzone';
 import { GroupChatHeader } from "./components/group-chat-header";
 import { GroupChatInput } from "./components/group-chat-input";
@@ -14,7 +14,13 @@ import { useSocket } from "@/contexts/socket-context";
 import { ApiListResponseSuccess } from "@/types/api";
 import { useMe } from "@/contexts/user-context";
 import { SocketServerEmittedEvent } from "@/types/events";
-
+import { EncryptedMessage } from "@/components/internal/encrypted-message";
+import { formatTime } from "@/lib/time";
+import { Check, CheckCheck, Clock, User } from "lucide-react";
+//! NOTE: per page should be at least a number that overflows the chat body 
+//! else the scroll bar won't show and infinite scroll won't work
+// TODO: figure out a solution for this
+const PER_PAGE = 25
 export default function GroupChatPage() {
   const params = useParams();
   const chatId = params.id as string;
@@ -85,6 +91,10 @@ export function GroupChatBody({ group }: { group?: GroupDetails }) {
   const { socket } = useSocket();
   const queryClient = useQueryClient();
   const { user } = useMe();
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [initialScrollDone, setInitialScrollDone] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   useEffect(() => {
     if (!socket) return
     function onTypingStart({ channel_id, user_id }: { channel_id: UUID, user_id: UUID }) {
@@ -102,6 +112,13 @@ export function GroupChatBody({ group }: { group?: GroupDetails }) {
     function updateMessageStatus(message: Chat, status: UserChatInteractionStatus) {
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
         (oldData: { pages: ApiListResponseSuccess<Chat & { status: UserChatInteractionStatus }>[], pageParams: number[] }) => {
+          if (!oldData) {
+            // If there's no old data, return the message as is
+            return {
+              pages: [{ data: [message], nextPage: null, total: 1 }],
+              pageParams: []
+            };
+          }
           // Find the message in the first page
           const messageIndex = oldData.pages[0].data.findIndex(m => m.id === message.id);
           if (messageIndex === -1) return oldData;
@@ -169,13 +186,90 @@ export function GroupChatBody({ group }: { group?: GroupDetails }) {
       socket.off(SocketServerEmittedEvent.MESSAGE_SEEN, onMessageSeen)
     }
   }, [socket, isTyping, queryClient])
+
+  // Use infinite query to fetch paginated messages
+  const {
+    data,
+    isLoading: messagesLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
+    queryKey: [ReactQueryKeys.DIRECT_MESSAGES_CHATS, chatId],
+    queryFn: async ({ pageParam = 1 }) => {
+      return await httpClient.getGroupChats(chatId as UUID, pageParam, PER_PAGE);
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      // If we received messages, there might be more pages
+      return lastPage.info.total > lastPage.info.per_page * lastPage.info.page ? lastPage.info.page + 1 : undefined;
+    },
+    enabled: !!group
+  })
+
+  // Combine all messages from all pages
+  const allMessages = data?.pages.flatMap(page => page.data) || [];
+  const uniqueMessages = Array.from(
+    allMessages.reduce((map, message) => {
+      map.set(message.id, message);
+      return map;
+    }, new Map()).values()
+  );
+
+  // --- Scroll and pagination ---
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [])
+
+  const handleScroll = useCallback(() => {
+    if (!chatContainerRef.current || !hasNextPage || isFetchingNextPage) return;
+    const { scrollTop } = chatContainerRef.current;
+    if (scrollTop < 20) {
+      setLoadingMore(true);
+      fetchNextPage().finally(() => setLoadingMore(false));
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      if (!initialScrollDone && allMessages.length > 0 && !messagesLoading) {
+        scrollToBottom();
+        setInitialScrollDone(true);
+      }
+    }
+    return () => {
+      container?.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll, allMessages, initialScrollDone, messagesLoading, scrollToBottom]);
+  console.log('re-rendering', uniqueMessages)
+
   return (
-    <div className="flex-1 overflow-y-auto">
-      {/* Render group chat messages here */}
-      <div className="p-4">
-        <h2 className="text-lg font-semibold">Group Chat Messages</h2>
-        {/* Add your message rendering logic here */}
-      </div>
+    <div
+      ref={chatContainerRef}
+      className="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-2 relative"
+    >
+      {loadingMore && (
+        <div className="sticky top-0 w-full flex justify-center py-2 z-10">
+          <div className="bg-primary/20 text-primary px-4 py-2 rounded-full text-sm flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
+            Loading older messages...
+          </div>
+        </div>
+      )}
+      <div ref={messagesEndRef} />
+      {isTyping && (
+        <div className="relative max-w-xl rounded-2xl px-4 py-2 shadow-sm bg-primary text-primary-foreground rounded-tl-none">
+          Typing...
+        </div>
+      )}
+      {
+        uniqueMessages.map(m => {
+          return <ChatMessage key={m.id} message={m} group={group} />
+        })
+      }
+      {/* <MessageList messages={uniqueMessages} dm={dm} onMarkerRef={el => { newMessagesRef.current = el; }} /> */}
     </div>
   )
 }
@@ -294,4 +388,71 @@ export function FilesPreview({ files, group }: { files: File[], group: GroupDeta
       </div>
     </div>
   );
+}
+export function ChatMessage({
+  message,
+  group
+}: {
+  message: Chat & { ucis?: UserChatInteraction[] },
+  group: GroupDetails
+}) {
+  const { user } = useMe();
+  const [isHovered, setIsHovered] = useState(false);
+  const isOwnMessage = message.created_by === user.id;
+
+  return (
+    <div
+      className={cn(
+        "w-full flex items-center gap-2 py-1",
+        isOwnMessage ? "justify-end" : "justify-start"
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      id={message.id}
+    >
+      {/* Timestamp for sent messages (appears on the left of own messages) */}
+      {isOwnMessage && isHovered && (
+        <span className="text-xs text-muted-foreground opacity-80 self-center min-w-16 text-right">
+          {formatTime(message.created_at)}
+        </span>
+      )}
+
+      {/* Message bubble */}
+      <div
+        className={cn(
+          "max-w-2xl rounded-2xl px-4 py-2 shadow-sm flex-col",
+          isOwnMessage
+            ? "bg-secondary text-secondary-foreground rounded-tr-none"
+            : "bg-primary text-primary-foreground rounded-tl-none"
+        )}
+      >
+        <EncryptedMessage
+          message={message.encrypted_message}
+          iv={message.iv}
+          channel_id={message.channel_id}
+          className={cn("items-center", isOwnMessage ? "text-secondary-foreground" : "text-primary-foreground")}
+        />
+        {/* @ts-ignore */}
+        {<span className="flex justify-self-end">
+          <span className="text-xs text-muted-foreground opacity-80 self-center min-w-16 text-left">
+            {formatTime(message.created_at)}
+          </span>
+          {isOwnMessage && <ShowStatus ucis={message.ucis} />}
+        </span>}
+      </div>
+
+      {/* Timestamp for received messages (appears on the right of others' messages) */}
+      {!isOwnMessage && isHovered && (
+        <span className="text-xs text-muted-foreground opacity-80 self-center min-w-16 text-left">
+          {formatTime(message.created_at)}
+        </span>
+      )}
+    </div>
+  );
+}
+function ShowStatus({ ucis }: { ucis?: UserChatInteraction[] }) {
+  if (!ucis) return <Clock className="w-5 h-4" />
+  if (ucis.every((uci) => uci.status === UserChatInteractionStatus.SEEN)) return <CheckCheck className="w-5 h-4 text-blue-500" />
+  if (ucis.every(uci => uci.status === UserChatInteractionStatus.DELIVERED || UserChatInteractionStatus.SEEN)) return <CheckCheck className="w-5 h-4" />
+  return <Check className="w-5 h-4" />
 }

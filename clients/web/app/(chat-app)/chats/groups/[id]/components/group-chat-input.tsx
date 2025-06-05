@@ -37,14 +37,14 @@ export function GroupChatInput({ group, files }: { group?: GroupDetails, files: 
         created_at: new Date().toISOString(),
         status: UserChatInteractionStatus.SENDING
       }
-      // queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, dm.id],
-      //   (oldData: { pages: ApiListResponseSuccess<Chat & { status: UserChatInteractionStatus }>[], pageParams: number[] }) => {
-      //     return {
-      //       pages: [{ ...oldData.pages[0], data: [chat, ...oldData.pages[0].data] }],
-      //       pageParams: oldData.pageParams
-      //     }
-      //   }
-      // );
+      queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, group.id],
+        (oldData: { pages: ApiListResponseSuccess<Chat & { status: UserChatInteractionStatus }>[], pageParams: number[] }) => {
+          return {
+            pages: [{ ...oldData?.pages[0], data: [chat, ...oldData?.pages[0].data] }],
+            pageParams: oldData?.pageParams
+          }
+        }
+      );
       // send the message
       sendMessage(chat)
 
