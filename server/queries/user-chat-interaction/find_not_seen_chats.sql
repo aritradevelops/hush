@@ -7,5 +7,5 @@ LEFT JOIN chats chat ON chat.id = uci.chat_id AND chat.channel_id = uci.channel_
 WHERE 
   uci.created_by = $1::uuid
   AND uci.channel_id = $2::uuid
-  AND uci.status != '2'::user_chat_interactions_status_enum
+  AND uci.status != 2
   AND uci.deleted_at IS NULL

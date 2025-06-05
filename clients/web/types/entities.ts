@@ -118,10 +118,10 @@ export type GroupDetails = Channel & {
 
 export enum UserChatInteractionStatus {
   // -1 is not part of the server status but it is kept for the client to show that the message is being sent
-  SENDING = "-1",
-  SENT = "0",
-  DELIVERED = "1",
-  SEEN = "2",
+  SENDING = -1,
+  SENT,
+  DELIVERED,
+  SEEN,
 }
 export type UserChatInteraction = PrimaryColumns & {
   chat_id: UUID;

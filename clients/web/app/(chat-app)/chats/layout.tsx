@@ -39,8 +39,8 @@ export default function ChatsLayout({
   useEffect(() => {
     if (!socket) return
 
-    socket.emit(SocketClientEmittedEvent.CHANNEL_SEEN, { channel_id: chatId })
-    console.log('emitting channel seen', chatId)
+    socket.emit(SocketClientEmittedEvent.CHANNEL_SEEN, { channel_id: activeChatId })
+    console.log('emitting channel seen', activeChatId)
     function updateMessageStatus(message: Chat, ucis?: UserChatInteraction[]) {
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
         (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteraction[] }>[], pageParams: number[] }) => {
