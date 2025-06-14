@@ -137,9 +137,9 @@ export class SocketController {
         {
           ...insertResult.raw[0], ucis: Array.from(participantUciMap.values()).
             filter(uci => uci.created_by !== p.user_id)
-        }, async ({ status }:
-          { status: UserChatInteractionStatus }) => {
-        logger.info(`User ${p.user_id} has ${status} the message`)
+        }, async ({ status, event }:
+          { status: UserChatInteractionStatus, event: string }) => {
+        logger.info(`User ${p.user_id} has ${event}:${status} the message`)
         await userChatInteractionRepository.update({ id: participantUciMap.get(p.user_id)!.id },
           { status: status, updated_at: new Date(), updated_by: p.user_id })
         // notify others that the user has recieved or seen the message

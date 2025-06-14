@@ -57,8 +57,6 @@ export default function ChatsLayout({
               foundMessageIndex = msgIndex;
             }
           });
-          console.log('foundPageIndex', foundPageIndex, 'foundMessageIndex', foundMessageIndex)
-
           // If message not found in any page, return unchanged
           if (foundPageIndex === -1) return oldData;
 
@@ -71,7 +69,6 @@ export default function ChatsLayout({
               ...updatedMessages[foundMessageIndex],
               ucis: ucis
             };
-            console.log('setting up the uci for the sent message', updatedMessages)
 
             return { ...page, data: updatedMessages };
           });
@@ -85,7 +82,7 @@ export default function ChatsLayout({
       );
     }
 
-    function onMessage(message: Chat & { ucis: UserChatInteraction[] }, cb: ({ status }: { status: UserChatInteractionStatus }) => void) {
+    function onMessage(message: Chat & { ucis: UserChatInteraction[] }, cb: ({ status, event }: { status: UserChatInteractionStatus, event: string }) => void) {
       console.log('new message received', message, message.channel_id, activeChatId)
       // if the message was sent by me then mark it as sent
       if (message.created_by === user.id && message.channel_id === activeChatId) {
@@ -95,12 +92,12 @@ export default function ChatsLayout({
         // if the message was not part of active chat then mark it as delivered
         if (message.channel_id !== activeChatId) {
           console.log('emitting delivered')
-          cb({ status: UserChatInteractionStatus.DELIVERED })
+          cb({ status: UserChatInteractionStatus.DELIVERED, event: 'delivered' })
           // increase the unread count of the channel
           queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] })
         } else {
-          console.log('emitting seen')
-          cb({ status: UserChatInteractionStatus.SEEN })
+          console.log('emitting seen', UserChatInteractionStatus.SEEN)
+          cb({ status: UserChatInteractionStatus.SEEN, event: 'seen' })
           // append the message to the body and mark it as seen
           queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
             (oldData: { pages: ApiListResponseSuccess<Chat & { ucis: UserChatInteractionStatus[] }>[], pageParams: number[] }) => {

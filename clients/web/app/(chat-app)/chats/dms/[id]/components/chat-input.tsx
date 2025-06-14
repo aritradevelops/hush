@@ -34,6 +34,7 @@ export function ChatInput({ dm }: { dm?: DmDetails }) {
         encrypted_message: encrypted,
         iv: iv,
         created_at: new Date().toISOString(),
+        created_by: user.id
       }
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, dm.id],
         (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteractionStatus[] }>[], pageParams: number[] }) => {

@@ -35,6 +35,7 @@ export function GroupChatInput({ group, files }: { group?: GroupDetails, files: 
         encrypted_message: encrypted,
         iv: iv,
         created_at: new Date().toISOString(),
+        created_by: user.id,
         status: UserChatInteractionStatus.SENDING
       }
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, group.id],
