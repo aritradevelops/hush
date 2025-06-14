@@ -174,7 +174,7 @@ export class HttpClient {
   }
 
   async listContacts(query: ListParams = {}) {
-    const result = await this.list<Contact>('contacts', query)
+    const result = await this.list<Contact & { user: User }>('contacts', query)
     if ('errors' in result) throw new Error(result.message)
     return result
   }
