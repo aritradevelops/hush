@@ -7,6 +7,7 @@ import { ReactQueryKeys } from "@/types/react-query"
 import { useQuery } from "@tanstack/react-query"
 import { UUID } from "crypto"
 import { useParams } from "next/navigation"
+import { useEffect } from "react"
 export default function DMPage() {
   const params = useParams()
   const chatId = params.id as string

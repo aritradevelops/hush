@@ -6,6 +6,9 @@ export class UserChatInteractionService extends CrudService<UserChatInteractionR
   constructor() {
     super(userChatInteractionRepository);
   }
+
+  // async markMessagesSeen(userId: UUID, channelId: UUID ){
+  //   await
+  // }
 }
 export default new UserChatInteractionService();
-  

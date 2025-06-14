@@ -1,35 +1,31 @@
-import { EncryptedMessage } from "@/components/internal/encrypted-message"
-import { Message } from "@/components/message"
-import { useSocket } from "@/contexts/socket-context"
-import { useMe } from "@/contexts/user-context"
-import httpClient from "@/lib/http-client"
-import { formatTime } from "@/lib/time"
-import { cn } from "@/lib/utils"
-import { ApiListResponseSuccess } from "@/types/api"
-import { Chat, DmDetails, UserChatInteraction, UserChatInteractionStatus } from "@/types/entities"
-import { SocketClientEmittedEvent, SocketServerEmittedEvent } from "@/types/events"
-import { ReactQueryKeys } from "@/types/react-query"
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
-import { UUID } from "crypto"
-import { Check, CheckCheck, Clock, User } from "lucide-react"
-import { useParams } from "next/navigation"
-import { use, useCallback, useEffect, useRef, useState } from "react"
-//! NOTE: per page should be at least a number that overflows the chat body 
-//! else the scroll bar won't show and infinite scroll won't work
-// TODO: figure out a solution for this
+'use client'
+import { EncryptedMessage } from "@/components/internal/encrypted-message";
+import { useSocket } from "@/contexts/socket-context";
+import { useMe } from "@/contexts/user-context";
+import httpClient from "@/lib/http-client";
+import { formatTime } from "@/lib/time";
+import { cn } from "@/lib/utils";
+import { ApiListResponseSuccess } from "@/types/api";
+import { Chat, GroupDetails, UserChatInteraction, UserChatInteractionStatus } from "@/types/entities";
+import { SocketServerEmittedEvent } from "@/types/events";
+import { ReactQueryKeys } from "@/types/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { UUID } from "crypto";
+import { Check, CheckCheck, Clock } from "lucide-react";
+import { useParams } from "next/navigation";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 const PER_PAGE = 25
-export function ChatsBody({ dm }: { dm?: DmDetails }) {
-  // --- State and refs ---
+
+export function GroupChatBody({ group }: { group?: GroupDetails }) {
   const params = useParams();
   const chatId = params.id as UUID;
+  const [isTyping, setIsTyping] = React.useState(false);
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [initialScrollDone, setInitialScrollDone] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const { socket } = useSocket();
-  const [isTyping, setIsTyping] = useState(false);
-  const queryClient = useQueryClient();
-  // --- Socket event handlers ---
   useEffect(() => {
     if (!socket) return
     function onTypingStart({ channel_id, user_id }: { channel_id: UUID, user_id: UUID }) {
@@ -51,6 +47,7 @@ export function ChatsBody({ dm }: { dm?: DmDetails }) {
       socket.off(SocketServerEmittedEvent.TYPING_STOP, onTypingStop)
     }
   }, [socket, isTyping, queryClient])
+
   // Use infinite query to fetch paginated messages
   const {
     data,
@@ -61,14 +58,14 @@ export function ChatsBody({ dm }: { dm?: DmDetails }) {
   } = useInfiniteQuery({
     queryKey: [ReactQueryKeys.DIRECT_MESSAGES_CHATS, chatId],
     queryFn: async ({ pageParam = 1 }) => {
-      return await httpClient.getDmChats(chatId as UUID, pageParam, PER_PAGE);
+      return await httpClient.getGroupChats(chatId as UUID, pageParam, PER_PAGE);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       // If we received messages, there might be more pages
       return lastPage.info.total > lastPage.info.per_page * lastPage.info.page ? lastPage.info.page + 1 : undefined;
     },
-    enabled: !!dm
+    enabled: !!group
   })
 
   // Combine all messages from all pages
@@ -107,8 +104,9 @@ export function ChatsBody({ dm }: { dm?: DmDetails }) {
       container?.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll, allMessages, initialScrollDone, messagesLoading, scrollToBottom]);
-  if (!dm || messagesLoading) return <ChatsBodySkeleton />;
-
+  if (!group) {
+    return <ChatBodySkeleton />
+  }
   return (
     <div
       ref={chatContainerRef}
@@ -130,36 +128,40 @@ export function ChatsBody({ dm }: { dm?: DmDetails }) {
       )}
       {
         uniqueMessages.map(m => {
-          return <ChatMessage key={m.id} message={m} dm={dm} />
+          return <ChatMessage key={m.id} message={m} group={group} />
         })
       }
-      {/* <MessageList messages={uniqueMessages} dm={dm} onMarkerRef={el => { newMessagesRef.current = el; }} /> */}
-      {/* Warning for non-contact users */}
-      {dm && !dm.contact && (
-        <div className="sticky top-0 left-0 right-0 z-10 flex justify-center mb-4">
-          <Message message="This person is not on your contact list" variant={"warning"} />
-        </div>
-      )}
     </div>
-  );
+  )
 }
-
+export function ChatBodySkeleton() {
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="p-4">
+        <h2 className="text-lg font-semibold animate-pulse bg-accent h-6 w-32 rounded" />
+        {/* Add your message rendering logic here */}
+      </div>
+    </div>
+  )
+}
 export function ChatMessage({
   message,
-  dm
+  group
 }: {
   message: Chat & { ucis?: UserChatInteraction[] },
-  dm: DmDetails
+  group: GroupDetails
 }) {
+  const { user } = useMe();
   const [isHovered, setIsHovered] = useState(false);
-  const isOwnMessage = message.created_by !== dm.chat_user.id;
+  const isOwnMessage = message.created_by === user.id;
 
   return (
     <div
       className={cn(
-        "w-full flex items-center gap-2 py-1",
+        "w-full flex items-start gap-2 py-1",
         isOwnMessage ? "justify-end" : "justify-start"
       )}
+      data-owner={isOwnMessage}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       id={message.id}
@@ -170,6 +172,15 @@ export function ChatMessage({
           {formatTime(message.created_at)}
         </span>
       )}
+      {!isOwnMessage && <div>
+        {/* show the name of the sender */}
+        <img
+          src={group.group_members.find(m => m.user_id === message.created_by)?.user.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${group.group_members.find(m => m.user_id === message.created_by)?.user.name}`}
+          alt={group.group_members.find(m => m.user_id === message.created_by)?.user.name}
+          className="w-12 h-12 rounded-full"
+        />
+
+      </div>}
 
       {/* Message bubble */}
       <div
@@ -180,13 +191,18 @@ export function ChatMessage({
             : "bg-primary text-primary-foreground rounded-tl-none"
         )}
       >
+        {/* Sender name above message for received messages */}
+        {!isOwnMessage && (
+          <span className="text-xs font-semibold text-primary-foreground block">
+            {group.group_members.find(m => m.user_id === message.created_by)?.user.name}
+          </span>
+        )}
         <EncryptedMessage
           message={message.encrypted_message}
           iv={message.iv}
           channel_id={message.channel_id}
           className={cn("items-center", isOwnMessage ? "text-secondary-foreground" : "text-primary-foreground")}
         />
-        {/* @ts-ignore */}
         <span
           className={cn(
             "flex w-full mt-1",
@@ -209,52 +225,9 @@ export function ChatMessage({
     </div>
   );
 }
-
-
-export function ChatsBodySkeleton() {
-  // Create multiple skeleton messages with varying widths for a more realistic look
-  const skeletonMessages = [
-    { id: 1, isOwnMessage: false, width: "w-3/4" },
-    { id: 2, isOwnMessage: true, width: "w-1/2" },
-    { id: 3, isOwnMessage: false, width: "w-2/3" },
-    { id: 4, isOwnMessage: true, width: "w-2/5" },
-    { id: 5, isOwnMessage: false, width: "w-3/5" },
-    { id: 6, isOwnMessage: false, width: "w-3/5" },
-    { id: 7, isOwnMessage: true, width: "w-2/5" },
-    { id: 8, isOwnMessage: false, width: "w-2/3" },
-    { id: 9, isOwnMessage: true, width: "w-1/2" },
-  ]
-
-  return (
-    <div className="flex-1 overflow-y-auto p-4 flex flex-col-reverse gap-3 relative">
-      {skeletonMessages.map((skeleton) => (
-        <div
-          key={skeleton.id}
-          className={cn(
-            "w-full flex items-center gap-2 py-1",
-            skeleton.isOwnMessage ? "justify-end" : "justify-start"
-          )}
-        >
-          {/* Message bubble skeleton */}
-          <div
-            className={cn(
-              "relative rounded-2xl h-12 px-4 py-2 shadow-sm animate-pulse",
-              skeleton.width,
-              skeleton.isOwnMessage
-                ? "bg-secondary/80 text-secondary-foreground rounded-tr-none"
-                : "bg-primary/20 text-primary-foreground rounded-tl-none"
-            )}
-          >
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function ShowStatus({ ucis }: { ucis?: UserChatInteraction[] }) {
   if (!ucis) return <Clock className="w-5 h-4" />
-  if (ucis[0].status === UserChatInteractionStatus.SENT) return <Check className="w-5 h-4" />
-  if (ucis[0].status === UserChatInteractionStatus.DELIVERED) return <CheckCheck className="w-5 h-4" />
-  if (ucis[0].status === UserChatInteractionStatus.SEEN) return <CheckCheck className="w-5 h-4 text-blue-500" />
+  if (ucis.every((uci) => uci.status === UserChatInteractionStatus.SEEN)) return <CheckCheck className="w-5 h-4 text-blue-500" />
+  if (ucis.every(uci => uci.status === UserChatInteractionStatus.DELIVERED || UserChatInteractionStatus.SEEN)) return <CheckCheck className="w-5 h-4" />
+  return <Check className="w-5 h-4" />
 }

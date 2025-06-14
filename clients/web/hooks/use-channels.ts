@@ -2,12 +2,12 @@
 
 import { useSocket } from "@/contexts/socket-context";
 import httpClient from "@/lib/http-client";
-import { Chat } from "@/types/entities";
+import { Chat, UserChatInteractionStatus } from "@/types/entities";
 import { SocketServerEmittedEvent } from "@/types/events";
 import { ReactQueryKeys } from "@/types/react-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 
 export function useChannels(filter: 'all' | 'unread' | 'groups', searchQuery: string, activeChatId: UUID | null) {
 
@@ -19,19 +19,9 @@ export function useChannels(filter: 'all' | 'unread' | 'groups', searchQuery: st
   })
   const queryClient = useQueryClient()
   let filteredChannels = channels
-  const { socket } = useSocket()
   useEffect(() => {
-    if (!socket) return
-    function onMessage(chat: Chat) {
-      console.log('new message received', chat)
-      if (activeChatId !== chat.channel_id)
-        queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] })
-    }
-    socket.on(SocketServerEmittedEvent.MESSAGE_RECEIVED, onMessage)
-    return () => {
-      socket.off(SocketServerEmittedEvent.MESSAGE_RECEIVED, onMessage)
-    }
-  }, [socket, activeChatId])
+    queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] })
+  }, [activeChatId])
 
   // handle filter and search query
   if (filter !== 'all') {

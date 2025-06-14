@@ -8161,14 +8161,11 @@ components:
           format: uuid
           type: string
         status:
+          type: number
           enum:
-            - DELIVERED
-            - RECEIVED
-            - SEEN
             - 0
             - 1
             - 2
-          type: string
       type: object
       required:
         - chat_id

@@ -1,5 +1,5 @@
 // lib/socket-context.tsx
-import { Channel, Group } from '@/types/entities';
+import { Channel, Chat, Group } from '@/types/entities';
 import { SocketClientEmittedEvent, SocketServerEmittedEvent } from '@/types/events';
 import { useQueryClient } from '@tanstack/react-query';
 import { UUID } from 'crypto';
@@ -7,13 +7,17 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { io, Socket } from 'socket.io-client';
 import { constants } from '@/config/constants';
 
+
+export type NewChatPaylod = Pick<Chat, 'id' | 'channel_id' | 'encrypted_message' | 'iv' | 'created_at'>
+
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
   addContact: (contactId: UUID, callback: (dm: Channel) => void) => void;
-  sendMessage: (channelId: UUID, encryptedMessage: string, iv: string) => void;
+  sendMessage: (chat: NewChatPaylod) => void;
   emitTypingStart: (channelId: UUID) => void;
   emitTypingStop: (channelId: UUID) => void;
+  emitChannelSeen: (channelId: UUID) => void;
   createGroup: (data: { name: string, description?: string, memberIds: UUID[] }, callback?: (group: Channel) => void) => void;
 }
 
@@ -59,13 +63,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const sendMessage = (channelId: UUID, encryptedMessage: string, iv: string) => {
+  const sendMessage = (chat: NewChatPaylod) => {
     if (!socket.current) return;
-    socket.current.emit(SocketClientEmittedEvent.MESSAGE_SEND, {
-      channel_id: channelId,
-      encrypted_message: encryptedMessage,
-      iv
-    });
+    socket.current.emit(SocketClientEmittedEvent.MESSAGE_SEND, chat);
   };
 
   const createGroup = (data: { name: string, description?: string, memberIds: UUID[] }, callback?: (group: Channel) => void) => {
@@ -84,6 +84,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     if (!socket.current) return;
     socket.current.emit(SocketClientEmittedEvent.TYPING_STOP, { channel_id: channelId });
   };
+
+  const emitChannelSeen = (channelId: UUID) => {
+    if (!socket.current) return;
+    socket.current.emit(SocketClientEmittedEvent.CHANNEL_SEEN, { channel_id: channelId });
+  };
+
   const value = {
     socket: socket.current,
     isConnected,
@@ -91,7 +97,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     sendMessage,
     emitTypingStart,
     emitTypingStop,
-    createGroup
+    createGroup,
+    emitChannelSeen
   };
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;

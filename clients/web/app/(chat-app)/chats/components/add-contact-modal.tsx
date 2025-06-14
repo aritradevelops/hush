@@ -37,6 +37,7 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
     addContact(contactId, async (ch) => {
       const sharedSecret = AESGCM.generateKey();
       const publicKeys = await httpClient.listPublicKeysForUsers([user.id, contactId])
+      console.log('public keys received', publicKeys)
       for (const publicKey of publicKeys.data) {
         const encryptedSharedSecret = await RSAKeyPair.encryptWithPublicKey(sharedSecret, publicKey.key);
         await httpClient.createSharedSecret({
@@ -44,7 +45,6 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
           channel_id: ch.id,
           user_id: publicKey.user_id
         });
-
       }
       // save the shared secret to the locally
       await keysManager.setSharedSecret(ch.id, Base64Utils.encode(sharedSecret))
@@ -99,7 +99,7 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
                 >
                   <div className="flex items-center">
                     <img
-                      src={contact.dp}
+                      src={contact.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${contact.name}`}
                       alt={contact.name}
                       className="w-12 h-12 rounded-full"
                     />

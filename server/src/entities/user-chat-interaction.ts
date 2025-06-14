@@ -1,23 +1,21 @@
 
-import { Trim } from "class-sanitizer";
 import { Expose } from "class-transformer";
-import { IsEnum, IsString, IsUUID, MinLength } from "class-validator-custom-errors";
-import { Column, Entity } from "typeorm";
-import Searchable from "../decorators/searchable";
-import { PrimaryColumns } from "../lib/primary-columns";
+import { IsIn, IsUUID } from "class-validator-custom-errors";
 import { UUID } from "crypto";
+import { Column, Entity } from "typeorm";
+import { PrimaryColumns } from "../lib/primary-columns";
 
 
-export enum UserChatInteractionStatus {
-  DELIVERED = 0,
-  RECEIVED,
-  SEEN,
-}
-
+export const UserChatInteractionStatusEnum = {
+  NO_INTERACTION: 0,
+  RECEIVED: 1,
+  SEEN: 2,
+} as const
+export type UserChatInteractionStatus = typeof UserChatInteractionStatusEnum[keyof typeof UserChatInteractionStatusEnum];
 
 @Entity({ name: 'user_chat_interactions' })
 /** UserChatInteraction represents a user's interaction with a chat. 
- * A chat can be delivered, received, or seen by a user.
+ * A chat can be received, or seen by a user.
  * In case a user chooses to hide seen or received status, these records should not be inserted.
  */
 export default class UserChatInteraction extends PrimaryColumns {
@@ -34,8 +32,7 @@ export default class UserChatInteraction extends PrimaryColumns {
   channel_id!: UUID;
 
   @Expose()
-  @IsEnum(UserChatInteractionStatus)
-  @Column({ type: 'enum', enum: UserChatInteractionStatus, default: UserChatInteractionStatus.DELIVERED })
-  status!: UserChatInteractionStatus;
-
+  @IsIn(Object.values(UserChatInteractionStatusEnum))
+  @Column({ type: 'int', default: UserChatInteractionStatusEnum.RECEIVED })
+  status!: UserChatInteractionStatus
 }

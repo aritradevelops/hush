@@ -30,7 +30,7 @@ export function EncryptedMessage({ message, iv, channel_id, className }: Encrypt
   }, [message, iv, channel_id])
 
   return (
-    <span className={cn("text-sm text-muted-foreground", className)}>
+    <span className={cn("text-sm text-muted-foreground break-words", className)}>
       {decryptedMessage ? decryptedMessage : "Decrypting..."}
     </span>
   )
