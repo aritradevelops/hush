@@ -6,5 +6,5 @@
 [x] socket is not connecting from client
 [ ] On Chrome Auto-Insert Validation Not Being Removed
 [x] contact section is not showing email
-[ ] on group refresh sent messages showing sending
+[x] on group refresh sent messages showing sending
 [ ] unread count is wrong
