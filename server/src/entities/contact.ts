@@ -27,6 +27,13 @@ export default class Contact extends PrimaryColumns {
   /** Refers to the user being contacted. */
   user_id!: UUID
 
+
+  @Expose()
+  @IsUUID()
+  @Column({ type: 'uuid' })
+  @ForeignKey(() => User)
+  override created_by!: `${string}-${string}-${string}-${string}-${string}`;
+
   get contacted_by() {
     return this.created_by;
   }

@@ -2,8 +2,9 @@
 import { Expose } from "class-transformer";
 import { IsBoolean, IsOptional, IsUUID } from "class-validator-custom-errors";
 import { UUID } from "crypto";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, ForeignKey } from "typeorm";
 import { PrimaryColumns } from "../lib/primary-columns";
+import User from "./user";
 
 @Entity({ name: 'channel_participants' })
 /** ChannelParticipant represents a participant in a channel. 
@@ -14,6 +15,7 @@ export default class ChannelParticipant extends PrimaryColumns {
   @Expose()
   @IsUUID()
   @Column({ type: 'uuid' })
+  @ForeignKey(() => User)
   user_id!: UUID
 
   @Expose()

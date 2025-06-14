@@ -7964,12 +7964,16 @@ components:
         replied_to:
           format: uuid
           type: string
+        created_by:
+          format: uuid
+          type: string
       type: object
       required:
         - channel_id
         - encrypted_message
         - iv
         - replied_to
+        - created_by
     Secret:
       properties:
         encrypted_shared_secret:
@@ -8016,10 +8020,14 @@ components:
         user_id:
           format: uuid
           type: string
+        created_by:
+          format: uuid
+          type: string
       type: object
       required:
         - nickname
         - user_id
+        - created_by
     GroupMember:
       properties:
         group_id:
@@ -8103,9 +8111,13 @@ components:
         user_id:
           format: uuid
           type: string
+        created_by:
+          format: uuid
+          type: string
       type: object
       required:
         - user_id
+        - created_by
     ChannelParticipant:
       properties:
         user_id:
