@@ -5,7 +5,7 @@ import { Base64Utils } from '@/lib/base64';
 import { AESGCM, RSAKeyPair } from '@/lib/encryption';
 import httpClient from '@/lib/http-client';
 import keysManager from '@/lib/internal/keys-manager';
-import { Contact } from '@/types/entities';
+import { Contact, User } from '@/types/entities';
 import { ReactQueryKeys } from '@/types/react-query';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UUID } from 'crypto';
@@ -205,7 +205,7 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
             </div>
           ) : contacts.length > 0 ? (
             <div className="space-y-2">
-              {contacts.map((contact: Contact) => (
+              {contacts.map((contact: Contact & { user: User }) => (
                 <div
                   key={contact.user_id}
                   onClick={() => toggleContactSelection(contact)}
@@ -219,7 +219,7 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
                     />
                     <div className="ml-3">
                       <h3 className="font-medium">{contact.nickname}</h3>
-                      <p className="text-sm text-muted-foreground">random@email.com</p>
+                      <p className="text-sm text-muted-foreground">{contact.user.email}</p>
                     </div>
                   </div>
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isContactSelected(contact.user_id) ? 'bg-primary text-primary-foreground' : 'border-2 border-muted-foreground'}`}>

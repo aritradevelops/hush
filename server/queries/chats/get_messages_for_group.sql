@@ -15,11 +15,18 @@ WITH chats AS (SELECT
     WHEN reply.id IS NULL THEN NULL
     ELSE row_to_json(reply)
   END AS reply,
-  uci.status::text::integer
+    (
+    SELECT
+      array_agg(row_to_json(uci))
+    FROM
+      user_chat_interactions uci
+    WHERE
+      uci.chat_id = c.id
+      AND uci.created_by != $1::uuid
+  ) as ucis
 FROM
   chats c
   LEFT JOIN chats reply ON reply.id = c.replied_to
-  LEFT JOIN user_chat_interactions uci ON uci.chat_id = c.id AND uci.created_by = $1::uuid
   CROSS JOIN LATERAL (
     SELECT
       cp.created_at,

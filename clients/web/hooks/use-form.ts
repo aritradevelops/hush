@@ -114,7 +114,7 @@ export function useForm<T extends ZodTypeAny>(params: {
   });
 
   useEffect(() => {
-    const handleChange = debounce((e: Event) => {
+    const handleChange = (e: Event) => {
       const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
       if (target && target.id && ids.includes(target.id)) {
         setData((prevData) => {
@@ -125,9 +125,15 @@ export function useForm<T extends ZodTypeAny>(params: {
           return newData;
         });
       }
-    });
-    document.addEventListener("input", handleChange);
-    return () => document.removeEventListener("input", handleChange);
+    };
+    const debouncedHandleChange = debounce(handleChange)
+    document.addEventListener("input", debouncedHandleChange);
+    // for browser autofill
+    document.addEventListener("onautocomplete", handleChange)
+    return () => {
+      document.removeEventListener("input", debouncedHandleChange)
+      document.addEventListener("onautocomplete", handleChange)
+    };
   }, []);
 
   return { isSubmitting, form, fields };
