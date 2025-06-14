@@ -17,7 +17,7 @@ export class Db {
       entities: [`./${env.get('ROOT')}/entities/**/*.${env.get('EXT')}`],
       logging: env.get('NODE_ENV') !== 'production',
       logger: "file",
-      synchronize: true,
+      // synchronize: true,
       migrations: [`./${env.get('ROOT')}/migrations/**/*.${env.get('EXT')}`],
     });
     await this.dataSource.initialize();

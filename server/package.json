@@ -13,7 +13,9 @@
     "d:db": "cd db && docker-compose up -d",
     "d:db:restart": "cd db && docker-compose up --force-recreate",
     "d:db:down": "cd db && docker-compose down",
-    "d:db:attach": "docker exec -it postgresql psql -U postgres -d barebone"
+    "d:db:attach": "docker exec -it postgresql psql -U postgres -d barebone",
+    "typeorm:generate": "npx typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
+    "typeorm:migrate": "npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts"
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",

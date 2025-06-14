@@ -1,5 +1,27 @@
-# TODO:
-DROP TABLE users, user_chat_interactions, templates, sessions, 
-secrets, reset_password_requests, public_keys, passwords, oauths, groups, group_members, 
-email_verification_requests, direct_messages,contacts,chats,chat_statuses, chat_reactions,
-chat_medias, channels, channel_participants, books,blocked_users;
+# Hush
+
+Hush is a modern, full-stack end-to-end encrypted chat application with group messaging and direct messaging. built with node and typescript.
+
+## Features
+
+[x] End-to-end encrypted chatting
+[x] Read status management
+[x] Block user feature
+[ ] File sharing in chat thread
+[ ] Video conferencing with SFU
+[ ] Mobile Responsiveness
+
+
+## Todo
+[ ] provision for migration of database
+[ ] relation establishment
+[ ] provision for message replies
+[ ] provision for delete message
+[ ] provision for reacting to messages
+[ ] send e2ee media
+[ ] video conferencing
+[ ] profile management
+[ ] mobile responsiveness
+[ ] introduce logo
+[ ] update landing page
+[ ] update readme
