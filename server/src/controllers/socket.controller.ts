@@ -124,7 +124,7 @@ export class SocketController {
         channel_id: data.channel_id,
         chat_id: insertResult.raw[0].id,
         created_by: p.user_id,
-        status: p.id === socket.user.id ? UserChatInteractionStatusEnum.SEEN : UserChatInteractionStatusEnum.NO_INTERACTION,
+        status: p.user_id === socket.user.id ? UserChatInteractionStatusEnum.SEEN : UserChatInteractionStatusEnum.NO_INTERACTION,
         deleted_at: null
       }
       participantUciMap.set(p.user_id, uci)

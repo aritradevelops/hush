@@ -7,5 +7,5 @@
 [x] On Chrome Auto-Insert Validation Not Being Removed
 [x] contact section is not showing email
 [x] on group refresh sent messages showing sending
-[ ] unread count is wrong (hard to reproduce)
+[x] unread count is wrong
 [ ] sometimes events are not syncing due to broken socket (hard to reproduce)
