@@ -1,7 +1,7 @@
 
 import { Trim } from "class-sanitizer";
 import { Expose } from "class-transformer";
-import { IsBoolean, IsString, IsUUID, MinLength } from "class-validator-custom-errors";
+import { IsBoolean, IsString, IsUUID, Length, MinLength } from "class-validator-custom-errors";
 import { Column, Entity, ForeignKey } from "typeorm";
 import Searchable from "../decorators/searchable";
 import { PrimaryColumns } from "../lib/primary-columns";
@@ -26,8 +26,9 @@ export default class Chat extends PrimaryColumns {
 
   @Expose()
   @IsString()
-  @Column({ type: 'varchar', length: 100 })
-  /** IV is the initialization vector that was used to encrypt the message. */
+  @Length(16, 16)
+  @Column({ type: 'varchar', length: 16 })
+  /** 12 bytes initial vector */
   iv!: string;
 
   @Expose()

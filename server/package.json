@@ -15,9 +15,11 @@
     "d:db:down": "cd db && docker-compose down",
     "d:db:attach": "docker exec -it postgresql psql -U postgres -d barebone",
     "typeorm:generate": "npx typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
-    "typeorm:migrate": "npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts"
+    "typeorm:migrate": "npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
+    "typeorm:revert": "npx typeorm-ts-node-commonjs migration:revert -d src/data-source.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.828.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "@tanstack/react-query": "^5.69.0",
     "axios": "^1.8.2",

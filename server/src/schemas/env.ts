@@ -80,6 +80,32 @@ export class Env {
   @IsNotEmpty()
   FACEBOOK_OAUTH_REDIRECT_URI!: string;
 
+  @IsString()
+  @IsIn(['aws', 'localfs'])
+  MEDIA_PROVIDER!: 'aws' | 'localfs';
+
+  @IsString()
+  @IsNotEmpty()
+  AWS_S3_ACCESS_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  AWS_S3_SECRET_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  AWS_S3_BUCKET_REGION!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  AWS_S3_PATH_TO_DIR!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  AWS_S3_BUCKET_NAME!: string;
+
+
+
   get ROOT() {
     return this.NODE_ENV === 'production' ? 'dist' : 'src';
   }

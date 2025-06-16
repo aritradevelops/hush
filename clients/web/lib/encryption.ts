@@ -208,4 +208,51 @@ export class AESGCM {
   }
 }
 
+export class AESCTR {
+  static async encrypt(buffer: ArrayBuffer, sharedSecret: Uint8Array) {
+    const iv = crypto.getRandomValues(new Uint8Array(16)); // 16-byte IV for AES-CTR
+    const key = await crypto.subtle.importKey(
+      'raw',
+      sharedSecret,
+      { name: 'AES-CTR' },
+      false,
+      ['encrypt']
+    )
+
+    const encrypted = await crypto.subtle.encrypt(
+      {
+        name: 'AES-CTR',
+        counter: iv,
+        length: 64
+      },
+      key,
+      buffer
+    )
+
+    return { encrypted, iv: Base64Utils.encode(iv) }
+  }
+  static async decrypt(encryptedData: BufferSource, base64IV: string, rawKey: Uint8Array): Promise<{ decrypted: ArrayBuffer }> {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      rawKey,
+      { name: "AES-CTR" },
+      false,
+      ["decrypt"]
+    )
+
+    const iv = Base64Utils.decode(base64IV) // 16 bytes
+
+    const decrypted = await crypto.subtle.decrypt(
+      {
+        name: "AES-CTR",
+        counter: iv,
+        length: 64
+      },
+      key,
+      encryptedData
+    )
+
+    return { decrypted }
+  }
+}
 

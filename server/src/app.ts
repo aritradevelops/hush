@@ -26,6 +26,7 @@ app.use(express.json({
   }
 }));
 app.use(express.urlencoded({ extended: false }));
+app.use(express.raw({ limit: 10 * 1 << 20 }))
 app.use(cookieParser());
 app.use(morgan('combined'));
 app.get('/v1/ready', (_req, res) => { res.json({ message: 'OK' }); });
