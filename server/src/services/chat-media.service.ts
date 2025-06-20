@@ -1,16 +1,13 @@
 
+import { Request, Response } from 'express';
+import path from 'path';
+import ChatMedia, { ChatMediaStatusEnum } from "../entities/chat-media";
+import { InternalServerError } from "../errors/http/internal-server.error";
+import mediaProviderFactory from '../providers/media/index';
 import { MediaProvider } from "../providers/media/media.provider";
 import chatMediaRepository, { ChatMediaRepository } from "../repositories/chat-media.repository";
-import CrudService from "../utils/crud-service";
-import mediaProviderFactory from '../providers/media/index'
-import { Request, Response } from 'express'
-import { UnauthenticatedError } from "../errors/http/unauthenticated.error";
-import ChatMedia, { ChatMediaStatusEnum } from "../entities/chat-media";
-import path from 'path'
 import { MultipartEnd, PartUpload } from "../schemas/media";
-import { InternalServerError } from "../errors/http/internal-server.error";
-import * as uuid from 'uuid'
-import { UUID } from "crypto";
+import CrudService from "../utils/crud-service";
 // TODO: store url
 export class ChatMediaService extends CrudService<ChatMediaRepository> {
   private mediaProvider: MediaProvider
@@ -20,15 +17,15 @@ export class ChatMediaService extends CrudService<ChatMediaRepository> {
     this.mediaProvider = mediaProviderFactory.provider
   }
   private getFullPath(data: ChatMedia) {
+    console.log(data)
     return path.join(this.directory, data.channel_id, data.id)
   }
   async multipartInit(req: Request, res: Response, data: ChatMedia) {
     // initialize new id and cloud_storage_url
-    data.id = uuid.v4() as UUID
-    data.cloud_storage_url = this.getFullPath(data)
+    // data.id = uuid.v4() as UUID
+    const key = this.getFullPath(data)
+    data.cloud_storage_url = await this.mediaProvider.getUrl(key)
     const response: ChatMedia = await super.create(req, res, data)
-    const key = this.getFullPath(response)
-    await this.repository.update({ id: response.id }, { cloud_storage_url: await this.mediaProvider.getUrl(key) })
     const result = await this.mediaProvider.multipartInit(key)
     return { ...response, multipart_id: result.id, path: key }
   }
@@ -37,10 +34,23 @@ export class ChatMediaService extends CrudService<ChatMediaRepository> {
     if (!response) throw new InternalServerError()
     return response
   }
+
+  async upload(req: Request, res: Response, data: ChatMedia) {
+    // initialize new id and cloud_storage_url
+    // data.id = uuid.v4() as UUID
+    const key = this.getFullPath(data)
+    data.cloud_storage_url = await this.mediaProvider.getUrl(key)
+    const result = await this.mediaProvider.upload(key, req.body)
+    if (!result) throw new InternalServerError()
+    data.status = ChatMediaStatusEnum.UPLOADED
+    const response: ChatMedia = await super.create(req, res, data)
+    return { ...response, path: key }
+  }
   async multipartEnd(req: Request, res: Response, data: MultipartEnd) {
     const result = await this.mediaProvider.multipartEnd(data.path, data.multipart_id)
     if (!result) throw new InternalServerError()
     await this.repository.update({ id: data.id }, { status: ChatMediaStatusEnum.UPLOADED })
+    return await this.repository.view({ id: data.id })
   }
 }
 export default new ChatMediaService();

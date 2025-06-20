@@ -24,5 +24,6 @@ export const userPermissions: Record<string, SCOPES> = {
   'chat-media_list': 'SELF',
   'chat-media_part-upload': 'SELF',
   'chat-media_multipart-end': 'SELF',
+  'chat-media_upload': 'SELF',
 
 }

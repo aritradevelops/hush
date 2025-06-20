@@ -1,6 +1,7 @@
 const CHUNK_SIZE = 1 << 20; // 1 MB
 self.onmessage = (e) => {
     const { media, sharedSecret } = e.data;
+    console.log('ssd', Base64Utils.encode(sharedSecret));
     const partLen = Math.ceil(media.file_size / CHUNK_SIZE);
     const partPromises = [];
     for (let i = 0; i < partLen; i++) {
@@ -19,28 +20,28 @@ self.onmessage = (e) => {
     }
     Promise.all(partPromises)
         .then((partBuffers) => {
-            const totalSize = partBuffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
-            const combinedBuffer = new ArrayBuffer(totalSize);
-            const combinedView = new Uint8Array(combinedBuffer);
-            let offset = 0;
-            for (const buffer of partBuffers) {
-                combinedView.set(new Uint8Array(buffer), offset);
-                offset += buffer.byteLength;
-            }
-            return AESCTR.decrypt(combinedBuffer, media.iv, sharedSecret);
-        })
+        const totalSize = partBuffers.reduce((sum, buffer) => sum + buffer.byteLength, 0);
+        const combinedBuffer = new ArrayBuffer(totalSize);
+        const combinedView = new Uint8Array(combinedBuffer);
+        let offset = 0;
+        for (const buffer of partBuffers) {
+            combinedView.set(new Uint8Array(buffer), offset);
+            offset += buffer.byteLength;
+        }
+        return AESCTR.decrypt(combinedBuffer, media.iv, sharedSecret);
+    })
         .then(result => {
-            self.postMessage({
-                error: null,
-                data: result
-            });
-        })
-        .catch(e => {
-            self.postMessage({
-                error: e,
-                data: null
-            });
+        self.postMessage({
+            error: null,
+            data: result
         });
+    })
+        .catch(e => {
+        self.postMessage({
+            error: e,
+            data: null
+        });
+    });
 };
 class AESCTR {
     static async encrypt(buffer, sharedSecret) {
@@ -89,3 +90,4 @@ class Base64Utils {
         return new Uint8Array(atob(base64).split("").map(c => c.charCodeAt(0)));
     }
 }
+export {};

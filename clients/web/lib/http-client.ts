@@ -233,7 +233,7 @@ export class HttpClient {
     }
     const { result } = await this.fetch('chats', { action: 'groups', params: query })
     if ('errors' in result) throw new Error(result.message)
-    return result as ApiListResponseSuccess<Chat & { status: 'sent' | 'delivered' | 'seen' } & { reply: Chat | null }>
+    return result as ApiListResponseSuccess<Chat & { status: 'sent' | 'delivered' | 'seen' } & { reply: Chat | null } & { attachments?: ChatMedia[] }>
   }
 }
 

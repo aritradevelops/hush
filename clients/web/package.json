@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
+    "dev": "concurrently \"next dev --turbopack\" \"npm run watch:workers\"",
+    "build": "next build && npm run build:workers",
     "start": "next start",
     "lint": "next lint",
-    "build:workers": "tsc -p tsconfig.worker.json"
+    "build:workers": "tsc -p tsconfig.worker.json",
+    "watch:workers": "tsc -p tsconfig.worker.json --watch"
   },
   "dependencies": {
     "@conform-to/react": "^1.2.2",
@@ -47,6 +48,7 @@
     "@types/qs": "^6.9.18",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.1.2",
     "eslint": "^9",
     "eslint-config-next": "15.2.1-canary.5",
     "tailwindcss": "^4",

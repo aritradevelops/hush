@@ -130,6 +130,7 @@ export type UserChatInteraction = PrimaryColumns & {
 }
 
 export enum ChatMediaStatus {
+  PENDING = 0,
   INITIALIZED = 1,
   UPLOADED
 }

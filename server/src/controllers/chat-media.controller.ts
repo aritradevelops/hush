@@ -11,6 +11,8 @@ import { MultipartEnd, PartUpload } from "../schemas/media";
 import { validateOrReject } from "class-validator-custom-errors";
 import uuid from 'uuid'
 import { UUID } from "crypto";
+import { PassThrough } from "stream";
+import fs from 'fs'
 
 export class ChatMediaController extends CrudController<typeof ChatMedia, ChatMediaService> {
   constructor() {
@@ -54,6 +56,17 @@ export class ChatMediaController extends CrudController<typeof ChatMedia, ChatMe
       message: req.t('controller.create', { module: singularize(kebabToPascal(req.params.module as string)) }),
       data: result
     }
+  }
+  @POST()
+  async upload(req: Request, res: Response) {
+    const original = { ...req.query, file_size: parseInt(req.query.file_size as string) }
+    const sanitized = await this._validate(original, req.t);
+    const data = await this.service.upload(req, res, sanitized)
+    res.status(201)
+    return {
+      message: req.t('controller.create', { module: singularize(kebabToPascal(req.params.module as string)) }),
+      data: data
+    };
   }
 
 };

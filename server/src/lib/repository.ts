@@ -13,7 +13,7 @@ export abstract class Repository<T extends typeof PrimaryColumns = typeof Primar
     qb.take(query.per_page);
     const result = await qb.getManyAndCount();
     return result;
-  } 
+  }
 
   async create(data: DeepPartial<InstanceType<T>> | DeepPartial<InstanceType<T>>[]) {
 

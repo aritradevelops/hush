@@ -14,6 +14,7 @@ import userChatInteractionRepository from "../repositories/user-chat-interaction
 import userRepository from "../repositories/user.repository";
 import type { AuthenticatedSocket } from "../socket-io";
 import logger from "../utils/logger";
+import ChatMedia from "../entities/chat-media";
 
 // TODO: figure out a way to validate client sent data
 export class SocketController {
@@ -107,7 +108,7 @@ export class SocketController {
   }
   @Bind
   private async onMessageSend(socket: AuthenticatedSocket, data:
-    { id: UUID, channel_id: UUID, encrypted_message: string, iv: string, created_at: string }) {
+    { id: UUID, channel_id: UUID, encrypted_message: string, iv: string, created_at: string, attachments: ChatMedia[] }) {
     const insertResult = await chatRepository.create({
       id: data.id,
       channel_id: data.channel_id,
@@ -136,7 +137,7 @@ export class SocketController {
       this.activeConnections.get(p.user_id)?.emit(SocketServerEmittedEvents.MESSAGE_RECEIVED,
         {
           ...insertResult.raw[0], ucis: Array.from(participantUciMap.values()).
-            filter(uci => uci.created_by !== p.user_id)
+            filter(uci => uci.created_by !== p.user_id), attachments: data.attachments
         }, async ({ status, event }:
           { status: UserChatInteractionStatus, event: string }) => {
         logger.info(`User ${p.user_id} has ${event}:${status} the message`)

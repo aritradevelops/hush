@@ -2,6 +2,7 @@ import { ChatMedia } from "@/types/entities";
 const CHUNK_SIZE = 1 << 20 // 1 MB
 self.onmessage = (e: MessageEvent<{ media: ChatMedia, sharedSecret: Uint8Array }>) => {
   const { media, sharedSecret } = e.data
+  console.log('ssd', Base64Utils.encode(sharedSecret))
   const partLen = Math.ceil(media.file_size / CHUNK_SIZE)
   const partPromises: Promise<ArrayBuffer>[] = []
 
@@ -50,7 +51,7 @@ self.onmessage = (e: MessageEvent<{ media: ChatMedia, sharedSecret: Uint8Array }
 
 }
 
-export class AESCTR {
+class AESCTR {
   static async encrypt(buffer: ArrayBuffer, sharedSecret: Uint8Array) {
     const iv = crypto.getRandomValues(new Uint8Array(16)); // 16-byte IV for AES-CTR
     const key = await crypto.subtle.importKey(
@@ -104,7 +105,7 @@ export class AESCTR {
  * Since `Uint8Array` stores raw bytes, we use `String.fromCharCode(...data)`
  * to convert the byte array to a string, then encode it using Base64.
  */
-export class Base64Utils {
+class Base64Utils {
   /**
    * Encodes a Uint8Array to a Base64 string.
    * @param data - The binary data to encode.

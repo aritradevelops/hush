@@ -23,7 +23,16 @@ WITH chats AS (SELECT
     WHERE
       uci.chat_id = c.id
       AND uci.created_by != $1::uuid
-  ) as ucis
+  ) as ucis,
+  (
+    SELECT
+      array_agg(row_to_json(cm))
+    FROM
+      chat_medias cm
+    WHERE
+      cm.chat_id = c.id
+      AND cm.status = 2
+  ) as attachments
 FROM
   chats c
   LEFT JOIN chats reply ON reply.id = c.replied_to

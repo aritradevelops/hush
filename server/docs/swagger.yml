@@ -8138,6 +8138,9 @@ components:
         - channel_id
     ChatMedia:
       properties:
+        id:
+          format: uuid
+          type: string
         name:
           type: string
         chat_id:
@@ -8151,11 +8154,12 @@ components:
           maxLength: 24
           type: string
         file_size:
-          type: integer
+          type: number
         mime_type:
           type: string
       type: object
       required:
+        - id
         - name
         - chat_id
         - channel_id

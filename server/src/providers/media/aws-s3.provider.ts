@@ -51,7 +51,7 @@ export class AwsS3Provider implements MediaProvider {
         Parts: this.partMap.get(id)?.sort((a, b) => a.PartNumber - b.PartNumber)
       }
     }))
-    // this.partMap.delete(id)
+    this.partMap.delete(id)
     return response.$metadata.httpStatusCode === HttpStatusCode.Ok;
   }
   async upload(path: string, data: Buffer): Promise<boolean> {

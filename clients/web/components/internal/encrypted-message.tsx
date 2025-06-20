@@ -20,7 +20,7 @@ export function EncryptedMessage({ message, iv, channel_id, className }: Encrypt
 
   const decryptMessage = async () => {
     const sharedSecret = await keysManager.getSharedSecret(channel_id, user.email)
-    console.log(Base64Utils.encode(sharedSecret), iv)
+    // console.log(Base64Utils.encode(sharedSecret), iv)
 
     const decryptedMessage = await AESGCM.decrypt(message, iv, sharedSecret)
     return decryptedMessage

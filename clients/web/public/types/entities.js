@@ -14,6 +14,7 @@ export var UserChatInteractionStatus;
 })(UserChatInteractionStatus || (UserChatInteractionStatus = {}));
 export var ChatMediaStatus;
 (function (ChatMediaStatus) {
+    ChatMediaStatus[ChatMediaStatus["PENDING"] = 0] = "PENDING";
     ChatMediaStatus[ChatMediaStatus["INITIALIZED"] = 1] = "INITIALIZED";
     ChatMediaStatus[ChatMediaStatus["UPLOADED"] = 2] = "UPLOADED";
 })(ChatMediaStatus || (ChatMediaStatus = {}));

@@ -65,6 +65,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
   const sendMessage = (chat: NewChatPaylod) => {
     if (!socket.current) return;
+    console.log('sending message', chat)
     socket.current.emit(SocketClientEmittedEvent.MESSAGE_SEND, chat);
   };
 

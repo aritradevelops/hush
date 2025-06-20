@@ -1,9 +1,9 @@
 
 import { Trim } from "class-sanitizer";
 import { Expose } from "class-transformer";
-import { IsIn, IsInt, IsString, IsUrl, IsUUID, Length } from "class-validator-custom-errors";
+import { IsIn, IsInt, IsNumber, IsString, IsUrl, IsUUID, Length } from "class-validator-custom-errors";
 import { UUID } from "crypto";
-import { Column, Entity } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { PrimaryColumns } from "../lib/primary-columns";
 // TODO: store url
 export const ChatMediaStatusEnum = {
@@ -18,6 +18,11 @@ export type ChatMediaStatus = typeof ChatMediaStatusEnum[keyof typeof ChatMediaS
  * Metadata about the media is stored in this table.
  */
 export default class ChatMedia extends PrimaryColumns {
+
+  @Expose()
+  @IsUUID()
+  @PrimaryGeneratedColumn("uuid")
+  override id!: UUID;
 
   @Expose()
   @IsString()
@@ -43,7 +48,7 @@ export default class ChatMedia extends PrimaryColumns {
   iv!: string;
 
   @Expose()
-  @IsInt()
+  @IsNumber()
   @Column({ type: 'int' })
   // in bytes
   file_size!: number

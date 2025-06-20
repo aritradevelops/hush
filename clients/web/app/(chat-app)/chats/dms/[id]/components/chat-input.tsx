@@ -3,15 +3,16 @@ import { useMe } from "@/contexts/user-context";
 import { Base64Utils } from "@/lib/base64";
 import { AESGCM } from "@/lib/encryption";
 import keysManager from "@/lib/internal/keys-manager";
+import uploadManager from "@/lib/internal/upload-manager";
 import { ApiListResponseSuccess } from "@/types/api";
-import { Chat, DmDetails, UserChatInteractionStatus } from "@/types/entities";
+import { Chat, ChatMedia, ChatMediaStatus, DmDetails, UserChatInteractionStatus } from "@/types/entities";
 import { ReactQueryKeys } from "@/types/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
 import { useRef, useState } from "react";
 import * as uuid from "uuid";
-export function ChatInput({ dm }: { dm?: DmDetails }) {
-  const [message, setMessage] = useState('')
+export function ChatInput({ dm, files, discardFiles }: { dm?: DmDetails, files: File[], discardFiles: () => void }) {
+  let [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const { sendMessage, emitTypingStart, emitTypingStop } = useSocket()
   const { user } = useMe()
@@ -19,7 +20,10 @@ export function ChatInput({ dm }: { dm?: DmDetails }) {
   const queryClient = useQueryClient()
   if (!dm) return <ChatInputSkeleton />
   const handleSendMessage = async () => {
-    if (!message.trim()) return; // Don't send empty messages
+    if (!message.trim()) {
+      if (files.length) message = 'Sent attachments'
+      else return
+    }
 
     setSending(true)
     try {
@@ -34,7 +38,28 @@ export function ChatInput({ dm }: { dm?: DmDetails }) {
         encrypted_message: encrypted,
         iv: iv,
         created_at: new Date().toISOString(),
-        created_by: user.id
+        created_by: user.id,
+        status: UserChatInteractionStatus.SENDING,
+      }
+      const uploadPromises: Promise<ChatMedia>[] = []
+      if (files.length) {
+        const newFiles = files
+        // TODO: error handling
+        const chatMedias = newFiles.map(f => {
+          const cm = {
+            id: uuid.v4() as UUID,
+            name: f.name,
+            chat_id: chat.id,
+            channel_id: chat.channel_id,
+            status: ChatMediaStatus.PENDING,
+            mime_type: f.type,
+            cloud_storage_url: URL.createObjectURL(f),
+          } as ChatMedia
+          uploadPromises.push(uploadManager.upload(cm, f, sharedSecret))
+          return cm
+        })
+        // @ts-ignore
+        chat.attachments = chatMedias
       }
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, dm.id],
         (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteractionStatus[] }>[], pageParams: number[] }) => {
@@ -45,6 +70,13 @@ export function ChatInput({ dm }: { dm?: DmDetails }) {
           }
         }
       );
+      // set files empty
+      discardFiles()
+
+      // upload synchronously then
+      const result = await Promise.all(uploadPromises)
+      // @ts-ignore
+      chat.attachments = result
       // send the message
       sendMessage(chat)
 
@@ -77,7 +109,7 @@ export function ChatInput({ dm }: { dm?: DmDetails }) {
       <div className="flex gap-2">
         <input
           type="text"
-          placeholder="Type a message..."
+          placeholder={files.length ? "Attach message with files " : "Type a message..."}
           className="flex-1 rounded-lg bg-accent px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}

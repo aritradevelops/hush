@@ -1,4 +1,5 @@
 import { EncryptedMessage } from "@/components/internal/encrypted-message"
+import { ShowAttachments } from "@/components/internal/show-attachements"
 import { Message } from "@/components/message"
 import { useSocket } from "@/contexts/socket-context"
 import { useMe } from "@/contexts/user-context"
@@ -6,7 +7,7 @@ import httpClient from "@/lib/http-client"
 import { formatTime } from "@/lib/time"
 import { cn } from "@/lib/utils"
 import { ApiListResponseSuccess } from "@/types/api"
-import { Chat, DmDetails, UserChatInteraction, UserChatInteractionStatus } from "@/types/entities"
+import { Chat, ChatMedia, DmDetails, UserChatInteraction, UserChatInteractionStatus } from "@/types/entities"
 import { SocketClientEmittedEvent, SocketServerEmittedEvent } from "@/types/events"
 import { ReactQueryKeys } from "@/types/react-query"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
@@ -148,7 +149,7 @@ export function ChatMessage({
   message,
   dm
 }: {
-  message: Chat & { ucis?: UserChatInteraction[] },
+  message: Chat & { ucis?: UserChatInteraction[] } & { attachments?: ChatMedia[] },
   dm: DmDetails
 }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -180,6 +181,7 @@ export function ChatMessage({
             : "bg-primary text-primary-foreground rounded-tl-none"
         )}
       >
+        {(message.attachments && !!message.attachments.length) && <ShowAttachments attachments={message.attachments} />}
         <EncryptedMessage
           message={message.encrypted_message}
           iv={message.iv}

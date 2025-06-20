@@ -1,4 +1,3 @@
-
 export interface MediaProvider {
   getUrl(path: string): Promise<string>
   multipartInit(path: string): Promise<{ id: string }>

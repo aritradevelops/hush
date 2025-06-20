@@ -1,20 +1,21 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
-import mime from 'mime'
-import { useMe } from '@/contexts/user-context'
-import keysManager from '@/lib/internal/keys-manager'
 import { AESCTR } from '@/lib/encryption'
-import { Base64Utils } from '@/lib/base64'
 import httpClient from '@/lib/http-client'
+import keysManager from '@/lib/internal/keys-manager'
 import { ChatMedia } from '@/types/entities'
+import { randomUUID } from 'crypto'
+import mime from 'mime'
+import QueryString from 'qs'
+import { useEffect, useRef, useState } from 'react'
+import * as uuid from 'uuid'
 
 const email = 'chrome@gmail.com'
 
 export default function Page() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chatId = 'b0a75629-54be-4754-af1d-a4a447968a91'
-  const channelId = '8ccd4680-0b32-45f7-b780-47dfb8e39cc8'
+  const channelId = '47b97482-525b-4af0-a28c-b7c1c0e5f41c'
   const uploadLimit = 5 * 1024 * 1024 // 5MB in bytes (more readable)
   const [medias, setMedias] = useState<ChatMedia[]>([])
   const [isUploading, setIsUploading] = useState(false)
@@ -32,95 +33,30 @@ export default function Page() {
 
     try {
       const file: File = fileInput.files[0]
-      const data = await file.arrayBuffer()
       const sharedSecret = await keysManager.getSharedSecret(channelId, email)
-      const { encrypted, iv } = await AESCTR.encrypt(data, sharedSecret)
-
-      // Initialize multipart upload
-      const res = await fetch('http://localhost:3001/v1/chat-media/multipart-init', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: file.name,
-          chat_id: chatId,
-          channel_id: channelId,
-          mime_type: mime.getType(file.name),
-          file_size: encrypted.byteLength,
-          iv: iv
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+      await new Promise((res, rej) => {
+        const uploadWorker = new window.Worker('/workers/upload-encrypt.worker.js', {
+          type: 'module',
+          name: file.name + 'uploader'
+        })
+        uploadWorker.postMessage({
+          file: file,
+          chatMedia: {
+            id: uuid.v4(),
+            name: file.name,
+            chat_id: chatId,
+            channel_id: channelId,
+            mime_type: mime.getType(file.name)!,
+          },
+          sharedSecret: sharedSecret
+        })
+        uploadWorker.addEventListener("message", e => {
+          console.log(e)
+          uploadWorker.terminate()
+          res(e.data)
+        })
+        uploadWorker.addEventListener('error', rej)
       })
-
-      if (!res.ok) {
-        throw new Error(`Failed to initialize upload: ${res.statusText}`)
-      }
-
-      const multipartRes = await res.json()
-      console.log('Encrypted file size:', encrypted.byteLength)
-
-      const parts = Math.ceil(encrypted.byteLength / uploadLimit)
-      console.log('Number of parts:', parts)
-
-      const partPromises: Array<Promise<any>> = []
-
-      for (let i = 0; i < parts; i++) {
-        const start = i * uploadLimit
-        const end = Math.min((i + 1) * uploadLimit, encrypted.byteLength)
-        const chunk = encrypted.slice(start, end)
-
-        console.log(`Part ${i + 1}: ${start}-${end - 1} (${chunk.byteLength} bytes)`)
-
-        partPromises.push(
-          fetch('http://localhost:3001/v1/chat-media/part-upload', {
-            method: 'PUT',
-            body: chunk,
-            headers: {
-              'Content-Type': 'application/octet-stream',
-              'path': multipartRes.data.path,
-              'multipart_id': multipartRes.data.multipart_id,
-              'part_number': String(i + 1)
-            },
-            credentials: 'include'
-          })
-            .then(res => {
-              if (!res.ok) {
-                throw new Error(`Part ${i + 1} upload failed: ${res.statusText}`)
-              }
-              return res.json()
-            })
-            .then(data => {
-              console.log(`Part ${i + 1} uploaded:`, data)
-              setUploadProgress(prev => prev + (100 / parts))
-              return data
-            })
-            .catch(error => {
-              console.error(`Part ${i + 1} upload failed:`, error)
-              throw error
-            })
-        )
-      }
-
-      await Promise.all(partPromises)
-      console.log('All parts uploaded successfully')
-
-      // Complete multipart upload
-      const result = await fetch('http://localhost:3001/v1/chat-media/multipart-end', {
-        method: 'PUT',
-        body: JSON.stringify({
-          id: multipartRes.data.id,
-          path: multipartRes.data.path,
-          multipart_id: multipartRes.data.multipart_id
-        }),
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
-      })
-
-      if (!result.ok) {
-        throw new Error(`Failed to complete upload: ${result.statusText}`)
-      }
-
-      const finalResult = await result.json()
-      console.log('Upload completed:', finalResult)
 
       // Refresh media list
       const updatedMedias = await httpClient.listMedias()
@@ -250,7 +186,9 @@ function RenderVideo({ media }: { media: ChatMedia }) {
       const sharedSecret = await keysManager.getSharedSecret(media.channel_id, email)
 
       // Create worker
-      const worker = new Worker('./workers/dowload-decrypt.worker.js')
+      const worker = new window.Worker('/workers/download-decrypt.worker.js', {
+        type: 'module'
+      })
       workerRef.current = worker
 
       // Set up worker message handler
@@ -345,45 +283,52 @@ function RenderImage({ media }: { media: ChatMedia }) {
     try {
       setLoading(true)
       setError(null)
+      let combinedBuffer = new Uint8Array(media.file_size)
+      if (media.file_size > downloadLimit) {
+        const parts = Math.ceil(media.file_size / downloadLimit)
+        const partPromises: Promise<ArrayBuffer>[] = []
 
-      const parts = Math.ceil(media.file_size / downloadLimit)
-      const partPromises: Promise<ArrayBuffer>[] = []
+        // Download all parts
+        for (let i = 0; i < parts; i++) {
+          const start = i * downloadLimit
+          const end = Math.min((i + 1) * downloadLimit, media.file_size) - 1
 
-      // Download all parts
-      for (let i = 0; i < parts; i++) {
-        const start = i * downloadLimit
-        const end = Math.min((i + 1) * downloadLimit, media.file_size) - 1
+          partPromises.push(
+            fetch(media.cloud_storage_url, {
+              headers: {
+                Range: `bytes=${start}-${end}`
+              }
+            }).then(res => {
+              if (!res.ok) {
+                throw new Error(`Failed to download part ${i + 1}: ${res.statusText}`)
+              }
+              return res.arrayBuffer()
+            })
+          )
+        }
 
-        partPromises.push(
-          fetch(media.cloud_storage_url, {
-            headers: {
-              Range: `bytes=${start}-${end}`
-            }
-          }).then(res => {
-            if (!res.ok) {
-              throw new Error(`Failed to download part ${i + 1}: ${res.statusText}`)
-            }
-            return res.arrayBuffer()
-          })
-        )
-      }
+        const partBuffers = await Promise.all(partPromises)
 
-      const partBuffers = await Promise.all(partPromises)
+        // Combine all parts into a single ArrayBuffer
+        // const totalSize = partBuffers.reduce((sum, buffer) => sum + buffer.byteLength, 0)
+        // const combinedBuffer = new ArrayBuffer(totalSize)
+        const combinedView = new Uint8Array(combinedBuffer)
 
-      // Combine all parts into a single ArrayBuffer
-      const totalSize = partBuffers.reduce((sum, buffer) => sum + buffer.byteLength, 0)
-      const combinedBuffer = new ArrayBuffer(totalSize)
-      const combinedView = new Uint8Array(combinedBuffer)
-
-      let offset = 0
-      for (const buffer of partBuffers) {
-        combinedView.set(new Uint8Array(buffer), offset)
-        offset += buffer.byteLength
+        let offset = 0
+        for (const buffer of partBuffers) {
+          combinedView.set(new Uint8Array(buffer), offset)
+          offset += buffer.byteLength
+        }
+      } else {
+        const res = await fetch(media.cloud_storage_url)
+        const buffer = await res.arrayBuffer()
+        combinedBuffer = new Uint8Array(buffer)
       }
 
       // Decrypt the combined buffer
       const sharedSecret = await keysManager.getSharedSecret(media.channel_id, email)
       const { decrypted } = await AESCTR.decrypt(combinedBuffer, media.iv, sharedSecret)
+      // const { decrypted } = { decrypted: combinedBuffer }
 
       // Create blob and object URL
       const blob = new Blob([decrypted], { type: media.mime_type })
