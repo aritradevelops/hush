@@ -25,3 +25,4 @@ Hush is a modern, full-stack end-to-end encrypted chat application with group me
 [ ] introduce logo
 [ ] update landing page
 [ ] update readme
+[ ] media support phase 2 (in app preview)
