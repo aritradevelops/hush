@@ -128,3 +128,20 @@ export type UserChatInteraction = PrimaryColumns & {
   channel_id: UUID;
   status: UserChatInteractionStatus;
 }
+
+export enum ChatMediaStatus {
+  PENDING = 0,
+  INITIALIZED = 1,
+  UPLOADED
+}
+
+export type ChatMedia = PrimaryColumns & {
+  name: string;
+  chat_id: UUID;
+  channel_id: UUID;
+  iv: string;
+  file_size: number;
+  cloud_storage_url: string;
+  mime_type: string;
+  status: ChatMediaStatus
+}

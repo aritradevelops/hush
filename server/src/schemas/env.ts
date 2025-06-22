@@ -1,5 +1,5 @@
 import { ToInt } from "class-sanitizer";
-import { IsIn, IsNotEmpty, IsNumberString, IsOptional, IsString, IsUrl, MinLength } from "class-validator-custom-errors";
+import { IsIn, IsNotEmpty, IsNumberString, IsOptional, IsString, IsUrl, MinLength, ValidateIf } from "class-validator-custom-errors";
 
 export const NodeEnv = ['development', 'production', 'test'] as const;
 export const AppEnv = ['local', 'development', 'staging', 'production', 'test'] as const;
@@ -79,6 +79,37 @@ export class Env {
   @IsString()
   @IsNotEmpty()
   FACEBOOK_OAUTH_REDIRECT_URI!: string;
+
+  @IsString()
+  @IsIn(['aws', 'localfs'])
+  MEDIA_PROVIDER!: 'aws' | 'localfs';
+
+  @IsString()
+  @IsNotEmpty()
+  @ValidateIf((o) => o.MEDIA_PROVIDER === 'aws')
+  AWS_S3_ACCESS_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ValidateIf((o) => o.MEDIA_PROVIDER === 'aws')
+  AWS_S3_SECRET_KEY!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ValidateIf((o) => o.MEDIA_PROVIDER === 'aws')
+  AWS_S3_BUCKET_REGION!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ValidateIf((o) => o.MEDIA_PROVIDER === 'aws')
+  AWS_S3_PATH_TO_DIR!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ValidateIf((o) => o.MEDIA_PROVIDER === 'aws')
+  AWS_S3_BUCKET_NAME!: string;
+
+
 
   get ROOT() {
     return this.NODE_ENV === 'production' ? 'dist' : 'src';

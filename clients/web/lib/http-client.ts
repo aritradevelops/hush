@@ -2,7 +2,7 @@ import { constants } from '@/config/constants';
 import { Fields, Obj } from "@/hooks/use-form";
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema, ResetPasswordSchema } from "@/schemas/auth";
 import { ApiErrorResponse, ApiListResponse, ApiListResponseSuccess, ApiResponse, ListParams } from "@/types/api";
-import { ChannelOverview, Chat, Contact, DmDetails, GroupDetails, PrimaryColumns, PublicKey, SharedSecret, User, UserChatInteractionStatus } from "@/types/entities";
+import { ChannelOverview, Chat, ChatMedia, Contact, DmDetails, GroupDetails, PrimaryColumns, PublicKey, SharedSecret, User, UserChatInteractionStatus } from "@/types/entities";
 import { UUID } from "crypto";
 import qs from "qs";
 import { z } from 'zod';
@@ -17,6 +17,7 @@ const ApiModuleActionMap = {
   'group-members': [...ApiActions],
   'direct-messages': [...ApiActions],
   'public-keys': [...ApiActions],
+  'chat-media': [...ApiActions],
   secrets: [...ApiActions],
   auth: [...ApiActions, 'sign-in', 'sign-up', 'refresh', 'forgot-password', 'verify-email', 'reset-password']
 } as const
@@ -172,6 +173,11 @@ export class HttpClient {
     if ('errors' in result) throw new Error(result.message)
     return result
   }
+  async listMedias() {
+    const result = await this.list<ChatMedia>('chat-media')
+    if ('errors' in result) throw new Error(result.message)
+    return result
+  }
 
   async listContacts(query: ListParams = {}) {
     const result = await this.list<Contact & { user: User }>('contacts', query)
@@ -227,7 +233,7 @@ export class HttpClient {
     }
     const { result } = await this.fetch('chats', { action: 'groups', params: query })
     if ('errors' in result) throw new Error(result.message)
-    return result as ApiListResponseSuccess<Chat & { status: 'sent' | 'delivered' | 'seen' } & { reply: Chat | null }>
+    return result as ApiListResponseSuccess<Chat & { status: 'sent' | 'delivered' | 'seen' } & { reply: Chat | null } & { attachments?: ChatMedia[] }>
   }
 }
 

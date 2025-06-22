@@ -1,12 +1,15 @@
 'use client'
 import { EncryptedMessage } from "@/components/internal/encrypted-message";
+import { ShowAttachments } from "@/components/internal/show-attachements";
 import { useSocket } from "@/contexts/socket-context";
 import { useMe } from "@/contexts/user-context";
+import { Base64Utils } from "@/lib/base64";
 import httpClient from "@/lib/http-client";
+import keysManager from "@/lib/internal/keys-manager";
 import { formatTime } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { ApiListResponseSuccess } from "@/types/api";
-import { Chat, GroupDetails, UserChatInteraction, UserChatInteractionStatus } from "@/types/entities";
+import { Chat, ChatMedia, ChatMediaStatus, GroupDetails, UserChatInteraction, UserChatInteractionStatus } from "@/types/entities";
 import { SocketServerEmittedEvent } from "@/types/events";
 import { ReactQueryKeys } from "@/types/react-query";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -148,7 +151,7 @@ export function ChatMessage({
   message,
   group
 }: {
-  message: Chat & { ucis?: UserChatInteraction[] },
+  message: Chat & { ucis?: UserChatInteraction[] } & { attachments?: ChatMedia[] },
   group: GroupDetails
 }) {
   const { user } = useMe();
@@ -197,6 +200,7 @@ export function ChatMessage({
             {group.group_members.find(m => m.user_id === message.created_by)?.user.name}
           </span>
         )}
+        {(message.attachments && !!message.attachments.length) && <ShowAttachments attachments={message.attachments} />}
         <EncryptedMessage
           message={message.encrypted_message}
           iv={message.iv}
@@ -231,3 +235,5 @@ function ShowStatus({ ucis }: { ucis?: UserChatInteraction[] }) {
   if (ucis.every(uci => uci.status === UserChatInteractionStatus.DELIVERED || UserChatInteractionStatus.SEEN)) return <CheckCheck className="w-5 h-4" />
   return <Check className="w-5 h-4" />
 }
+
+

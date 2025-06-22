@@ -18,5 +18,12 @@ export const userPermissions: Record<string, SCOPES> = {
 
   'chats_dms': 'SELF',
   'chats_groups': 'SELF',
-  'secrets_channel': 'SELF'
+  'secrets_channel': 'SELF',
+
+  'chat-media_multipart-init': 'SELF',
+  'chat-media_list': 'SELF',
+  'chat-media_part-upload': 'SELF',
+  'chat-media_multipart-end': 'SELF',
+  'chat-media_upload': 'SELF',
+
 }

@@ -7960,6 +7960,8 @@ components:
         encrypted_message:
           type: string
         iv:
+          minLength: 16
+          maxLength: 16
           type: string
         replied_to:
           format: uuid
@@ -8136,21 +8138,33 @@ components:
         - channel_id
     ChatMedia:
       properties:
+        id:
+          format: uuid
+          type: string
         name:
           type: string
         chat_id:
           format: uuid
           type: string
-        cloud_storage_url:
-          format: url
+        channel_id:
+          format: uuid
           type: string
+        iv:
+          minLength: 24
+          maxLength: 24
+          type: string
+        file_size:
+          type: number
         mime_type:
           type: string
       type: object
       required:
+        - id
         - name
         - chat_id
-        - cloud_storage_url
+        - channel_id
+        - iv
+        - file_size
         - mime_type
     ChatReaction:
       properties:

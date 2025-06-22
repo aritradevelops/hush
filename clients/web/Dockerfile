@@ -28,6 +28,7 @@ RUN echo $NEXT_BUILD_ENVS | sed 's/ /\n/g' > .env
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+RUN npm run build:workers
 RUN npm run build
 
 # Production image, copy all the files and run next
