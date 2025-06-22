@@ -7,3 +7,5 @@ tsconfig.tsbuildinfo
 ormlogs.log
 private/*
 .env.prod
+uploads/*
+temp/*

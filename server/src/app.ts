@@ -10,6 +10,7 @@ import errorHandler from "./lib/error-handler";
 import { isAuthRequest } from "./middlewares/is-auth";
 import { Router } from "./utils/router";
 import translator from "./utils/translator";
+import path from "path";
 const app = express();
 const router = new Router();
 app.set('trust proxy', true)
@@ -28,6 +29,14 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: false }));
 app.use(express.raw({ limit: 10 * 1 << 20 }))
 app.use(cookieParser());
+if (env.get('APP_ENV') === 'local' && env.get('MEDIA_PROVIDER') === 'localfs') {
+  console.log('here')
+  app.use('/uploads', express.static(path.join(process.cwd(), '/uploads'), {
+    acceptRanges: true,
+    lastModified: true,
+  }))
+}
+
 app.use(morgan('combined'));
 app.get('/v1/ready', (_req, res) => { res.json({ message: 'OK' }); });
 app.get('/v1/health-check', async (_req, res) => { res.json({ db: await db.healthCheck() }); });
