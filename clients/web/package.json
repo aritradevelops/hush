@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"next dev --turbopack\" \"npm run watch:workers\"",
-    "build": "next build && npm run build:workers",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "build:workers": "tsc -p tsconfig.worker.json",
