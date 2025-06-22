@@ -31,7 +31,7 @@ export class ChatMediaController extends CrudController<typeof ChatMedia, ChatMe
 
   @PUT()
   async partUpload(req: Request, res: Response) {
-    const partUploadSchema = plainToInstance(PartUpload, req.headers)
+    const partUploadSchema = plainToInstance(PartUpload, req.query)
     await validateOrReject(partUploadSchema, {
       validationError: {
         transformFunction: (key: string) => req.t(`validation.${key}`)

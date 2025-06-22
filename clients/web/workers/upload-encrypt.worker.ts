@@ -45,16 +45,17 @@ self.onmessage = async (e: MessageEvent<UploadMessage>) => {
         const chunk = encrypted.slice(start, end)
 
         // console.log(`Part ${i + 1}: ${start}-${end - 1} (${chunk.byteLength} bytes)`)
-
+        const params = new URLSearchParams({
+          'path': multipartRes.data.path,
+          'multipart_id': multipartRes.data.multipart_id,
+          'part_number': String(i + 1)
+        })
         partPromises.push(
-          fetch(apiUrl + '/v1/chat-media/part-upload', {
+          fetch(apiUrl + '/v1/chat-media/part-upload?' + params.toString(), {
             method: 'PUT',
             body: chunk,
             headers: {
               'Content-Type': 'application/octet-stream',
-              'path': multipartRes.data.path,
-              'multipart_id': multipartRes.data.multipart_id,
-              'part_number': String(i + 1)
             },
             credentials: 'include'
           })
