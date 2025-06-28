@@ -48,6 +48,15 @@ export class SocketController {
       this.onChannelSeen(socket, data)
     })
 
+    // for testing p2p webrtc video calling (mesh architecture): start
+    socket.on("relay", (...args) => {
+      if (args[0] && typeof args[0] === 'object') {
+        args[0].from = socket.user.id
+      }
+      socket.broadcast.emit("relay", ...args)
+    })
+    // for testing p2p webrtc video calling (mesh architecture): end
+
     socket.on('disconnect', (r) => this.onDisconnect(r, socket))
   }
   @Bind
