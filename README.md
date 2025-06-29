@@ -31,7 +31,7 @@
 - **Online status** - See when contacts are active
 
 ### 🎯 **Coming Soon**
-- **Video conferencing** with scalable SFU architecture
+- **Video conferencing** with ~~scalable SFU architecture~~ p2p mesh architecture (until we get real crowd)
 - **Message reactions** and emoji responses
 - **Message replies** and threading
 - **Message deletion** and editing
@@ -55,7 +55,8 @@
 ### **Scalable Architecture**
 - **Horizontally Scalable**: Socket.io servers with Redis pub/sub for multi-instance support
 - **JWT + RBAC**: Role-based access control with secure token management
-- **SFU Video Architecture**: Selective Forwarding Unit for efficient video conferencing
+- **~~SFU Video Architecture~~**: ~~Selective Forwarding Unit for efficient video conferencing~~
+- **P2P Mesh Video Architecture**: Video conferencing with WebRTC and p2p mesh architecture
 - **Database Optimization**: Custom query generation and TypeORM for complex relationships
 
 ### **Developer Experience**
@@ -253,7 +254,7 @@ npm run start         # Start production server
 - **Real-time**: Socket.io with Redis pub/sub for horizontal scaling
 - **Authentication**: JWT with RBAC implementation
 - **File Storage**: Local filesystem / AWS S3 with multipart uploads
-- **Video Infrastructure**: SFU (Selective Forwarding Unit) architecture
+- **Video Infrastructure**: ~~SFU (Selective Forwarding Unit)~~ p2p mesh architecture
 
 ### Frontend
 - **Framework**: Next.js with TypeScript
@@ -289,7 +290,7 @@ npm run start         # Start production server
 - [ ] Push notifications
 
 ### Phase 3: Advanced Communication 🔮
-- [ ] Video conferencing with SFU
+- [ ] Video conferencing with ~~SFU~~ p2p mesh architecture
 - [ ] Voice messages
 - [ ] Screen sharing
 - [ ] File collaboration tools
