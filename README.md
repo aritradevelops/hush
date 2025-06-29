@@ -302,6 +302,9 @@ npm run start         # Start production server
 - [ ] API for third-party integrations
 
 ---
+## Some Thoughts
+1. As much as I want to implement SFU, but without the traffic server costing won't be worth it.
+Therefore it will be kept p2p Mesh Architecture until we get some crowd
 
 ## 🤝 Contributing
 
