@@ -7,6 +7,7 @@ import { ChatOptions } from '@/app/(chat-app)/chats/components/chat-options';
 import { ChatSearchBar } from '@/app/(chat-app)/chats/components/chat-search-bar';
 import { CreateGroupModal } from '@/app/(chat-app)/chats/components/create-group-modal';
 import { EncryptionKeyModal } from '@/app/(chat-app)/chats/components/encryption-key-modal';
+import Conference from '@/app/(chat-app)/chats/components/conference';
 import { useChannels } from '@/hooks/use-channels';
 import { UUID } from 'crypto';
 import { useParams } from 'next/navigation';
@@ -18,6 +19,7 @@ import { useMe } from '@/contexts/user-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { ReactQueryKeys } from '@/types/react-query';
 import { ApiListResponseSuccess } from '@/types/api';
+import { useCall } from '@/hooks/use-call';
 
 export default function ChatsLayout({
   children,
@@ -34,6 +36,7 @@ export default function ChatsLayout({
   const pinnedChats = channels?.filter(c => c.has_pinned);
   const { socket } = useSocket()
   const { user } = useMe()
+  const { isCalling } = useCall()
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -187,7 +190,7 @@ export default function ChatsLayout({
 
   return (
     <div className="flex-1 flex">
-      <div className="w-[400px] border-r flex flex-col h-full">
+      {!isCalling && (<div className="w-[400px] border-r flex flex-col h-full">
         <div className="p-4">
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
@@ -236,7 +239,8 @@ export default function ChatsLayout({
             )}
           </div>
         </div>
-      </div>
+      </div>)}
+      {isCalling && <Conference />}
       {children}
       <AddContactModal
         isOpen={activeModal === 'add-contact'}

@@ -1,4 +1,6 @@
+import { Button } from "@/components/ui/button";
 import { useSocket } from "@/contexts/socket-context";
+import { useCall } from "@/hooks/use-call";
 import { DirectMessage, Contact, User, DmDetails } from "@/types/entities";
 import { ReactQueryKeys } from "@/types/react-query";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
@@ -7,6 +9,7 @@ import { UserX, UserPlus } from "lucide-react";
 
 export function ChatHeader({ dm }: { dm?: DmDetails }) {
   const { addContact } = useSocket()
+  const { startCall } = useCall()
   const queryClient = useQueryClient()
 
   if (!dm) return <ChatHeaderSkeleton />
@@ -28,8 +31,8 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
           alt={dm.chat_user.name}
           className="w-12 h-12 rounded-full"
         />
-        <div>
-          <div className="flex justify-center gap-2 items-center">
+        <div className="flex-1">
+          <div className="flex justify-self-start gap-2 items-center">
             <h2 className="text-lg font-semibold">{dm.contact?.nickname || dm.chat_user.name}</h2>
             <div className="flex gap-2">
               {!dm.contact && (
@@ -69,6 +72,9 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
           <p className="text-sm text-muted-foreground">
             Private Chat
           </p>
+        </div>
+        <div className="justify-self-end">
+          <Button onClick={() => startCall(dm.id)}> Start Call</Button>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Menu from "./menu";
 import { useState, useEffect, useContext } from "react";
 import { Loader2 } from "lucide-react";
+import { CallContextProvider } from "@/hooks/use-call";
 
 // Create a stable QueryClient instance
 const queryClient = new QueryClient({
@@ -64,9 +65,11 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         <UserContextProvider>
           <UserDataLoader>
             <SocketProvider>
-              <div className="w-full flex-1 flex">
-                {children}
-              </div>
+              <CallContextProvider>
+                <div className="w-full flex-1 flex">
+                  {children}
+                </div>
+              </CallContextProvider>
             </SocketProvider>
           </UserDataLoader>
         </UserContextProvider>
