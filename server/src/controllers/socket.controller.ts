@@ -15,6 +15,8 @@ import userRepository from "../repositories/user.repository";
 import type { AuthenticatedSocket } from "../socket-io";
 import logger from "../utils/logger";
 import ChatMedia from "../entities/chat-media";
+import Call from "../entities/call";
+import callRepository from "../repositories/call.repository";
 
 // TODO: figure out a way to validate client sent data
 export class SocketController {
@@ -47,6 +49,28 @@ export class SocketController {
     socket.on(SocketClientEmittedEvents.CHANNEL_SEEN, (data) => {
       this.onChannelSeen(socket, data)
     })
+    socket.on(SocketClientEmittedEvents.CALL_STARTED, async (data, cb?: (call: Call) => void) => {
+      const result = await callRepository.create({ ...data, created_by: socket.user.id })
+      console.log('call', result.raw[0])
+      cb?.(result.raw[0])
+      this.broadcastToMembers(socket, result.raw[0], SocketClientEmittedEvents.CALL_STARTED)
+    })
+    socket.on(SocketClientEmittedEvents.CALL_JOINED, (data) => {
+      this.broadcastToMembers(socket, data, SocketClientEmittedEvents.CALL_JOINED)
+    })
+    socket.on(SocketClientEmittedEvents.RTC_OFFER, (data) => {
+      this.broadcastToMembers(socket, data, SocketClientEmittedEvents.RTC_OFFER)
+    })
+    socket.on(SocketClientEmittedEvents.RTC_ICE_CANDIDATE, (data) => {
+      this.broadcastToMembers(socket, data, SocketClientEmittedEvents.RTC_ICE_CANDIDATE)
+    })
+    socket.on(SocketClientEmittedEvents.RTC_ANSWER, (data) => {
+      this.broadcastToMembers(socket, data, SocketClientEmittedEvents.RTC_ANSWER)
+    })
+
+
+
+
 
     // for testing p2p webrtc video calling (mesh architecture): start
     socket.on("relay", (...args) => {
@@ -210,6 +234,16 @@ export class SocketController {
     }
   }
 
+  @Bind
+  private async broadcastToMembers(socket: AuthenticatedSocket, data: { channel_id: UUID }, event: string) {
+    logger.info(`New ${event} has been received from ${socket.user.id}`)
+    const members = await channelParticipantRepository.getByChannelId(data.channel_id)
+    members.forEach(m => {
+      if (m.user_id === socket.user.id) return
+      this.activeConnections.get(m.user_id)?.emit(event, { ...data, from: socket.user.id })
+    })
+  }
+
 }
 
 export default new SocketController();
@@ -250,6 +284,16 @@ export enum SocketClientEmittedEvents {
   // Typing Events
   TYPING_START = 'typing:start',
   TYPING_STOP = 'typing:stop',
+
+
+  // Call Events
+  CALL_STARTED = 'call:started',
+  CALL_JOINED = 'call:joined',
+
+  // RTC Events
+  RTC_ICE_CANDIDATE = 'rtc:icecandidate',
+  RTC_OFFER = 'rtc:offer',
+  RTC_ANSWER = 'rtc:answer'
 }
 export enum SocketServerEmittedEvents {
   MESSAGE_RECEIVED = 'message:received',
@@ -258,4 +302,14 @@ export enum SocketServerEmittedEvents {
   // Typing Events
   TYPING_START = 'typing:start',
   TYPING_STOP = 'typing:stop',
+
+
+  // Call Events
+  CALL_STARTED = 'call:started',
+  CALL_JOINED = 'call:joined',
+
+  // RTC Events
+  RTC_ICE_CANDIDATE = 'rtc:icecandidate',
+  RTC_OFFER = 'rtc:offer',
+  RTC_ANSWER = 'rtc:answer'
 }

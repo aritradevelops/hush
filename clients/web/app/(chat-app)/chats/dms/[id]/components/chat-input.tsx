@@ -63,7 +63,7 @@ export function ChatInput({ dm, files, discardFiles }: { dm?: DmDetails, files: 
       }
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, dm.id],
         (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteractionStatus[] }>[], pageParams: number[] }) => {
-          console.log('chat', chat)
+          // console.log('chat', chat)
           return {
             pages: [{ ...oldData.pages[0], data: [chat, ...oldData.pages[0].data] }],
             pageParams: oldData.pageParams

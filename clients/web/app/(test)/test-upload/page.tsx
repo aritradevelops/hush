@@ -24,7 +24,7 @@ export default function Page() {
   const handleUpload = async () => {
     const fileInput = fileInputRef.current
     if (!fileInput?.files || fileInput.files.length === 0) {
-      console.log('No file selected')
+      // console.log('No file selected')
       return
     }
 

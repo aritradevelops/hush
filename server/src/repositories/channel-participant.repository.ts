@@ -9,6 +9,7 @@ export class ChannelParticipantRepository extends Repository<typeof ChannelParti
     super(ChannelParticipant);
   }
 
+  //TODO: this method should be cached
   async getByChannelId(channelId: UUID) {
     return await this.entity.find({
       where: { channel_id: channelId, deleted_at: IsNull() },

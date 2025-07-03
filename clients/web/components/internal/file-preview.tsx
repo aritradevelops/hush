@@ -106,7 +106,7 @@ export function FilesPreview({ files, discardFiles }: {
 
   const handleRemoveFile = (indexToRemove: number) => {
     // This function would need to communicate with the parent component
-    console.log('Remove file at index:', indexToRemove);
+    // console.log('Remove file at index:', indexToRemove);
   };
 
   const getFilePreview = (file: File) => {

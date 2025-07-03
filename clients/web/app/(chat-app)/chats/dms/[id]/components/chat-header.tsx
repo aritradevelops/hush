@@ -21,7 +21,7 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
 
   const handleBlockUser = () => {
     // Block user functionality
-    console.log('Block user:', dm.chat_user.id)
+    // console.log('Block user:', dm.chat_user.id)
   }
   return (
     <div className="border-b p-4">
@@ -74,7 +74,7 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
           </p>
         </div>
         <div className="justify-self-end">
-          <Button onClick={() => startCall(dm.id)}> Start Call</Button>
+          <Button onClick={() => startCall(dm.id, 'dm')}> Start Call</Button>
         </div>
       </div>
     </div>

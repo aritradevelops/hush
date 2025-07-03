@@ -20,6 +20,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ReactQueryKeys } from '@/types/react-query';
 import { ApiListResponseSuccess } from '@/types/api';
 import { useCall } from '@/hooks/use-call';
+import { IncomingCallModal } from './components/show-incoming-call-modal';
 
 export default function ChatsLayout({
   children,
@@ -36,14 +37,14 @@ export default function ChatsLayout({
   const pinnedChats = channels?.filter(c => c.has_pinned);
   const { socket } = useSocket()
   const { user } = useMe()
-  const { isCalling } = useCall()
+  const { callStatus, showIncomingCallModal } = useCall()
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!socket) return
 
     socket.emit(SocketClientEmittedEvent.CHANNEL_SEEN, { channel_id: activeChatId })
-    console.log('emitting channel seen', activeChatId)
+    // console.log('emitting channel seen', activeChatId)
     function updateMessageStatus(message: Chat, ucis?: UserChatInteraction[]) {
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
         (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteraction[] }>[], pageParams: number[] }) => {
@@ -86,7 +87,7 @@ export default function ChatsLayout({
     }
 
     function onMessage(message: Chat & { ucis: UserChatInteraction[] }, cb: ({ status, event }: { status: UserChatInteractionStatus, event: string }) => void) {
-      console.log('new message received', message, message.channel_id, activeChatId)
+      // console.log('new message received', message, message.channel_id, activeChatId)
       // if the message was sent by me then mark it as sent
       if (message.created_by === user.id && message.channel_id === activeChatId) {
         updateMessageStatus(message, message.ucis)
@@ -94,12 +95,12 @@ export default function ChatsLayout({
       else {
         // if the message was not part of active chat then mark it as delivered
         if (message.channel_id !== activeChatId) {
-          console.log('emitting delivered')
+          // console.log('emitting delivered')
           cb({ status: UserChatInteractionStatus.DELIVERED, event: 'delivered' })
           // increase the unread count of the channel
           queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] })
         } else {
-          console.log('emitting seen', UserChatInteractionStatus.SEEN)
+          // console.log('emitting seen', UserChatInteractionStatus.SEEN)
           cb({ status: UserChatInteractionStatus.SEEN, event: 'seen' })
           // append the message to the body and mark it as seen
           queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
@@ -131,7 +132,7 @@ export default function ChatsLayout({
               foundMessageIndex = msgIndex;
             }
           });
-          console.log(`found message index ${foundPageIndex} : ${foundMessageIndex}`)
+          // console.log(`found message index ${foundPageIndex} : ${foundMessageIndex}`)
           // If message not found in any page, return unchanged
           if (foundPageIndex === -1) return oldData;
 
@@ -144,7 +145,7 @@ export default function ChatsLayout({
               ...updatedMessages[foundMessageIndex],
               ucis: updatedMessages[foundMessageIndex].ucis?.map(uci => {
                 if (uci.created_by === message.updated_by || uci.updated_by === message.updated_by) {
-                  console.log('updating uci', typeof status)
+                  // console.log('updating uci', typeof status)
                   return {
                     ...uci,
                     status: status,
@@ -168,12 +169,12 @@ export default function ChatsLayout({
       );
     }
     function onMessageDelivered(message: UserChatInteraction & { chat_id: UUID }) {
-      console.log('message delivered', message)
+      // console.log('message delivered', message)
       if (message.channel_id !== activeChatId) return
       updateSpecificMessageStatus(message, UserChatInteractionStatus.DELIVERED)
     }
     function onMessageSeen(message: UserChatInteraction & { chat_id: UUID }) {
-      console.log('message seen', message)
+      // console.log('message seen', message)
       if (message.channel_id !== activeChatId) return
       updateSpecificMessageStatus(message, UserChatInteractionStatus.SEEN)
     }
@@ -190,7 +191,8 @@ export default function ChatsLayout({
 
   return (
     <div className="flex-1 flex">
-      {!isCalling && (<div className="w-[400px] border-r flex flex-col h-full">
+      {callStatus === 'ringing' && showIncomingCallModal && <IncomingCallModal />}
+      {(callStatus === 'none' || callStatus === 'ringing') && (<div className="w-[400px] border-r flex flex-col h-full">
         <div className="p-4">
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
@@ -240,7 +242,7 @@ export default function ChatsLayout({
           </div>
         </div>
       </div>)}
-      {isCalling && <Conference />}
+      {callStatus === 'ongoing' && <Conference />}
       {children}
       <AddContactModal
         isOpen={activeModal === 'add-contact'}
