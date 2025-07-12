@@ -1,7 +1,8 @@
 'use client'
 import { RTC_CONFIG } from "@/config/webrtc";
 import { useSocket } from "@/contexts/socket-context";
-// import { Peer } from "@/lib/internal/peer";
+import { Peer } from "@/lib/internal/webrtc/peer";
+import { PeerManager } from "@/lib/internal/webrtc/peer-manager";
 import { Call } from "@/types/entities";
 import { SocketClientEmittedEvent, SocketServerEmittedEvent } from "@/types/events";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
@@ -24,33 +25,6 @@ export interface CallContextInterface {
   closeIncomingCallModal: () => void
 }
 
-export class Peer extends RTCPeerConnection {
-  remoteUserMedia = new MediaStream()
-  isVideoOn = true
-  isAudioOn = true
-  constructor(public id: string, public socket: Socket, public localUserMedia: MediaStream) {
-    super(RTC_CONFIG)
-    // listen for peer events
-    this.onicecandidate = (e) => {
-      if (e.candidate) {
-        this.socket.emit(SocketClientEmittedEvent.RTC_ICE_CANDIDATE, { candidate: e.candidate })
-      }
-    }
-    this.oniceconnectionstatechange = (e) => {
-      console.log('Ice candidate state change')
-    }
-    this.ontrack = (e) => {
-      for (const track of e.streams[0].getTracks()) {
-        console.log(`[WebRTC:${this.id}] Track kind=${track.kind} enabled=${track.enabled} state=${track.readyState}`)
-      }
-      this.remoteUserMedia.addTrack(e.track)
-    }
-    localUserMedia.getTracks().forEach(t => {
-      console.log(`[WebRTC:${this.id}] Adding local track kind=${t.kind} enabled=${t.enabled}`)
-      this.addTrack(t, localUserMedia)
-    })
-  }
-}
 
 const CallContext = createContext<CallContextInterface | undefined>(undefined)
 
@@ -65,150 +39,116 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
   const peersRef = useRef(new Map<string, Peer>())
   const [peers, setPeers] = useState<Peer[]>([])
   const { socket } = useSocket()
-  // console.log('inside use call hook')
-  // TODO: store and fetch from server
   const userCallSettings = { audio: true, video: false }
+  const peerManagerRef = useRef<PeerManager | null>(null)
+
+  useEffect(() => {
+    if (socket && userMedia && !peerManagerRef.current) {
+      peerManagerRef.current = new PeerManager(socket, userMedia)
+    }
+  }, [socket, userMedia])
+  const createPeer = (id: string): Peer | null => {
+    if (!userMedia || !socket) return null
+    const peer = new Peer(id, socket, userMedia)
+    peersRef.current.set(id, peer)
+    setPeers((prev) => [...prev, peer])
+    return peer
+  }
+
   const startCall = async (channelId: string, channelType: 'dm' | 'group') => {
     try {
       if (!socket) return
-      console.log('WebRTC: Attempting to start call...')
-      // const stream = new MediaStream()
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-      if (!userCallSettings.audio) stream.getAudioTracks().forEach(t => t.enabled = false)
-      if (!userCallSettings.video) stream.getVideoTracks().forEach(t => t.enabled = false)
+      stream.getAudioTracks().forEach(t => (t.enabled = userCallSettings.audio))
+      stream.getVideoTracks().forEach(t => (t.enabled = userCallSettings.video))
 
       setIsAudioOn(userCallSettings.audio)
       setIsVideoOn(userCallSettings.video)
       setUserMedia(stream)
 
-      socket.emit(SocketClientEmittedEvent.CALL_STARTED,
-        { channel_id: channelId, channel_type: channelType },
-        (data: Call) => {
-          console.log('WebRTC: Call started successfully')
-          setCall(data)
-          setCallStatus('ongoing')
-        })
-    } catch (error) {
-      console.error('WebRTC: Failed to start call', error)
-      setCallError(String(error))
+      socket.emit(SocketClientEmittedEvent.CALL_STARTED, { channel_id: channelId, channel_type: channelType }, (data: Call) => {
+        setCall(data)
+        setCallStatus('ongoing')
+      })
+    } catch (err) {
+      setCallError(String(err))
     }
   }
-
-
 
   const joinCall = async () => {
     try {
       if (!socket) return
-      console.log('WebRTC: Attempting to join call...')
-      // const stream = new MediaStream()
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-      if (!userCallSettings.audio) stream.getAudioTracks().forEach(t => t.enabled = false)
-      if (!userCallSettings.video) stream.getVideoTracks().forEach(t => t.enabled = false)
+      stream.getAudioTracks().forEach(t => (t.enabled = userCallSettings.audio))
+      stream.getVideoTracks().forEach(t => (t.enabled = userCallSettings.video))
 
       setIsAudioOn(userCallSettings.audio)
       setIsVideoOn(userCallSettings.video)
       setUserMedia(stream)
-
       socket.emit(SocketClientEmittedEvent.CALL_JOINED, call)
       setCallStatus('ongoing')
-      console.log('WebRTC: Joined call and notified peers')
-    } catch (error) {
-      console.error('WebRTC: Failed to join call', error)
-      setCallError(String(error))
+    } catch (err) {
+      setCallError(String(err))
     }
   }
 
   const toggleMic = () => {
-    if (!userMedia) return
-    userMedia.getAudioTracks().forEach(t => t.enabled = !t.enabled)
-    setIsAudioOn(p => !p)
+    userMedia?.getAudioTracks().forEach(t => (t.enabled = !t.enabled))
+    setIsAudioOn(prev => !prev)
   }
+
   const toggleCamera = () => {
-    if (!userMedia) return
-    userMedia.getVideoTracks().forEach(t => t.enabled = !t.enabled)
-    setIsVideoOn(p => !p)
+    userMedia?.getVideoTracks().forEach(t => (t.enabled = !t.enabled))
+    setIsVideoOn(prev => !prev)
   }
 
-  const closeIncomingCallModal = () => {
-    setShowIncomingCallModal(false)
-  }
+  const closeIncomingCallModal = () => setShowIncomingCallModal(false)
 
-  // an use effect to sync peers with ref
   useEffect(() => {
-    for (const p of peers) {
-      peersRef.current.set(p.id, p)
-    }
+    peers.forEach(p => peersRef.current.set(p.id, p))
   }, [peers])
-
 
   useEffect(() => {
     if (!socket) return
-    console.log('inside use effect')
-    // listen for call events and react
-    const onCallStarted = async (data: Call & { from: string }) => {
-      console.log('WebRTC: Incoming call from', data.from)
-      try {
-        setCall(data)
-        setCallStatus('ringing')
-        setShowIncomingCallModal(true)
-      } catch (error) {
-        console.error('WebRTC: Error handling CALL_STARTED', error)
-        setCallError(String(error))
-      }
+
+    const onCallStarted = (data: Call & { from: string }) => {
+      setCall(data)
+      setCallStatus('ringing')
+      setShowIncomingCallModal(true)
     }
 
-    const onCallJoined = async (data: { channel_id: string, from: string }) => {
-      console.log('WebRTC: Peer joined call:', data.from)
-
-      if (peersRef.current.has(data.from) || !userMedia) {
-        console.log('WebRTC: Skipping peer, already exists or no media')
-        return
-      }
-
-      const peer = new Peer(data.from, socket, userMedia)
-      setPeers(p => [...p, peer])
-      console.log('WebRTC: Added peer and created connection', data.from)
-
+    const onCallJoined = async ({ from }: { channel_id: string; from: string }) => {
+      if (peersRef.current.has(from) || !userMedia) return
+      const peer = createPeer(from)
+      if (!peer) return
       const offer = await peer.createOffer()
+      console.log('creating offer')
       await peer.setLocalDescription(offer)
-      console.log('WebRTC: Sending RTC_OFFER to peer', data.from)
-      socket.emit(SocketClientEmittedEvent.RTC_OFFER, { offer })
+      socket.emit(SocketClientEmittedEvent.RTC_OFFER, { offer, to: from })
     }
 
-    const onOffer = async (data: { offer: RTCSessionDescription, from: string }) => {
-      console.log('WebRTC: Received RTC_OFFER from', data.from)
+    const onOffer = async ({ offer, from }: { offer: RTCSessionDescriptionInit; from: string }) => {
       if (!userMedia) return
-      let peer = peersRef.current.get(data.from)
-      if (!peer) {
-        console.log('WebRTC: Creating peer for offer from', data.from)
-        peer = new Peer(data.from, socket, userMedia)
-        setPeers(p => [...p, peer!])
-      }
-      if (peer.remoteDescription) return
-      await peer.setRemoteDescription(data.offer)
-      console.log('WebRTC: Set remote description')
-
+      let peer = peersRef.current.get(from) || createPeer(from)
+      if (!peer || peer.signalingState !== 'stable') return
+      await peer.setRemoteDescription(offer)
       const answer = await peer.createAnswer()
+      console.log('creating answer')
       await peer.setLocalDescription(answer)
-      console.log('WebRTC: Sending RTC_ANSWER to', data.from)
-      socket.emit(SocketClientEmittedEvent.RTC_ANSWER, { answer })
+      socket.emit(SocketClientEmittedEvent.RTC_ANSWER, { answer, to: from })
     }
 
-    const onAnswer = async (data: { answer: RTCSessionDescription, from: string }) => {
-      console.log('WebRTC: Received RTC_ANSWER from', data.from)
-      if (!userMedia) return
-      const peer = peersRef.current.get(data.from)
-      if (!peer) return
-      await peer.setRemoteDescription(data.answer)
-      console.log('WebRTC: Set remote description for answer')
+    const onAnswer = async ({ answer, from }: { answer: RTCSessionDescriptionInit; from: string }) => {
+      const peer = peersRef.current.get(from)
+      if (!peer || peer.signalingState !== 'have-local-offer') return
+      console.log('setting local description')
+      await peer.setRemoteDescription(answer)
     }
 
-    const onIceCandidate = (data: { candidate: RTCIceCandidate, from: string }) => {
-      console.log('WebRTC: Received ICE candidate from', data.from)
-      const peer = peersRef.current.get(data.from)
-      if (!peer) return
-      peer.addIceCandidate(data.candidate)
-      console.log('WebRTC: Added ICE candidate to peer')
+    const onIceCandidate = ({ candidate, from }: { candidate: RTCIceCandidate; from: string }) => {
+      const peer = peersRef.current.get(from)
+      console.log('received ice candidate')
+      if (peer) peer.addIceCandidate(candidate)
     }
 
     socket.on(SocketServerEmittedEvent.CALL_STARTED, onCallStarted)
@@ -216,27 +156,40 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
     socket.on(SocketServerEmittedEvent.RTC_OFFER, onOffer)
     socket.on(SocketServerEmittedEvent.RTC_ANSWER, onAnswer)
     socket.on(SocketServerEmittedEvent.RTC_ICE_CANDIDATE, onIceCandidate)
+
     return () => {
-      console.log('cleaning up listeners')
       socket.off(SocketServerEmittedEvent.CALL_STARTED, onCallStarted)
       socket.off(SocketServerEmittedEvent.CALL_JOINED, onCallJoined)
       socket.off(SocketServerEmittedEvent.RTC_OFFER, onOffer)
       socket.off(SocketServerEmittedEvent.RTC_ANSWER, onAnswer)
       socket.off(SocketServerEmittedEvent.RTC_ICE_CANDIDATE, onIceCandidate)
     }
-  }, [socket, userMedia, peers])
+  }, [socket, userMedia])
 
-  return <CallContext.Provider value={{
-    callStatus, callError, call, isAudioOn, isVideoOn, startCall,
-    userMedia, peers, toggleCamera, toggleMic, joinCall, closeIncomingCallModal,
-    showIncomingCallModal
-  }}>
-    {children}
-  </CallContext.Provider>
+  return (
+    <CallContext.Provider
+      value={{
+        callStatus,
+        callError,
+        call,
+        isAudioOn,
+        isVideoOn,
+        startCall,
+        userMedia,
+        peers,
+        toggleCamera,
+        toggleMic,
+        joinCall,
+        closeIncomingCallModal,
+        showIncomingCallModal
+      }}>
+      {children}
+    </CallContext.Provider>
+  )
 }
 
 export const useCall = () => {
-  const values = useContext(CallContext)
-  if (!values) throw new Error('`useCall` must be used within `CallContextProvider`')
-  return values
+  const ctx = useContext(CallContext)
+  if (!ctx) throw new Error('`useCall` must be used within `CallContextProvider`')
+  return ctx
 }

@@ -2,7 +2,7 @@
 import { useMe } from "@/contexts/user-context"
 import { useCall } from "@/hooks/use-call"
 import httpClient from "@/lib/http-client"
-import { Peer } from "@/lib/internal/peer"
+import { Peer } from "@/lib/internal/webrtc/peer"
 import { cn } from "@/lib/utils"
 import { User } from "@/types/entities"
 import { Camera, CameraOff, Mic, MicOff } from "lucide-react"
@@ -81,10 +81,10 @@ function PeerMedia({ peer }: { peer: Peer }) {
     })
   }, [])
 
-  if (!peer.remoteUserMedia || !user) return <div className="h-full aspect-video border border-white rounded-md relative">{user?.email} connecting...</div>
+  if (!peer.remoteUserMedia || !user) return <div className="w-full max-w-full max-h-fit aspect-video border border-white rounded-md relative">{user?.email} connecting...</div>
   console.log(peer.remoteUserMedia, peer.isVideoOn)
   peer.remoteUserMedia.getTracks().forEach(t => console.log(t.enabled))
-  return <div className="h-full aspect-video border border-white rounded-md relative">
+  return <div className="w-full max-w-full max-h-fit aspect-video border border-white rounded-md relative">
     {
       !peer.isVideoOn ? (<div className="flex h-full w-full justify-center items-center">
         <img

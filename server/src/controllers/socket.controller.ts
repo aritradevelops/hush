@@ -108,6 +108,11 @@ export class SocketController {
           })
       }
     }
+    // if there's any active call notify the user
+    const calls = await callRepository.getActiveCalls(socket.user.id)
+    if (calls.length) {
+      socket.emit(SocketServerEmittedEvents.CALL_RUNNING, { calls: calls })
+    }
   }
   @Bind
   private onDisconnect(reason: string, socket: AuthenticatedSocket) {
@@ -307,6 +312,7 @@ export enum SocketServerEmittedEvents {
   // Call Events
   CALL_STARTED = 'call:started',
   CALL_JOINED = 'call:joined',
+  CALL_RUNNING = 'call:running',
 
   // RTC Events
   RTC_ICE_CANDIDATE = 'rtc:icecandidate',
