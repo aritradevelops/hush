@@ -14,7 +14,7 @@ export default function Conference() {
 
   const calculateGridCols = () => {
     if (peers.length === 0) return "grid-cols-1"
-    if (peers.length === 1) return "grid-cols-2"
+    if (peers.length === 1) return "grid-cols-1"
     if (peers.length === 2) return "grid-cols-2"
     if (peers.length === 3) return "grid-cols-2"
     if (peers.length >= 4) return "grid-cols-3"

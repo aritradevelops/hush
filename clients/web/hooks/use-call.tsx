@@ -1,12 +1,14 @@
 'use client'
-import { RTC_CONFIG } from "@/config/webrtc";
 import { useSocket } from "@/contexts/socket-context";
+import { useMe } from "@/contexts/user-context";
+import { Base64Utils } from "@/lib/base64";
+import keysManager from "@/lib/internal/keys-manager";
 import { Peer } from "@/lib/internal/webrtc/peer";
 import { PeerManager } from "@/lib/internal/webrtc/peer-manager";
 import { Call } from "@/types/entities";
 import { SocketClientEmittedEvent, SocketServerEmittedEvent } from "@/types/events";
+import { UUID } from "crypto";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { Socket } from "socket.io-client";
 
 export type CallStatus = 'none' | 'ringing' | 'ongoing'
 export interface CallContextInterface {
@@ -30,6 +32,7 @@ const CallContext = createContext<CallContextInterface | undefined>(undefined)
 
 export const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [call, setCall] = useState<Call | null>(null)
+  const channelIdRef = useRef<UUID | null>(null)
   const [callStatus, setCallStatus] = useState<CallStatus>('none')
   const [userMedia, setUserMedia] = useState<MediaStream | null>(null)
   const [callError, setCallError] = useState<string | null>(null)
@@ -41,15 +44,18 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
   const { socket } = useSocket()
   const userCallSettings = { audio: true, video: false }
   const peerManagerRef = useRef<PeerManager | null>(null)
-
+  const { user } = useMe()
+  const counter = "ydBoaNtNQO4Mkuby5Q702Q=="
   useEffect(() => {
     if (socket && userMedia && !peerManagerRef.current) {
       peerManagerRef.current = new PeerManager(socket, userMedia)
     }
   }, [socket, userMedia])
-  const createPeer = (id: string): Peer | null => {
+  const createPeer = async (id: string) => {
     if (!userMedia || !socket) return null
-    const peer = new Peer(id, socket, userMedia)
+    if (!channelIdRef.current) return
+    const sharedSecret = await keysManager.getSharedSecret(channelIdRef.current, user.email)
+    const peer = new Peer(id, socket, userMedia, Base64Utils.encode(sharedSecret), counter)
     peersRef.current.set(id, peer)
     setPeers((prev) => [...prev, peer])
     return peer
@@ -58,6 +64,7 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
   const startCall = async (channelId: string, channelType: 'dm' | 'group') => {
     try {
       if (!socket) return
+      channelIdRef.current = channelId as UUID
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
       stream.getAudioTracks().forEach(t => (t.enabled = userCallSettings.audio))
       stream.getVideoTracks().forEach(t => (t.enabled = userCallSettings.video))
@@ -117,9 +124,10 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
       setShowIncomingCallModal(true)
     }
 
-    const onCallJoined = async ({ from }: { channel_id: string; from: string }) => {
+    const onCallJoined = async ({ from, channel_id }: { channel_id: string; from: string }) => {
       if (peersRef.current.has(from) || !userMedia) return
-      const peer = createPeer(from)
+      channelIdRef.current = channel_id as UUID
+      const peer = await createPeer(from)
       if (!peer) return
       const offer = await peer.createOffer()
       console.log('creating offer')
@@ -129,7 +137,7 @@ export const CallContextProvider = ({ children }: { children: React.ReactNode })
 
     const onOffer = async ({ offer, from }: { offer: RTCSessionDescriptionInit; from: string }) => {
       if (!userMedia) return
-      let peer = peersRef.current.get(from) || createPeer(from)
+      let peer = peersRef.current.get(from) || await createPeer(from)
       if (!peer || peer.signalingState !== 'stable') return
       await peer.setRemoteDescription(offer)
       const answer = await peer.createAnswer()
