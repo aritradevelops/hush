@@ -1,14 +1,18 @@
+import { Button } from "@/components/ui/button";
 import { useSocket } from "@/contexts/socket-context";
-import { DirectMessage, Contact, User, DmDetails } from "@/types/entities";
+import { Base64Utils } from "@/lib/base64";
+import { DirectMessage, Contact, User, DmDetails, Call } from "@/types/entities";
+import { SocketClientEmittedEvent } from "@/types/events";
 import { ReactQueryKeys } from "@/types/react-query";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserX, UserPlus } from "lucide-react";
+import { useState } from "react";
 
 export function ChatHeader({ dm }: { dm?: DmDetails }) {
-  const { addContact } = useSocket()
+  const { addContact, socket } = useSocket()
   const queryClient = useQueryClient()
-
+  const [callStatus, setCallStatus] = useState<'Start Call' | 'Starting...' | 'Join' | 'Failed'>('Start Call')
   if (!dm) return <ChatHeaderSkeleton />
   const handleAddContact = () => {
     addContact(dm.chat_user.id, () => {
@@ -69,6 +73,25 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
           <p className="text-sm text-muted-foreground">
             Private Chat
           </p>
+        </div>
+        <div className="ml-auto">
+          <Button
+            onClick={() => {
+              if (!socket) return
+              setCallStatus('Starting...')
+              socket.emit(SocketClientEmittedEvent.CALL_START, { channel_id: dm.id, channel_type: 'dm', iv: Base64Utils.encode(crypto.getRandomValues(new Uint8Array(16))) }, (call: Call | string) => {
+                if (typeof call === 'string') {
+                  setCallStatus('Failed')
+                } else {
+                  setCallStatus('Join')
+                  window.open(`/calls/${call.id}`, '_blank') // ← opens in new tab
+                }
+              })
+            }}
+          >
+            {callStatus}
+          </Button>
+
         </div>
       </div>
     </div>

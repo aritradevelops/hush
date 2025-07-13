@@ -26,4 +26,5 @@ export const userPermissions: Record<string, SCOPES> = {
   'chat-media_multipart-end': 'SELF',
   'chat-media_upload': 'SELF',
 
+  'calls_view': 'ALL'
 }

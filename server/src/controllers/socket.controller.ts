@@ -1,6 +1,6 @@
 import { UUID } from "crypto";
 import { Server } from "socket.io";
-import { In } from "typeorm";
+import { Auth, In, IsNull, LessThan } from "typeorm";
 import { v4 } from "uuid";
 import Bind from "../decorators/bind";
 import Channel, { ChannelType } from "../entities/channel";
@@ -15,6 +15,9 @@ import userRepository from "../repositories/user.repository";
 import type { AuthenticatedSocket } from "../socket-io";
 import logger from "../utils/logger";
 import ChatMedia from "../entities/chat-media";
+import Call from "../entities/call";
+import callRepository from "../repositories/call.repository";
+import { log } from "console";
 
 // TODO: figure out a way to validate client sent data
 export class SocketController {
@@ -46,6 +49,20 @@ export class SocketController {
     })
     socket.on(SocketClientEmittedEvents.CHANNEL_SEEN, (data) => {
       this.onChannelSeen(socket, data)
+    })
+
+    socket.on(SocketClientEmittedEvents.CALL_JOIN, (data) => {
+      this.onCallJoin(socket, data)
+    })
+    socket.on(SocketClientEmittedEvents.CALL_START, (data, callback) => {
+      this.onCallStart(socket, data, callback)
+    })
+
+    socket.on(SocketClientEmittedEvents.RTC_SESSCION_DESCRIPTION, (data) => {
+      this.onRTCSessionDescription(socket, data)
+    })
+    socket.on(SocketClientEmittedEvents.RTC_ICE_CANDIDATE, (data) => {
+      this.onRTCICECandidate(socket, data)
     })
 
     socket.on('disconnect', (r) => this.onDisconnect(r, socket))
@@ -201,6 +218,71 @@ export class SocketController {
     }
   }
 
+  @Bind private async onCallJoin(socket: AuthenticatedSocket, data: Call) {
+    console.log('here')
+    const cp = await channelParticipantRepository.view({ user_id: socket.user.id, deleted_at: IsNull() })
+    if (!cp) {
+      logger.notice(`Non member user (${socket.user.id}) tried to join call ${data.id}`)
+      return
+    }
+    socket.join(data.id)
+    logger.info(`new user ${socket.user.id} joined the call ${data.id}`)
+    const socketsInRoom = await this.io.in(data.id).fetchSockets()
+    const existingUsers = socketsInRoom
+      .filter((s) => (s as unknown as AuthenticatedSocket).user.id !== socket.user.id)
+      .map((s) => (s as unknown as AuthenticatedSocket).user.id)
+    logger.info('existing users', existingUsers, 'socket user', socket.user.id)
+    // Notify others about the new user (they'll create impolite peer connections)
+    socket.to(data.id).emit(SocketServerEmittedEvents.CALL_JOINED, { id: socket.user.id, polite: false })
+    // Notify new user about existing participants (it will create polite connections)
+    socket.emit(SocketServerEmittedEvents.CALL_JOINED, {
+      existing_users: [...new Set(existingUsers)],
+      polite: true
+    })
+  }
+
+  @Bind
+  private async onRTCSessionDescription(socket: AuthenticatedSocket, data: { descripion: any, to: UUID }) {
+    this.activeConnections.get(data.to)?.emit(SocketServerEmittedEvents.RTC_SESSCION_DESCRIPTION, {
+      data,
+      from: socket.user.id
+    })
+  }
+  @Bind
+  private async onRTCICECandidate(socket: AuthenticatedSocket, data: { candidate: any, to: UUID }) {
+    this.activeConnections.get(data.to)?.emit(SocketServerEmittedEvents.RTC_ICE_CANDIDATE, {
+      data,
+      from: socket.user.id
+    })
+  }
+
+  @Bind
+  private async onCallStart(socket: AuthenticatedSocket, data: Pick<Call, 'channel_id' | 'channel_type' | 'iv'>, cb: (call: Call | string) => void) {
+    try {
+      // check if there's already an call running for this channel
+      const callExisting = await callRepository.view({ channel_id: data.channel_id, channel_type: data.channel_type, ended_at: IsNull() })
+      if (callExisting) {
+        return cb("call is running")
+      }
+      const result = await callRepository.create({ ...data, created_by: socket.user.id })
+      const newCall = result.raw[0] as Call
+      // create a new room for this call
+      socket.join(newCall.id)
+
+      // let user know about the call
+      cb(newCall)
+      // Notify channel members
+      const cps = await channelParticipantRepository.getByChannelId(data.channel_id)
+      cps.forEach(cp => {
+        this.activeConnections.get(cp.user_id)?.emit(SocketServerEmittedEvents.CALL_STARTED, newCall)
+      })
+    } catch (error) {
+      logger.notice("failed to create call")
+      logger.error(error)
+      cb((error as Error).message)
+    }
+  }
+
 }
 
 export default new SocketController();
@@ -241,6 +323,12 @@ export enum SocketClientEmittedEvents {
   // Typing Events
   TYPING_START = 'typing:start',
   TYPING_STOP = 'typing:stop',
+
+  CALL_JOIN = "call:join",
+  CALL_START = 'call:start',
+
+  RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
+  RTC_ICE_CANDIDATE = "rtc:icecandiate",
 }
 export enum SocketServerEmittedEvents {
   MESSAGE_RECEIVED = 'message:received',
@@ -249,4 +337,10 @@ export enum SocketServerEmittedEvents {
   // Typing Events
   TYPING_START = 'typing:start',
   TYPING_STOP = 'typing:stop',
+
+  CALL_JOINED = 'call:joined',
+  CALL_STARTED = 'call:started',
+
+  RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
+  RTC_ICE_CANDIDATE = "rtc:icecandiate",
 }

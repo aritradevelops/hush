@@ -145,3 +145,11 @@ export type ChatMedia = PrimaryColumns & {
   mime_type: string;
   status: ChatMediaStatus
 }
+
+export type Call = PrimaryColumns & {
+  channel_id: UUID
+  channel_type: 'dm' | 'group'
+  iv: string;
+  ended_at: timestamp | null;
+  ended_by: UUID | null;
+}

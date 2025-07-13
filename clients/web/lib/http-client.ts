@@ -2,7 +2,7 @@ import { constants } from '@/config/constants';
 import { Fields, Obj } from "@/hooks/use-form";
 import { ForgotPasswordSchema, LoginSchema, RegisterSchema, ResetPasswordSchema } from "@/schemas/auth";
 import { ApiErrorResponse, ApiListResponse, ApiListResponseSuccess, ApiResponse, ListParams } from "@/types/api";
-import { ChannelOverview, Chat, ChatMedia, Contact, DmDetails, GroupDetails, PrimaryColumns, PublicKey, SharedSecret, User, UserChatInteractionStatus } from "@/types/entities";
+import { Call, ChannelOverview, Chat, ChatMedia, Contact, DmDetails, GroupDetails, PrimaryColumns, PublicKey, SharedSecret, User, UserChatInteractionStatus } from "@/types/entities";
 import { UUID } from "crypto";
 import qs from "qs";
 import { z } from 'zod';
@@ -14,6 +14,7 @@ const ApiModuleActionMap = {
   chats: [...ApiActions, 'dms', 'groups'],
   groups: [...ApiActions],
   contacts: [...ApiActions],
+  calls: [...ApiActions],
   'group-members': [...ApiActions],
   'direct-messages': [...ApiActions],
   'public-keys': [...ApiActions],
@@ -198,6 +199,11 @@ export class HttpClient {
   }
   async getDmDetails(id: UUID) {
     const { result } = await this.fetch<DmDetails, DmDetails>('channels', { action: 'dms', id })
+    if ('errors' in result) throw new Error(result.message)
+    return result
+  }
+  async getCallDetails(id: UUID) {
+    const { result } = await this.fetch<Call, Call>('calls', { action: 'view', id })
     if ('errors' in result) throw new Error(result.message)
     return result
   }

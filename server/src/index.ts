@@ -11,11 +11,12 @@ import logger from "./utils/logger";
 
 const httpServer = createServer(app);
 
-socketIO.init(httpServer)
+
 
 const server = httpServer.listen(env.get('PORT'), async () => {
   await db.init();
   await hookManager.init();
+  socketIO.init(httpServer)
   if (env.get('NODE_ENV') === 'development') {
     const { Swagger } = require('./utils/swagger');
     Swagger.generate();
