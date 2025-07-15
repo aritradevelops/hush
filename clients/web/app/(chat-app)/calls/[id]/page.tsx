@@ -35,27 +35,38 @@ const CallPage = () => {
   // init
   useEffect(() => {
     if (!socket || !call) return
-    const onCallJoined = (data: { id?: UUID, polite: boolean, existing_users?: UUID[] }) => {
+    const onCallJoined = async (data: { id?: UUID, polite: boolean, existing_users?: UUID[] }) => {
       if (data.id) {
         if (peersRef.current.has(data.id)) return
-        console.log(`Call: New User Joined :${data.id}`)
+        console.log(`Call: New User Joined :${data.id}`, user.id)
         const newPeer = new Peer(data.id, data.polite, socket, userMediaRef.current, deviceMediaRef.current)
+
+        // Initialize the peer before adding to map
+        await newPeer.init()
+
         peersRef.current.set(newPeer.id, newPeer)
         setPeers(existingPeers => [...existingPeers, newPeer])
       }
+
       if (data.existing_users) {
         console.log(`Call: Existing users :${data.existing_users}`)
         const newPeers: Peer[] = []
-        data.existing_users.map(id => {
+
+        for (const id of data.existing_users) {
           const newPeer = new Peer(id, data.polite, socket, userMediaRef.current, deviceMediaRef.current)
+
+          // Initialize each peer
+          await newPeer.init()
+
           newPeers.push(newPeer)
           peersRef.current.set(id, newPeer)
-        })
+        }
         setPeers(newPeers)
       }
     }
 
     const onSessionDescription = async (data: { description: RTCSessionDescription, from: UUID }) => {
+      console.log('recieved session description', data.description.type)
       const peer = peersRef.current.get(data.from)
       if (!peer) {
         console.warn(`Peer ${data.from} not found!`)
@@ -86,6 +97,89 @@ const CallPage = () => {
       socket.off(SocketServerEmittedEvent.RTC_ICE_CANDIDATE, onICECandidate)
     }
   }, [socket, call])
+
+  const toggleCamera = async () => {
+    if (isVideoOff) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false // Don't request audio if we're just toggling video
+        })
+
+        const videoTrack = stream.getVideoTracks()[0]
+        if (videoTrack) {
+          // Add track to local stream
+          userMediaRef.current.addTrack(videoTrack)
+
+          // Add track to all peers
+          for (const peer of peersRef.current.values()) {
+            await peer.addTrack(videoTrack, 'user')
+          }
+
+          setIsVideoOff(false)
+        }
+      } catch (error) {
+        console.error('Error enabling camera:', error)
+      }
+    } else {
+      // Turn off video
+      const videoTracks = userMediaRef.current.getVideoTracks()
+
+      for (const track of videoTracks) {
+        // Remove from all peers first
+        for (const peer of peersRef.current.values()) {
+          await peer.removeTrack(track)
+        }
+
+        // Stop and remove from local stream
+        track.stop()
+        userMediaRef.current.removeTrack(track)
+      }
+
+      setIsVideoOff(true)
+    }
+  }
+  const toggleMicrophone = async () => {
+    if (isMuted) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: false,
+          audio: true
+        })
+
+        const audioTrack = stream.getAudioTracks()[0]
+        if (audioTrack) {
+          // Add track to local stream
+          userMediaRef.current.addTrack(audioTrack)
+
+          // Add track to all peers
+          for (const peer of peersRef.current.values()) {
+            await peer.addTrack(audioTrack, 'user')
+          }
+
+          setIsMuted(false)
+        }
+      } catch (error) {
+        console.error('Error enabling microphone:', error)
+      }
+    } else {
+      // Mute audio
+      const audioTracks = userMediaRef.current.getAudioTracks()
+
+      for (const track of audioTracks) {
+        // Remove from all peers first
+        for (const peer of peersRef.current.values()) {
+          await peer.removeTrack(track)
+        }
+
+        // Stop and remove from local stream
+        track.stop()
+        userMediaRef.current.removeTrack(track)
+      }
+
+      setIsMuted(true)
+    }
+  }
 
 
   if (isCallLoading || loading) return <CallConnecting />
@@ -131,37 +225,14 @@ const CallPage = () => {
       {/* Options */}
       <div className='flex justify-center items-center w-full h-16 gap-x-3'>
         {/* microphone */}
-        <div className='h-12 w-12 rounded-md flex justify-center items-center bg-indigo-700 cursor-pointer' onClick={() => {
-          setIsMuted(prev => !prev)
-        }}>
+        <div className='h-12 w-12 rounded-md flex justify-center items-center bg-indigo-700 cursor-pointer' onClick={toggleMicrophone}>
           {isMuted ? <MicOff /> : <Mic />}
         </div>
-        {/* camera */}
-        <div className='h-12 w-12 rounded-md flex justify-center items-center bg-cyan-800 cursor-pointer' onClick={() => {
-          // setIsVideoOff(prev => !prev)
-          if (isVideoOff) {
-            navigator.mediaDevices.getUserMedia({ video: true, audio: !isMuted }).then(s => {
-              s.getTracks().forEach(t => {
-                userMediaRef.current.addTrack(t)
-                peers.forEach(p => {
-                  p.addTrack(t, 'user')
-                })
-              })
-              setIsVideoOff(false)
-            })
-          } else {
-            userMediaRef.current.getVideoTracks().forEach(t => {
-              t.stop();
-              userMediaRef.current.removeTrack(t)
-              peers.forEach(p => {
-                p.removeTrack(t)
-              })
-            })
-            setIsVideoOff(true)
-          }
-        }}>
+
+        <div className='h-12 w-12 rounded-md flex justify-center items-center bg-cyan-800 cursor-pointer' onClick={toggleCamera}>
           {isVideoOff ? <CameraOff /> : <Camera />}
         </div>
+
         {/* screen share */}
         <div className='h-12 w-12 rounded-md flex justify-center items-center bg-blue-500 cursor-pointer' /* onClick={() => {
           setIsVideoOff(prev => !prev)

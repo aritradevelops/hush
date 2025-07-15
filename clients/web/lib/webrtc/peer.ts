@@ -13,6 +13,8 @@ export class Peer {
   private makingOffer = false
   private ignoreOffer = false
   private debugMode = process.env.NODE_ENV !== 'production'
+  private isInitialized = false
+
   constructor(
     private _id: UUID,
     private isPolite: boolean,
@@ -44,49 +46,99 @@ export class Peer {
   async init() {
     this.debugLog('Initializing peer connection')
 
+    // Initialize with existing tracks
     this.localUserMedia.getTracks().forEach(t => {
       this.conn.addTrack(t, this.localUserMedia)
       this.debugLog(`Added local user media track: ${t.kind}`)
     })
+
+    // Add device media tracks if available
+    if (this.localDeviceMedia) {
+      this.localDeviceMedia.getTracks().forEach(t => {
+        this.conn.addTrack(t, this.localDeviceMedia!)
+        this.debugLog(`Added local device media track: ${t.kind}`)
+      })
+    }
 
     this.conn.onnegotiationneeded = async () => {
       this.debugLog('onnegotiationneeded triggered')
       try {
         this.makingOffer = true
         await this.conn.setLocalDescription()
-        this.debugLog('Sending offer SDP')
+        this.debugLog('Sending offer SDP', this.conn.localDescription?.type)
         this.socket.emit(SocketClientEmittedEvent.RTC_SESSCION_DESCRIPTION, {
           description: this.conn.localDescription,
           to: this.id
         })
       } catch (err) {
-        console.error(err)
+        console.error('Error in negotiation needed:', err)
       } finally {
         this.makingOffer = false
       }
     }
 
     this.conn.onicecandidate = ({ candidate }) => {
-      this.debugLog('ICE candidate generated', candidate)
-      this.socket.emit(SocketClientEmittedEvent.RTC_ICE_CANDIDATE, {
-        candidate,
-        to: this.id
-      })
+      this.debugLog('ICE candidate generated:', candidate)
+      if (candidate) {
+        this.socket.emit(SocketClientEmittedEvent.RTC_ICE_CANDIDATE, {
+          candidate,
+          to: this.id
+        })
+      } else {
+        this.debugLog('ICE gathering completed (null candidate)')
+      }
     }
 
-    this.conn.ontrack = ({ track }) => {
+    this.conn.ontrack = ({ track, streams }) => {
       this.debugLog(`Track received from remote: ${track.kind}`)
+      this.debugLog('Track streams:', streams)
+
+      // Add track to remote media stream
       this.remoteUserMedia.addTrack(track)
+
+      // Log when track ends
+      track.onended = () => {
+        this.debugLog(`Remote track ended: ${track.kind}`)
+      }
+
+      // Log when track becomes active
+      track.onmute = () => this.debugLog(`Remote track muted: ${track.kind}`)
+      track.onunmute = () => this.debugLog(`Remote track unmuted: ${track.kind}`)
     }
 
     this.conn.onconnectionstatechange = () => {
       this.debugLog('Connection state changed:', this.conn.connectionState)
+
+      if (this.conn.connectionState === 'failed') {
+        this.debugLog('Connection failed, attempting to restart ICE')
+        this.conn.restartIce()
+      }
     }
+
+    this.conn.oniceconnectionstatechange = () => {
+      this.debugLog('ICE connection state:', this.conn.iceConnectionState)
+    }
+
+    this.conn.onicegatheringstatechange = () => {
+      this.debugLog('ICE gathering state:', this.conn.iceGatheringState)
+    }
+
+    this.conn.onsignalingstatechange = () => {
+      this.debugLog('Signaling state:', this.conn.signalingState)
+    }
+
+    this.conn.onicecandidateerror = (e) => {
+      console.error('ICE candidate error:', e)
+    }
+
+    this.isInitialized = true
   }
 
   async handleSessionDescription(description: RTCSessionDescription) {
     try {
-      this.debugLog('Received session description', description)
+      this.debugLog('Received session description:', description.type)
+      this.debugLog('Current signaling state:', this.conn.signalingState)
+      this.debugLog('Making offer:', this.makingOffer)
 
       const readyForOffer = !this.makingOffer && (this.conn.signalingState === "stable" || this.isPolite)
       const offerCollision = description.type === "offer" && !readyForOffer
@@ -97,18 +149,21 @@ export class Peer {
         return
       }
 
+      if (offerCollision) {
+        this.debugLog('Offer collision detected, rolling back')
+        await this.conn.setLocalDescription({ type: "rollback" })
+      }
+
+      await this.conn.setRemoteDescription(description)
+      this.debugLog('Set remote description from', description.type)
+
       if (description.type === "offer") {
-        await this.conn.setRemoteDescription(description)
-        this.debugLog('Set remote description from offer')
         await this.conn.setLocalDescription()
         this.debugLog('Sending answer SDP')
         this.socket.emit(SocketClientEmittedEvent.RTC_SESSCION_DESCRIPTION, {
           description: this.conn.localDescription,
           to: this.id
         })
-      } else {
-        await this.conn.setRemoteDescription(description)
-        this.debugLog('Set remote description from answer')
       }
     } catch (err) {
       console.error("Negotiation error:", err)
@@ -117,31 +172,119 @@ export class Peer {
 
   async handleICECandidate(candidate: RTCIceCandidate) {
     try {
-      await this.conn.addIceCandidate(candidate)
-      this.debugLog('Added remote ICE candidate')
+      this.debugLog('Received ICE candidate:', candidate)
+
+      // Wait for remote description to be set
+      if (this.conn.remoteDescription) {
+        await this.conn.addIceCandidate(candidate)
+        this.debugLog('Added remote ICE candidate successfully')
+      } else {
+        this.debugLog('Remote description not set, queueing ICE candidate')
+        // You might want to queue candidates here if remote description isn't set
+      }
     } catch (error) {
       if (!this.ignoreOffer) {
-        console.error("Negotiation Error", error)
+        console.error("ICE candidate error:", error)
       }
     }
   }
 
-  addTrack(track: MediaStreamTrack, kind: 'user' | 'device') {
+  async addTrack(track: MediaStreamTrack, kind: 'user' | 'device') {
+    if (!this.isInitialized) {
+      this.debugLog('Peer not initialized, cannot add track')
+      return
+    }
+
     const stream = kind === 'user' ? this.localUserMedia : this.localDeviceMedia
-    if (stream) {
-      this.debugLog(`Connection State`, this.conn.connectionState)
-      this.conn.addTrack(track, stream)
-      this.conn.dispatchEvent(new Event('negotiationneeded'))
-      this.debugLog(`Track added dynamically: ${track.kind} (${kind})`)
+    if (!stream) {
+      this.debugLog(`No ${kind} stream available`)
+      return
+    }
+
+    try {
+      // Check if track is already being sent
+      const existingSender = this.conn.getSenders().find(s => s.track === track)
+      if (existingSender) {
+        this.debugLog(`Track already being sent: ${track.kind}`)
+        return
+      }
+
+      this.debugLog(`Connection State: ${this.conn.connectionState}`)
+      this.debugLog(`Signaling State: ${this.conn.signalingState}`)
+
+      // Add track to stream first
+      stream.addTrack(track)
+
+      // Add track to peer connection
+      const sender = this.conn.addTrack(track, stream)
+      this.debugLog(`Track added to peer connection: ${track.kind} (${kind})`)
+
+      // The onnegotiationneeded event should fire automatically
+      // Don't manually trigger negotiation here
+
+    } catch (error) {
+      console.error('Error adding track:', error)
     }
   }
 
-  removeTrack(track: MediaStreamTrack) {
-    const sender = this.conn.getSenders().find(s => s.track === track)
-    if (sender) {
-      this.conn.removeTrack(sender)
-      this.conn.dispatchEvent(new Event('negotiationneeded'))
-      this.debugLog(`Track removed dynamically: ${track.kind}`)
+  async removeTrack(track: MediaStreamTrack) {
+    if (!this.isInitialized) {
+      this.debugLog('Peer not initialized, cannot remove track')
+      return
     }
+
+    try {
+      const sender = this.conn.getSenders().find(s => s.track === track)
+      if (sender) {
+        this.conn.removeTrack(sender)
+        this.debugLog(`Track removed from peer connection: ${track.kind}`)
+
+        // Remove from local streams
+        this.localUserMedia.removeTrack(track)
+        if (this.localDeviceMedia) {
+          this.localDeviceMedia.removeTrack(track)
+        }
+
+        // The onnegotiationneeded event should fire automatically
+        // Don't manually trigger negotiation here
+      } else {
+        this.debugLog(`Sender not found for track: ${track.kind}`)
+      }
+    } catch (error) {
+      console.error('Error removing track:', error)
+    }
+  }
+
+  // Helper method to get connection stats for debugging
+  async getStats() {
+    const stats = await this.conn.getStats()
+    const statsObj: any = {}
+
+    stats.forEach((report) => {
+      if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+        statsObj.connectedCandidatePair = report
+      }
+      if (report.type === 'inbound-rtp' && report.mediaType === 'video') {
+        statsObj.inboundVideo = report
+      }
+      if (report.type === 'outbound-rtp' && report.mediaType === 'video') {
+        statsObj.outboundVideo = report
+      }
+    })
+
+    return statsObj
+  }
+  close() {
+    this.debugLog('Closing peer connection')
+
+    // Stop all tracks
+    this.localUserMedia.getTracks().forEach(track => track.stop())
+    this.localDeviceMedia?.getTracks().forEach(track => track.stop())
+
+    // Close connection
+    this.conn.close()
+
+    // Terminate worker
+    this.worker.terminate()
   }
 }

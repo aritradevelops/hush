@@ -244,14 +244,14 @@ export class SocketController {
   @Bind
   private async onRTCSessionDescription(socket: AuthenticatedSocket, data: { descripion: any, to: UUID }) {
     this.activeConnections.get(data.to)?.emit(SocketServerEmittedEvents.RTC_SESSCION_DESCRIPTION, {
-      data,
+      ...data,
       from: socket.user.id
     })
   }
   @Bind
   private async onRTCICECandidate(socket: AuthenticatedSocket, data: { candidate: any, to: UUID }) {
     this.activeConnections.get(data.to)?.emit(SocketServerEmittedEvents.RTC_ICE_CANDIDATE, {
-      data,
+      ...data,
       from: socket.user.id
     })
   }
