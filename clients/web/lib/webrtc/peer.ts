@@ -95,13 +95,51 @@ export class Peer {
     this.conn.ontrack = ({ track, streams }) => {
       this.debugLog(`Track received from remote: ${track.kind}`)
       this.debugLog('Track streams:', streams)
+      // remove existing tracks
+      this.remoteUserMedia.getTracks().forEach(t => {
+        this.remoteUserMedia.removeTrack(t)
+      })
 
       // Add track to remote media stream
       this.remoteUserMedia.addTrack(track)
 
       // Log when track ends
+      // track.onended = () => {
+      //   this.debugLog(`Remote track ended: ${track.kind}`)
+      // }
+      if (track.kind === 'video') {
+        this.isVideoOff = false
+        this.debugLog('Video track added, setting isVideoOff = false')
+        if (this.onCameraChangeCallback) {
+          this.onCameraChangeCallback('unmuted')
+        }
+      }
+      if (track.kind === 'audio') {
+        this.isMuted = false
+        this.debugLog('Audio track added, setting isMuted = false')
+        if (this.onMicChangeCallback) {
+          this.onMicChangeCallback('unmuted')
+        }
+      }
       track.onended = () => {
         this.debugLog(`Remote track ended: ${track.kind}`)
+        this.remoteUserMedia.removeTrack(track)
+
+        if (track.kind === 'video') {
+          this.isVideoOff = true
+          this.debugLog('Video track ended, setting isVideoOff = true')
+          if (this.onCameraChangeCallback) {
+            this.onCameraChangeCallback('muted')
+          }
+        }
+
+        if (track.kind === 'audio') {
+          this.isMuted = true
+          this.debugLog('Audio track ended, setting isMuted = true')
+          if (this.onMicChangeCallback) {
+            this.onMicChangeCallback('muted')
+          }
+        }
       }
 
       // Log when track becomes active
@@ -301,6 +339,23 @@ export class Peer {
 
     return statsObj
   }
+  async reNegotiate() {
+    this.debugLog('Renegotiating...')
+    try {
+      this.makingOffer = true
+      await this.conn.setLocalDescription()
+      this.debugLog('Sending offer SDP', this.conn.localDescription?.type)
+      this.socket.emit(SocketClientEmittedEvent.RTC_SESSCION_DESCRIPTION, {
+        description: this.conn.localDescription,
+        to: this.id
+      })
+    } catch (err) {
+      console.error('Error in negotiation needed:', err)
+    } finally {
+      this.makingOffer = false
+    }
+  }
+
   close() {
     this.debugLog('Closing peer connection')
 
