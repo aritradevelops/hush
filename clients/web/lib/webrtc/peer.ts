@@ -2,7 +2,8 @@ import { RTC_CONFIG } from "@/config/wetbrtc"
 import { SocketClientEmittedEvent } from "@/types/events"
 import { UUID } from "crypto"
 import { Socket } from "socket.io-client"
-
+type OnMicChangeCallback = (state: 'muted' | 'unmuted') => void
+type OnCameraChangeCallback = (state: 'muted' | 'unmuted') => void
 export class Peer {
   private conn: RTCPeerConnection
   private worker: Worker
@@ -21,6 +22,8 @@ export class Peer {
     private socket: Socket,
     private localUserMedia: MediaStream,
     private localDeviceMedia: MediaStream | null,
+    private onMicChangeCallback: OnMicChangeCallback | null = null,
+    private onCameraChangeCallback: OnCameraChangeCallback | null = null,
   ) {
     this.conn = new RTCPeerConnection(RTC_CONFIG)
     this.remoteUserMedia = new MediaStream()
@@ -102,8 +105,25 @@ export class Peer {
       }
 
       // Log when track becomes active
-      track.onmute = () => this.debugLog(`Remote track muted: ${track.kind}`)
-      track.onunmute = () => this.debugLog(`Remote track unmuted: ${track.kind}`)
+      track.onmute = () => {
+        this.debugLog(`Remote track muted: ${track.kind}`)
+        if (track.kind === 'video' && this.onCameraChangeCallback) {
+          this.onCameraChangeCallback('muted')
+        }
+        if (track.kind === 'audio' && this.onMicChangeCallback) {
+          this.onMicChangeCallback('muted')
+        }
+
+      }
+      track.onunmute = () => {
+        if (track.kind === 'video' && this.onCameraChangeCallback) {
+          this.onCameraChangeCallback('unmuted')
+        }
+        if (track.kind === 'audio' && this.onMicChangeCallback) {
+          this.onMicChangeCallback('unmuted')
+        }
+        this.debugLog(`Remote track unmuted: ${track.kind}`)
+      }
     }
 
     this.conn.onconnectionstatechange = () => {
@@ -132,6 +152,13 @@ export class Peer {
     }
 
     this.isInitialized = true
+  }
+
+  onMicChange(cb: OnMicChangeCallback) {
+    this.onMicChangeCallback = cb
+  }
+  onCameraChange(cb: OnCameraChangeCallback) {
+    this.onCameraChangeCallback = cb
   }
 
   async handleSessionDescription(description: RTCSessionDescription) {

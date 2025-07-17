@@ -37,6 +37,7 @@ export enum SocketClientEmittedEvent {
   TYPING_STOP = 'typing:stop',
 
   CALL_JOIN = 'call:join',
+  CALL_LEAVE = 'call:leave',
   CALL_START = 'call:start',
 
   RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
@@ -59,6 +60,7 @@ export enum SocketServerEmittedEvent {
   TYPING_START = 'typing:start',
   TYPING_STOP = 'typing:stop',
   CALL_JOINED = 'call:joined',
+  CALL_LEFT = 'call:left',
   CALL_STARTED = 'call:started',
 
   RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",

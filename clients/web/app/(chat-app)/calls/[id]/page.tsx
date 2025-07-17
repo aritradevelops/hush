@@ -64,6 +64,13 @@ const CallPage = () => {
         setPeers(newPeers)
       }
     }
+    const onCallLeft = async (data: { from: UUID }) => {
+      console.log(`Call: User ${data.from} left the call`)
+      if (!peersRef.current.has(data.from)) return
+      const peer = peersRef.current.get(data.from)!
+      peer.close()
+      setPeers(peers => peers.filter(p => p.id !== peer.id))
+    }
 
     const onSessionDescription = async (data: { description: RTCSessionDescription, from: UUID }) => {
       console.log('recieved session description', data.description.type)
@@ -84,17 +91,21 @@ const CallPage = () => {
     }
 
     socket.on(SocketServerEmittedEvent.CALL_JOINED, onCallJoined)
+    socket.on(SocketServerEmittedEvent.CALL_LEFT, onCallLeft)
     socket.on(SocketServerEmittedEvent.RTC_SESSCION_DESCRIPTION, onSessionDescription)
     socket.on(SocketServerEmittedEvent.RTC_ICE_CANDIDATE, onICECandidate)
 
 
     socket.emit(SocketClientEmittedEvent.CALL_JOIN, call)
-    console.log('Call: emitting call joined')
+    console.log('Call: emitting call join')
 
     return () => {
       socket.off(SocketServerEmittedEvent.CALL_JOINED, onCallJoined)
       socket.off(SocketServerEmittedEvent.RTC_SESSCION_DESCRIPTION, onSessionDescription)
       socket.off(SocketServerEmittedEvent.RTC_ICE_CANDIDATE, onICECandidate)
+      socket.off(SocketServerEmittedEvent.CALL_LEFT, onCallLeft)
+      socket.emit(SocketClientEmittedEvent.CALL_LEAVE, call)
+      console.log('Call: emitting call leave')
     }
   }, [socket, call])
 
@@ -198,14 +209,14 @@ const CallPage = () => {
   return (
     <div className={cn('flex flex-col w-full h-full gap-2 p-5 justify-center items-center', getGridCols(), getGridRows())}>
       <div className='h-full w-full grid gap-2'>
-        {isVideoOff ? <div className="flex justify-center items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500">
+        {isVideoOff ? <div className="flex justify-center items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 aspect-video max-h-[40%]">
           <img
             src={user.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
             alt={user.name}
             className="w-24 h-24 rounded-full"
           />
         </div> :
-          <div className="flex justify-center items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500">
+          <div className="flex justify-center items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 aspect-video max-h-[40%]">
             <video
               ref={
                 (r) => {
@@ -252,18 +263,27 @@ const CallPage = () => {
 
 const PeerView = ({ peer }: { peer: Peer }) => {
   const [user, setUser] = useState<User | null>(null)
-
+  const [isAudioOff, setIsAudioOff] = useState(true)
+  const [isVideoOff, setIsVideoOff] = useState(true)
   useEffect(() => {
     httpClient.listContacts({ where_clause: { user_id: { $eq: peer.id } } }).then(r => {
       if (r.data[0]) {
         setUser({ ...r.data[0].user, name: r.data[0].nickname })
       }
     })
+    peer.onCameraChange((s) => {
+      setIsVideoOff(s === 'muted')
+    })
+    peer.onMicChange((s) => {
+      setIsAudioOff(s === 'muted')
+    })
+
   }, [])
-  if (!user) return <div className="w-full max-w-full max-h-fit aspect-video border border-white rounded-md relative">connecting...</div>
+  if (!user) return <div className="w-full max-h-[40%] aspect-video border border-white rounded-md relative">connecting...</div>
   return (
-    <div className="flex justify-center items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500">
-      {peer.isVideoOff ? <img
+    <div className="relative flex justify-center items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 aspect-video max-h-[40%]">
+      <div className='absolute w-10 h-10 top-2 right-2 bg-accent rounded-md flex justify-center items-center'>{isAudioOff ? <MicOff /> : <Mic />}</div>
+      {isVideoOff ? <img
         src={user.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
         alt={user.name}
         className="w-24 h-24 rounded-full"

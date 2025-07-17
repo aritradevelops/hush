@@ -14,7 +14,7 @@ const ApiModuleActionMap = {
   chats: [...ApiActions, 'dms', 'groups'],
   groups: [...ApiActions],
   contacts: [...ApiActions],
-  calls: [...ApiActions],
+  calls: [...ApiActions, 'ongoing'],
   'group-members': [...ApiActions],
   'direct-messages': [...ApiActions],
   'public-keys': [...ApiActions],
@@ -207,6 +207,7 @@ export class HttpClient {
     if ('errors' in result) throw new Error(result.message)
     return result
   }
+
   async getGroupDetails(id: UUID) {
     const { result } = await this.fetch<GroupDetails, GroupDetails>('channels', { action: 'groups', id })
     if ('errors' in result) throw new Error(result.message)

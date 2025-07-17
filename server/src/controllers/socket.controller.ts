@@ -1,11 +1,14 @@
 import { UUID } from "crypto";
 import { Server } from "socket.io";
-import { Auth, In, IsNull, LessThan } from "typeorm";
+import { In, IsNull } from "typeorm";
 import { v4 } from "uuid";
 import Bind from "../decorators/bind";
+import Call from "../entities/call";
 import Channel, { ChannelType } from "../entities/channel";
+import ChatMedia from "../entities/chat-media";
 import UserChatInteraction, { UserChatInteractionStatus, UserChatInteractionStatusEnum } from "../entities/user-chat-interaction";
 import { NotFoundError } from "../errors/http/not-found.error";
+import callRepository from "../repositories/call.repository";
 import channelParticipantRepository from "../repositories/channel-participant.repository";
 import channelRepository from "../repositories/channel.repository";
 import chatRepository from "../repositories/chat.repository";
@@ -14,10 +17,6 @@ import userChatInteractionRepository from "../repositories/user-chat-interaction
 import userRepository from "../repositories/user.repository";
 import type { AuthenticatedSocket } from "../socket-io";
 import logger from "../utils/logger";
-import ChatMedia from "../entities/chat-media";
-import Call from "../entities/call";
-import callRepository from "../repositories/call.repository";
-import { log } from "console";
 
 // TODO: figure out a way to validate client sent data
 export class SocketController {
@@ -53,6 +52,9 @@ export class SocketController {
 
     socket.on(SocketClientEmittedEvents.CALL_JOIN, (data) => {
       this.onCallJoin(socket, data)
+    })
+    socket.on(SocketClientEmittedEvents.CALL_LEAVE, (data) => {
+      this.onCallLeave(socket, data)
     })
     socket.on(SocketClientEmittedEvents.CALL_START, (data, callback) => {
       this.onCallStart(socket, data, callback)
@@ -219,7 +221,6 @@ export class SocketController {
   }
 
   @Bind private async onCallJoin(socket: AuthenticatedSocket, data: Call) {
-    console.log('here')
     const cp = await channelParticipantRepository.view({ user_id: socket.user.id, deleted_at: IsNull() })
     if (!cp) {
       logger.notice(`Non member user (${socket.user.id}) tried to join call ${data.id}`)
@@ -240,10 +241,27 @@ export class SocketController {
       polite: true
     })
   }
+  @Bind private async onCallLeave(socket: AuthenticatedSocket, data: Call) {
+    logger.info(`user ${socket.user.id} left the call ${data.id}`)
+    socket.leave(data.id)
+    const existingUsers = await this.io.in(data.id).fetchSockets()
+    if (![...new Set(existingUsers)].length) {
+      await callRepository.update({ id: data.id }, { ended_at: new Date() })
+      // There's no more member on this call so end the call
+      const members = await channelParticipantRepository.getByChannelId(data.channel_id)
+      for (const member of members) {
+        this.activeConnections.get(member.user_id)?.emit(SocketServerEmittedEvents.CALL_ENDED, data)
+      }
+    } else {
+      // Notify others that user has left the call
+      socket.to(data.id).emit(SocketServerEmittedEvents.CALL_LEFT, { ...data, from: socket.user.id })
+    }
+
+  }
 
   @Bind
   private async onRTCSessionDescription(socket: AuthenticatedSocket, data: { descripion: any, to: UUID }) {
-    this.activeConnections.get(data.to)?.emit(SocketServerEmittedEvents.RTC_SESSCION_DESCRIPTION, {
+    this.activeConnections.get(data.to)?.emit(SocketServerEmittedEvents.RTC_SESSION_DESCRIPTION, {
       ...data,
       from: socket.user.id
     })
@@ -325,6 +343,7 @@ export enum SocketClientEmittedEvents {
   TYPING_STOP = 'typing:stop',
 
   CALL_JOIN = "call:join",
+  CALL_LEAVE = "call:leave",
   CALL_START = 'call:start',
 
   RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
@@ -339,8 +358,10 @@ export enum SocketServerEmittedEvents {
   TYPING_STOP = 'typing:stop',
 
   CALL_JOINED = 'call:joined',
+  CALL_LEFT = 'call:left',
   CALL_STARTED = 'call:started',
+  CALL_ENDED = 'call:ended',
 
-  RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
+  RTC_SESSION_DESCRIPTION = "rtc:sessiondescription",
   RTC_ICE_CANDIDATE = "rtc:icecandiate",
 }
