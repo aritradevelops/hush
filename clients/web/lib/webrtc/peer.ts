@@ -95,10 +95,14 @@ export class Peer {
     this.conn.ontrack = ({ track, streams }) => {
       this.debugLog(`Track received from remote: ${track.kind}`)
       this.debugLog('Track streams:', streams)
-      // remove existing tracks
-      this.remoteUserMedia.getTracks().forEach(t => {
-        this.remoteUserMedia.removeTrack(t)
-      })
+      // Remove existing tracks of the same kind
+      this.remoteUserMedia.getTracks()
+        .filter(t => t.kind === track.kind)
+        .forEach(oldTrack => {
+          this.debugLog(`Removing old ${oldTrack.kind} track: ${oldTrack.id}`)
+          this.remoteUserMedia.removeTrack(oldTrack)
+          oldTrack.stop()
+        })
 
       // Add track to remote media stream
       this.remoteUserMedia.addTrack(track)
