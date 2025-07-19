@@ -13,6 +13,7 @@ interface CallContextValue {
   ongoingCalls: CallTrackable[];
   joinCall: (call: Call) => void;
   leaveCall: (call: Call) => void;
+  declineCall: (call: Call) => void;
   startCall: (channelId: UUID, channelType: 'dm' | 'groups', cb: (callOrError: Call | string) => void) => void;
 }
 
@@ -28,6 +29,18 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
       setOngoingCalls(data.data.map(call => ({ call, state: 'pending' })))
     })
   }, [])
+
+  // Auto ring the next pending call
+  useEffect(() => {
+    if (!ongoingCalls.find(c => c.state == 'ringing')) {
+      const pendingCall = ongoingCalls.find(c => c.state == 'pending')
+      if (pendingCall) {
+        setOngoingCalls(p => [...p.map(ct => {
+          return ct.call.id === pendingCall.call.id ? { ...ct, state: 'ringing' } as CallTrackable : ct
+        })])
+      }
+    }
+  }, [ongoingCalls])
 
   useEffect(() => {
     if (!socket) return
@@ -50,10 +63,9 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
   }, [socket, call])
 
   const joinCall = (call: Call) => {
-    if (!socket) return
-    socket.emit(SocketClientEmittedEvent.CALL_JOIN, call)
     log("Joining call: ", call)
     setCall(call)
+    window.open(`/calls/${call.id}`, '_blank')
   }
 
   const startCall = (channelId: UUID, channelType: 'dm' | 'groups', cb: (callOrErr: string | Call) => void) => {
@@ -71,6 +83,18 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
       cb(callOrErr)
     })
   }
+  const declineCall = (call: Call) => {
+    if (!socket) return
+    setOngoingCalls(p => [...p.map(ct => {
+      if (ct.call.id === call.id) {
+        return {
+          ...ct, state: 'declined'
+        } as CallTrackable
+      } else {
+        return ct
+      }
+    })])
+  }
 
   const leaveCall = (call: Call) => {
     if (!socket) return
@@ -82,6 +106,7 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
   const contextValue: CallContextValue = {
     call,
     ongoingCalls,
+    declineCall,
     joinCall,
     startCall,
     leaveCall

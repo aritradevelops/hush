@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 export function ChatHeader({ dm }: { dm?: DmDetails }) {
   const { addContact, socket } = useSocket()
   const queryClient = useQueryClient()
-  const { call, ongoingCalls, startCall } = useCall()
+  const { call, ongoingCalls, startCall, joinCall } = useCall()
   if (!dm) return <ChatHeaderSkeleton />
   const localCall: Call | null = ongoingCalls.find(c => c.call.channel_id === dm.id)?.call || null
   console.log(ongoingCalls)
@@ -31,14 +31,14 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
   const handleCLick = () => {
     if (localCall) {
       // join the call
-      window.open(`/calls/${localCall.id}`, '_blank')
+      joinCall(localCall)
     } else {
       // start new call
       startCall(dm.id, 'dm', (callOrErr) => {
         if (typeof callOrErr == 'string') {
           alert(callOrErr)
         } else {
-          window.open(`/calls/${callOrErr.id}`)
+          joinCall(callOrErr)
         }
       })
     }

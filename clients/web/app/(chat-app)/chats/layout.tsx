@@ -8,6 +8,7 @@ import { useChatSocket } from '@/hooks/use-chat-socket';
 import { ChatSidebar } from '@/app/(chat-app)/chats/components/chat-sidebar';
 import { ChatModals } from '@/app/(chat-app)/chats/components/chat-modals';
 import { useCall } from '@/contexts/call-context';
+import { IncomingCallModal } from './components/show-incoming-call';
 
 export default function ChatsLayout({
   children,
@@ -23,7 +24,6 @@ export default function ChatsLayout({
 
   const { data: channels, isLoading: isLoadingChannels } = useChannels(activeFilter, searchQuery, activeChatId);
   const pinnedChats = channels?.filter(c => c.has_pinned);
-  const { call } = useCall()
   useChatSocket(activeChatId);
 
   return (
@@ -42,6 +42,7 @@ export default function ChatsLayout({
       />
       {children}
       <ChatModals activeModal={activeModal} setActiveModal={setActiveModal} />
+      <IncomingCallModal />
     </div>
   );
 }
