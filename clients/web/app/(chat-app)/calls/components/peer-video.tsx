@@ -13,6 +13,7 @@ export const PeerVideo: React.FC<PeerVideoProps> = ({ peer }) => {
   const [isAudioOff, setIsAudioOff] = useState(true)
   const [isVideoOff, setIsVideoOff] = useState(true)
   const videoRef = useRef<HTMLVideoElement | null>(null)
+  const audioRef = useRef<HTMLVideoElement | null>(null)
   useEffect(() => {
     httpClient.listContacts({ where_clause: { user_id: { $eq: peer.id } } }).then(r => {
       if (r.data[0]) {
@@ -32,6 +33,9 @@ export const PeerVideo: React.FC<PeerVideoProps> = ({ peer }) => {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.srcObject = peer.RemoteUserMedia
+    }
+    if (isVideoOff && !isAudioOff && audioRef.current) {
+      audioRef.current.srcObject = peer.RemoteUserMedia
     }
   })
 
@@ -57,17 +61,34 @@ export const PeerVideo: React.FC<PeerVideoProps> = ({ peer }) => {
       </div>
 
       {isVideoOff ? (
-        <img
-          src={user.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
-          alt={user.name}
-          className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover flex-shrink-0"
-        />
+        <>
+          <img
+            src={user.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
+            alt={user.name}
+            className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover flex-shrink-0"
+          />
+          {!isAudioOff &&
+            <audio
+              hidden
+              playsInline
+              autoPlay
+              onLoadedMetadata={() => {
+                console.log(`✅ audio metadata loaded for peer ${peer.id}`)
+              }}
+              onPlaying={() => {
+                console.log(`▶️ audio playing for peer ${peer.id}`)
+              }}
+              onError={(e) => {
+                console.error(`❌ audio error for peer ${peer.id}:`, e)
+              }}
+            />
+          }
+        </>
       ) : (
         <video
           ref={videoRef}
           playsInline
           autoPlay
-          muted // or controls, for debugging
           onLoadedMetadata={() => {
             console.log(`✅ Video metadata loaded for peer ${peer.id}`)
           }}

@@ -4,10 +4,11 @@ import { User } from '@/types/entities'
 interface UserVideoProps {
   user: User
   isVideoOff: boolean
+  isMuted: boolean
   userMediaRef: React.MutableRefObject<MediaStream>
 }
 
-export const UserVideo: React.FC<UserVideoProps> = ({ user, isVideoOff, userMediaRef }) => {
+export const UserVideo: React.FC<UserVideoProps> = ({ user, isVideoOff, isMuted, userMediaRef }) => {
   return (
     <div className="relative flex justify-center items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 w-full h-full min-h-0 overflow-hidden aspect-video">
       {isVideoOff ? (

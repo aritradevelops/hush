@@ -3,7 +3,6 @@ import { SocketClientEmittedEvent, SocketServerEmittedEvent } from "@/types/even
 import { UUID } from "crypto";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useSocket } from "./socket-context";
-import { useMe } from "./user-context";
 
 const log = (...args: any[]) => console.debug('[Call]: ', ...args)
 
@@ -11,13 +10,13 @@ interface CallContextValue {
   call: Call | null;
   callRinging: Call | null;
   joinCall: (call: Call) => void;
+  leaveCall: (call: Call) => void;
   startCall: (channelId: UUID, channelType: 'dm' | 'groups') => void;
 }
 
 const CallContext = createContext<CallContextValue | null>(null)
 
 const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useMe()
   const { socket } = useSocket()
   const [call, setCall] = useState<Call | null>(null)
   const [callRinging, setCallRinging] = useState<Call | null>(null)
@@ -56,11 +55,20 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
       setCall(callOrErr)
     })
   }
+
+  const leaveCall = (call: Call) => {
+    if (!socket) return
+    socket.emit(SocketClientEmittedEvent.CALL_LEAVE, call)
+    log('Leaving call')
+    // window.close()
+  }
+
   const contextValue: CallContextValue = {
     call,
     callRinging,
     joinCall,
-    startCall
+    startCall,
+    leaveCall
   }
 
 
@@ -79,3 +87,4 @@ const useCall = (): CallContextValue => {
 }
 
 export { CallContextProvider, useCall };
+

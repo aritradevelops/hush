@@ -14,7 +14,7 @@ interface UseSocketHandlersProps {
   user: any
 }
 
-export const useSocketHandlers = ({
+export const useSocketCallHandlers = ({
   socket,
   call,
   peersRef,
@@ -83,14 +83,20 @@ export const useSocketHandlers = ({
     socket.on(SocketServerEmittedEvent.RTC_SESSCION_DESCRIPTION, onSessionDescription)
     socket.on(SocketServerEmittedEvent.RTC_ICE_CANDIDATE, onICECandidate)
 
+    // join call
     socket.emit(SocketClientEmittedEvent.CALL_JOIN, call)
     console.log('Call: emitting call join')
-
+    window.onbeforeunload = (e) => {
+      // leave call
+      socket.emit(SocketClientEmittedEvent.CALL_LEAVE, call)
+      console.log('Call: emitting call leave')
+    }
     return () => {
       socket.off(SocketServerEmittedEvent.CALL_JOINED, onCallJoined)
       socket.off(SocketServerEmittedEvent.RTC_SESSCION_DESCRIPTION, onSessionDescription)
       socket.off(SocketServerEmittedEvent.RTC_ICE_CANDIDATE, onICECandidate)
       socket.off(SocketServerEmittedEvent.CALL_LEFT, onCallLeft)
+      // leave call
       socket.emit(SocketClientEmittedEvent.CALL_LEAVE, call)
       console.log('Call: emitting call leave')
     }

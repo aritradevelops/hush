@@ -9,10 +9,11 @@ interface CallGridProps {
   peers: Peer[]
   user: User
   isVideoOff: boolean
+  isMuted: boolean
   userMediaRef: React.MutableRefObject<MediaStream>
 }
 
-export const CallGrid: React.FC<CallGridProps> = ({ peers, user, isVideoOff, userMediaRef }) => {
+export const CallGrid: React.FC<CallGridProps> = ({ peers, user, isVideoOff, isMuted, userMediaRef }) => {
   const totalParticipants = peers.length + 1 // +1 for the current user
 
   const getGridLayout = () => {
@@ -27,7 +28,7 @@ export const CallGrid: React.FC<CallGridProps> = ({ peers, user, isVideoOff, use
 
   return (
     <div className={cn('h-full w-full grid gap-2 p-2', getGridLayout())}>
-      <UserVideo user={user} isVideoOff={isVideoOff} userMediaRef={userMediaRef} />
+      <UserVideo user={user} isVideoOff={isVideoOff} isMuted={isMuted} userMediaRef={userMediaRef} />
       {peers.map(peer => (
         <PeerVideo peer={peer} key={peer.id} />
       ))}

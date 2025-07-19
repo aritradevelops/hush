@@ -10,10 +10,11 @@ import { cn } from '@/lib/utils'
 // Import our new components and hooks
 import { useCallData } from '@/hooks/use-call-data'
 import { useCallControls } from '@/hooks/use-call-controls'
-import { useSocketHandlers } from '@/hooks/use-socket-handlers'
+import { useSocketCallHandlers } from '@/hooks/use-socket-call-handlers'
 import { CallControls } from '@/app/(chat-app)/calls/components/call-controls'
 import { CallGrid } from '@/app/(chat-app)/calls/components/call-grid'
 import { CallConnecting, CallNotFound, CallEnded } from '@/app/(chat-app)/calls/components/call-states'
+import { SocketClientEmittedEvent } from '@/types/events'
 
 const CallPage: React.FC = () => {
   const params = useParams()
@@ -36,7 +37,7 @@ const CallPage: React.FC = () => {
     toggleMicrophone
   } = useCallControls()
 
-  useSocketHandlers({
+  useSocketCallHandlers({
     socket,
     call,
     peersRef,
@@ -50,23 +51,12 @@ const CallPage: React.FC = () => {
   if (!isCallLoading && !call) return <CallNotFound />
   if (call && call.ended_at) return <CallEnded />
 
-  const getGridRows = () => {
-    if (peers.length === 0) return 'grid-rows-1'
-    if (peers.length === 1) return 'grid-rows-2'
-    return 'grid-rows-2'
-  }
-
-  const getGridCols = () => {
-    if (peers.length === 0) return 'grid-cols-1'
-    if (peers.length === 1) return 'grid-cols-1'
-    return 'grid-cols-2'
-  }
-
   return (
-    <div className={cn('flex flex-col w-full h-full gap-2 p-5 justify-center items-center', getGridCols(), getGridRows())}>
+    <div className={cn('flex flex-col w-full h-full gap-2 p-5 justify-center items-center')}>
       <CallGrid
         peers={peers}
         user={user}
+        isMuted={isMuted}
         isVideoOff={isVideoOff}
         userMediaRef={userMediaRef}
       />
@@ -77,8 +67,9 @@ const CallPage: React.FC = () => {
         onToggleMicrophone={toggleMicrophone}
         onToggleCamera={toggleCamera}
         onEndCall={() => {
-          // Handle end call logic
-          console.log('End call clicked')
+          if (!socket) refresh
+          socket?.emit(SocketClientEmittedEvent.CALL_LEAVE, call)
+          console.log('Call: emitting call leave')
         }}
         onScreenShare={() => {
           // Handle screen share logic

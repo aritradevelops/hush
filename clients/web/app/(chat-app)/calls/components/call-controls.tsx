@@ -43,7 +43,10 @@ export const CallControls: React.FC<CallControlsProps> = ({
 
       <div
         className='h-12 w-12 rounded-md flex justify-center items-center bg-red-500 cursor-pointer'
-        onClick={onEndCall}
+        onClick={() => {
+          onEndCall?.()
+          window.close()
+        }}
       >
         <PhoneOff />
       </div>
