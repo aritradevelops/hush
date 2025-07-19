@@ -2,7 +2,7 @@
 import { UUID } from "crypto";
 import Call from "../entities/call";
 import { Repository } from "../lib/repository";
-import callQuery from "../queries/call.query";
+import callQuery from "../queries/calls.query";
 
 export class CallRepository extends Repository<typeof Call> {
   constructor() {
@@ -10,7 +10,7 @@ export class CallRepository extends Repository<typeof Call> {
   }
 
   async getRunningCalls(userId: UUID) {
-    const query = callQuery.getRunningCallsForUser()
+    const query = callQuery.ongoing()
     const result = await this.entity.query(query, [userId])
     return [result, result.length] as [Call[], number]
   }

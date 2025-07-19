@@ -1,17 +1,19 @@
-import { Call } from "@/types/entities";
+import { Call, CallTrackable } from "@/types/entities";
 import { SocketClientEmittedEvent, SocketServerEmittedEvent } from "@/types/events";
 import { UUID } from "crypto";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useSocket } from "./socket-context";
+import { Base64Utils } from "@/lib/base64";
+import httpClient from "@/lib/http-client";
 
 const log = (...args: any[]) => console.debug('[Call]: ', ...args)
 
 interface CallContextValue {
   call: Call | null;
-  callRinging: Call | null;
+  ongoingCalls: CallTrackable[];
   joinCall: (call: Call) => void;
   leaveCall: (call: Call) => void;
-  startCall: (channelId: UUID, channelType: 'dm' | 'groups') => void;
+  startCall: (channelId: UUID, channelType: 'dm' | 'groups', cb: (callOrError: Call | string) => void) => void;
 }
 
 const CallContext = createContext<CallContextValue | null>(null)
@@ -19,23 +21,33 @@ const CallContext = createContext<CallContextValue | null>(null)
 const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
   const { socket } = useSocket()
   const [call, setCall] = useState<Call | null>(null)
-  const [callRinging, setCallRinging] = useState<Call | null>(null)
+  const [ongoingCalls, setOngoingCalls] = useState<CallTrackable[]>([])
+
+  useEffect(() => {
+    httpClient.getOngoingCalls().then(data => {
+      setOngoingCalls(data.data.map(call => ({ call, state: 'pending' })))
+    })
+  }, [])
 
   useEffect(() => {
     if (!socket) return
 
     const onCallStarted = (data: Call) => {
       log("New call started: ", data)
-      // if a call is being running
-      if (call) return
-      setCallRinging(data) // Fixed: was setting callRinging to 'call' instead of 'data'
+      // if a call is being running push it and wait else start ringing
+      setOngoingCalls(p => [...p, { call: data, state: call ? 'pending' : 'ringing' }])
+    }
+    const onCallEnded = (data: Call) => {
+      setOngoingCalls(p => [...p.filter(c => c.call.id !== data.id)])
     }
 
     socket.on(SocketServerEmittedEvent.CALL_STARTED, onCallStarted)
+    socket.on(SocketServerEmittedEvent.CALL_ENDED, onCallEnded)
     return () => {
       socket.off(SocketServerEmittedEvent.CALL_STARTED, onCallStarted)
+      socket.off(SocketServerEmittedEvent.CALL_ENDED, onCallEnded)
     }
-  }, [socket, call]) // Added 'call' to dependencies since it's used in the effect
+  }, [socket, call])
 
   const joinCall = (call: Call) => {
     if (!socket) return
@@ -44,15 +56,19 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
     setCall(call)
   }
 
-  const startCall = (channelId: UUID, channelType: 'dm' | 'groups') => {
+  const startCall = (channelId: UUID, channelType: 'dm' | 'groups', cb: (callOrErr: string | Call) => void) => {
     if (!socket) return
-    socket.emit(SocketClientEmittedEvent.CALL_START, { channel_id: channelId, channel_type: channelType }, (callOrErr: string | Call) => {
+    socket.emit(SocketClientEmittedEvent.CALL_START, {
+      channel_id: channelId, channel_type: channelType,
+      iv: Base64Utils.encode(crypto.getRandomValues(new Uint8Array(16)))
+    }, (callOrErr: string | Call) => {
       if (typeof callOrErr === 'string') {
         console.error(callOrErr)
-        return
+      } else {
+        log("Starting call: ", callOrErr)
+        setCall(callOrErr)
       }
-      log("Starting call: ", callOrErr)
-      setCall(callOrErr)
+      cb(callOrErr)
     })
   }
 
@@ -65,7 +81,7 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
 
   const contextValue: CallContextValue = {
     call,
-    callRinging,
+    ongoingCalls,
     joinCall,
     startCall,
     leaveCall

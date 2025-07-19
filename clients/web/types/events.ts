@@ -62,6 +62,7 @@ export enum SocketServerEmittedEvent {
   CALL_JOINED = 'call:joined',
   CALL_LEFT = 'call:left',
   CALL_STARTED = 'call:started',
+  CALL_ENDED = 'call:ended',
 
   RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
   RTC_ICE_CANDIDATE = "rtc:icecandiate",

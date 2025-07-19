@@ -24,6 +24,10 @@ export class SocketIO {
     })
     logger.info('SocketIO initialized')
   }
+  async close() {
+    logger.notice('Shutting down the socket server')
+    await this.io.close()
+  }
 }
 export default new SocketIO()
 

@@ -207,6 +207,11 @@ export class HttpClient {
     if ('errors' in result) throw new Error(result.message)
     return result
   }
+  async getOngoingCalls() {
+    const { result } = await this.fetch('calls', { action: 'ongoing' })
+    if ('errors' in result) throw new Error(result.message)
+    return result as ApiListResponseSuccess<Call>
+  }
 
   async getGroupDetails(id: UUID) {
     const { result } = await this.fetch<GroupDetails, GroupDetails>('channels', { action: 'groups', id })

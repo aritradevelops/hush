@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useCall } from "@/contexts/call-context";
 import { useSocket } from "@/contexts/socket-context";
 import { Base64Utils } from "@/lib/base64";
 import { DirectMessage, Contact, User, DmDetails, Call } from "@/types/entities";
@@ -7,13 +8,15 @@ import { ReactQueryKeys } from "@/types/react-query";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserX, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ChatHeader({ dm }: { dm?: DmDetails }) {
   const { addContact, socket } = useSocket()
   const queryClient = useQueryClient()
-  const [callStatus, setCallStatus] = useState<'Start Call' | 'Starting...' | 'Join' | 'Failed'>('Start Call')
+  const { call, ongoingCalls, startCall } = useCall()
   if (!dm) return <ChatHeaderSkeleton />
+  const localCall: Call | null = ongoingCalls.find(c => c.call.channel_id === dm.id)?.call || null
+  console.log(ongoingCalls)
   const handleAddContact = () => {
     addContact(dm.chat_user.id, () => {
       queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.DIRECT_MESSAGE_DETAILS, dm.id] })
@@ -23,6 +26,22 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
   const handleBlockUser = () => {
     // Block user functionality
     console.log('Block user:', dm.chat_user.id)
+  }
+
+  const handleCLick = () => {
+    if (localCall) {
+      // join the call
+      window.open(`/calls/${localCall.id}`, '_blank')
+    } else {
+      // start new call
+      startCall(dm.id, 'dm', (callOrErr) => {
+        if (typeof callOrErr == 'string') {
+          alert(callOrErr)
+        } else {
+          window.open(`/calls/${callOrErr.id}`)
+        }
+      })
+    }
   }
   return (
     <div className="border-b p-4">
@@ -76,20 +95,10 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
         </div>
         <div className="ml-auto">
           <Button
-            onClick={() => {
-              if (!socket) return
-              setCallStatus('Starting...')
-              socket.emit(SocketClientEmittedEvent.CALL_START, { channel_id: dm.id, channel_type: 'dm', iv: Base64Utils.encode(crypto.getRandomValues(new Uint8Array(16))) }, (call: Call | string) => {
-                if (typeof call === 'string') {
-                  setCallStatus('Failed')
-                } else {
-                  setCallStatus('Join')
-                  window.open(`/calls/${call.id}`, '_blank') // ← opens in new tab
-                }
-              })
-            }}
+            onClick={handleCLick}
+            className="bg-green-500 border-2 border-b-green-800 border-r-green-800 hover:bg-green-500"
           >
-            {callStatus}
+            {localCall ? 'Join Call' : 'Start Call'}
           </Button>
 
         </div>

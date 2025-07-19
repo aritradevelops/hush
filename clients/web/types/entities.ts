@@ -153,3 +153,8 @@ export type Call = PrimaryColumns & {
   ended_at: timestamp | null;
   ended_by: UUID | null;
 }
+
+export type CallTrackable = {
+  call: Call
+  state: 'pending' | 'ringing' | 'declined'
+}

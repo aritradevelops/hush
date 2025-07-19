@@ -20,8 +20,9 @@ import logger from "../utils/logger";
 import { SocketManager } from "../socket/socket-manager";
 
 // TODO: figure out a way to validate client sent data
+// TODO: make a layer that converts socket io into Express Request/Response object so that
+// TODO: the existing controller layer can be used
 export class SocketController {
-  // TODO: one user might be connected to multiple devices, so we need to make it map<UUID, Set<AuthenticatedSocket>>
   private manager = new SocketManager()
   private io!: Server
   init(io: Server) {
@@ -88,7 +89,7 @@ export class SocketController {
         logger.info(`Notifying user ${m.chat.created_by} that message ${m.chat.id} has been delivered`,
           this.manager.getUserSocketIds(m.chat.created_by))
 
-        this.manager.toUser(m.chat.created_by, SocketServerEmittedEvents.MESSAGE_DELIVERED,
+        this.manager.emitToUser(m.chat.created_by, SocketServerEmittedEvents.MESSAGE_DELIVERED,
           {
             chat_id: m.chat.id, channel_id: m.channel_id, status: UserChatInteractionStatusEnum.RECEIVED,
             updated_at: new Date(), updated_by: socket.user.id
@@ -154,7 +155,7 @@ export class SocketController {
     for (const p of participants) {
       // if the intended recipient is active then notify them about the message
       // and they will notify about whether they have seen the message or not
-      this.manager.toUser(p.user_id, SocketServerEmittedEvents.MESSAGE_RECEIVED,
+      this.manager.emitToUser(p.user_id, SocketServerEmittedEvents.MESSAGE_RECEIVED,
         {
           ...insertResult.raw[0], ucis: Array.from(participantUciMap.values()).
             filter(uci => uci.created_by !== p.user_id), attachments: data.attachments
@@ -166,7 +167,7 @@ export class SocketController {
         // notify others that the user has recieved or seen the message
         participants.filter(cp => cp.user_id !== p.user_id).forEach((cp) => {
           // TODO: make this single event
-          this.manager.toUser(cp.user_id, status === UserChatInteractionStatusEnum.RECEIVED
+          this.manager.emitToUser(cp.user_id, status === UserChatInteractionStatusEnum.RECEIVED
             ? SocketServerEmittedEvents.MESSAGE_DELIVERED : SocketServerEmittedEvents.MESSAGE_SEEN,
             { ...participantUciMap.get(p.user_id), status: status, updated_at: new Date(), updated_by: p.user_id })
         })
@@ -212,7 +213,7 @@ export class SocketController {
         logger.info(`chat`, m)
         logger.info(`Notifying user ${m.chat.created_by} that message ${m.chat.id} has been seen`,
           this.manager.getUserSocketIds(m.chat.created_by))
-        this.manager.toUser(m.chat.created_by, SocketServerEmittedEvents.MESSAGE_SEEN,
+        this.manager.emitToUser(m.chat.created_by, SocketServerEmittedEvents.MESSAGE_SEEN,
           {
             chat_id: m.chat.id, channel_id: m.channel_id, status: UserChatInteractionStatusEnum.SEEN,
             updated_at: new Date(), updated_by: socket.user.id
@@ -251,7 +252,7 @@ export class SocketController {
       // There's no more member on this call so end the call
       const members = await channelParticipantRepository.getByChannelId(data.channel_id)
       for (const member of members) {
-        this.manager.toUser(member.user_id, SocketServerEmittedEvents.CALL_ENDED, data)
+        this.manager.emitToUser(member.user_id, SocketServerEmittedEvents.CALL_ENDED, data)
       }
     } else {
       // Notify others that user has left the call
@@ -262,14 +263,14 @@ export class SocketController {
 
   @Bind
   private async onRTCSessionDescription(socket: AuthenticatedSocket, data: { descripion: any, to: UUID }) {
-    this.manager.toUser(data.to, SocketServerEmittedEvents.RTC_SESSION_DESCRIPTION, {
+    this.manager.emitToUser(data.to, SocketServerEmittedEvents.RTC_SESSION_DESCRIPTION, {
       ...data,
       from: socket.user.id
     })
   }
   @Bind
   private async onRTCICECandidate(socket: AuthenticatedSocket, data: { candidate: any, to: UUID }) {
-    this.manager.toUser(data.to, SocketServerEmittedEvents.RTC_ICE_CANDIDATE, {
+    this.manager.emitToUser(data.to, SocketServerEmittedEvents.RTC_ICE_CANDIDATE, {
       ...data,
       from: socket.user.id
     })
@@ -293,7 +294,7 @@ export class SocketController {
       // Notify channel members
       const cps = await channelParticipantRepository.getByChannelId(data.channel_id)
       cps.forEach(cp => {
-        this.manager.toUser(cp.user_id, SocketServerEmittedEvents.CALL_STARTED, newCall)
+        this.manager.emitToUser(cp.user_id, SocketServerEmittedEvents.CALL_STARTED, newCall)
       })
     } catch (error) {
       logger.notice("failed to create call")
