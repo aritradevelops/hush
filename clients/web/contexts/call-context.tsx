@@ -51,6 +51,7 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
       setOngoingCalls(p => [...p, { call: data, state: call ? 'pending' : 'ringing' }])
     }
     const onCallEnded = (data: Call) => {
+      log("call ended", data)
       setOngoingCalls(p => [...p.filter(c => c.call.id !== data.id)])
     }
 

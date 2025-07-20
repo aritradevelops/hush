@@ -201,7 +201,6 @@ export class SocketController {
 
   @Bind
   private async onChannelSeen(socket: AuthenticatedSocket, data: { channel_id: UUID }) {
-    console.log('received channel seen', data.channel_id)
     const notSeenChats = await userChatInteractionRepository.getNotSeenInteractions(socket.user.id, data.channel_id)
     // set all the messages as seen
     if (notSeenChats.length) {
@@ -228,7 +227,7 @@ export class SocketController {
       logger.notice(`Non member user (${socket.user.id}) tried to join call ${data.id}`)
       return
     }
-    socket.join(data.id)
+    await socket.join(data.id)
     logger.info(`new user ${socket.user.id} joined the call ${data.id}`)
     const socketsInRoom = await this.io.in(data.id).fetchSockets()
     const existingUsers = socketsInRoom
@@ -245,12 +244,15 @@ export class SocketController {
   }
   @Bind private async onCallLeave(socket: AuthenticatedSocket, data: Call) {
     logger.info(`user ${socket.user.id} left the call ${data.id}`)
-    socket.leave(data.id)
+    await socket.leave(data.id)
     const existingUsers = await this.io.in(data.id).fetchSockets()
-    if (![...new Set(existingUsers)].length) {
+    // @ts-ignore
+    logger.info("existing users", existingUsers.map(s => s.user.id))
+    if (!existingUsers.length) {
       await callRepository.update({ id: data.id }, { ended_at: new Date() })
       // There's no more member on this call so end the call
       const members = await channelParticipantRepository.getByChannelId(data.channel_id)
+      logger.info("sending call ended event")
       for (const member of members) {
         this.manager.emitToUser(member.user_id, SocketServerEmittedEvents.CALL_ENDED, data)
       }
@@ -286,13 +288,12 @@ export class SocketController {
       }
       const result = await callRepository.create({ ...data, created_by: socket.user.id })
       const newCall = result.raw[0] as Call
-      // create a new room for this call
-      socket.join(newCall.id)
 
       // let user know about the call
       cb(newCall)
       // Notify channel members
       const cps = await channelParticipantRepository.getByChannelId(data.channel_id)
+      logger.info("channel memebers", cps)
       cps.forEach(cp => {
         this.manager.emitToUser(cp.user_id, SocketServerEmittedEvents.CALL_STARTED, newCall)
       })

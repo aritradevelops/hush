@@ -119,7 +119,7 @@ class Logger implements Record<typeof LEVELS[number], (...args: any) => void> {
       }
     }
   }
-  http = (req: Request, res: Response, time?: number) => this.base.http(`${req.method.toUpperCase()} --> ${req.url} --> ${res.status} --> ${time || -1} ms`);
+  http = (req: Request, res: Response, time?: number) => this.base.http(`${req.method.toUpperCase()} ${req.url} ${res.statusCode} ${time || -1} ms`);
 }
 const logger = new Logger();
 export default logger;

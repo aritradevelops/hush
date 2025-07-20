@@ -26,11 +26,11 @@ const server = httpServer.listen(env.get('PORT'), async () => {
 
 async function shutDown() {
   server.close(async err => {
-    socketIO.close();
-    await db.close();
     logger.notice('Server gracefully shutting down');
+    await socketIO.close();
+    await db.close();
 
-    logger.info(`Server stopped successfully`)
+    logger.notice(`Server stopped successfully`)
     process.exit(err ? 1 : 0);
   });
 }
