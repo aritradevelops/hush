@@ -30,11 +30,10 @@ export class SignUp extends AuthHook {
       if (env.get('APP_ENV') === 'production') {
         const { data, error } = await mailer.send({
           to: [resp.data.email],
-          from: 'Hush <notify@authinifinity.com>',
+          from: `Hush <${env.get('RESEND_EMAIL')}>`,
           subject: 'Verify your email',
         }, new Verification(`${env.get('CLIENT_URL')}/verify-email?hash=${emailVerificationRequest.hash}`, 'Hush'))
-
-        if (error) throw new Error(`Failed to sent email verification email to user ${resp.data.email} due to : ${error}`)
+        if (error) throw new Error(`Failed to sent email verification email to user ${resp.data.email} due to : ${(error as any).error}`)
         logger.info("Verification email sent to", resp.data.email);
         // @ts-ignore
         resp.data.resend_id = data?.id
@@ -42,7 +41,7 @@ export class SignUp extends AuthHook {
         logger.info("Email verification link:", `${env.get('CLIENT_URL')}/verify-email?hash=${emailVerificationRequest.hash}`)
       }
     } catch (error) {
-      logger.critical(error as Error)
+      logger.critical((error as Error).message)
       // rollback
       await userRepository.destroy({ id: resp.data.id });
       throw new InternalServerError()
@@ -64,7 +63,7 @@ export class ForgotPassword extends AuthHook {
       if (env.get('APP_ENV') === 'production') {
         const { data, error } = await mailer.send({
           to: [resp.data.email],
-          from: 'Hush <notify@authinifinity.com>',
+          from: `Hush <${env.get('RESEND_EMAIL')}>`,
           subject: 'Reset Your Password',
         }, new ResetPassword(`${env.get('CLIENT_URL')}/reset-password?hash=${resetPasswordRequest.hash}`, 'Hush'))
 
