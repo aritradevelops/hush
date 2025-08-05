@@ -9,3 +9,6 @@
 [x] on group refresh sent messages showing sending
 [x] unread count is wrong
 [ ] sometimes events are not syncing due to broken socket (hard to reproduce)
+[ ] on adding new contact all the buttons are showing loading state
+[ ] already added contacts are coming may be due to cache
+[ ] channel secret sync issue

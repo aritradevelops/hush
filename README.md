@@ -2,12 +2,12 @@
 
 > A modern, full-stack end-to-end encrypted chat application for secure communications
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://hush.swiftgeek.dev)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://hush.swiftgeek.in)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-[Hush](https://hush.swiftgeek.dev) delivers privacy-first messaging with end-to-end encryption, ensuring your conversations remain completely private. Built with modern technologies for seamless performance across all devices.
+[Hush](https://hush.swiftgeek.in) delivers privacy-first messaging with end-to-end encryption, ensuring your conversations remain completely private. Built with modern technologies for seamless performance across all devices.
 
 ---
 
@@ -335,7 +335,7 @@ TODO
 
 <div align="center">
 
-**[🔒 Try Hush Live](https://hush.swiftgeek.dev)** | **[📖 Documentation](./docs/)** | **[🐛 Report Bug](https://github.com/aritradevelops/hush/issues)**
+**[🔒 Try Hush Live](https://hush.swiftgeek.in)** | **[📖 Documentation](./docs/)** | **[🐛 Report Bug](https://github.com/aritradevelops/hush/issues)**
 
 Made with ❤️ for privacy-conscious users worldwide
 

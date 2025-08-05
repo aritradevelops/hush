@@ -12,8 +12,8 @@ import {
   Check,
   Download,
   ChevronRight,
+  GithubIcon,
 } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
@@ -22,7 +22,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-8">
         <div className="container flex justify-between h-16 items-center space-x-4 sm:justify-between sm:space-x-0 mx-auto">
           <div className="flex gap-2 items-center text-xl font-bold">
-            <Lock className="h-6 w-6 text-primary" />
+            <img src="./logo.png" alt="hush" height={40} width={40} />
             <span>Hush</span>
           </div>
           <div className="hidden md:flex items-center space-x-1 gap-2">
@@ -33,14 +33,17 @@ export default function LandingPage() {
               <Link href="#security" className="transition-colors hover:text-foreground/80">
                 Security
               </Link>
-              <Link href="#testimonials" className="transition-colors hover:text-foreground/80">
+              {/* <Link href="#testimonials" className="transition-colors hover:text-foreground/80">
                 Testimonials
               </Link>
               <Link href="#download" className="transition-colors hover:text-foreground/80">
                 Download
-              </Link>
+              </Link> */}
             </nav>
             <div className="flex items-center space-x-2">
+              <Button variant="secondary" size="sm">
+                <Link href={"https://github.com/aritradevelops/hush"} target="_blank"><GithubIcon /></Link>
+              </Button>
               <Button variant="secondary" size="sm">
                 <Link href={"/register"}>Register</Link>
               </Button>
@@ -376,7 +379,7 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        <section id="testimonials" className="w-full py-12 md:py-24 lg:py-32 bg-background">
+        {/* <section id="testimonials" className="w-full py-12 md:py-24 lg:py-32 bg-background">
           <div className="container px-4 md:px-6 mx-auto">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -626,7 +629,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
       </main>
       <footer className="w-full border-t bg-background py-6">
         <div className="container flex flex-col items-center justify-center gap-4 px-4 md:flex-row md:gap-8 md:px-6 mx-auto">

@@ -1,5 +1,5 @@
 import { ToInt } from "class-sanitizer";
-import { IsIn, IsNotEmpty, IsNumberString, IsOptional, IsString, IsUrl, MinLength, ValidateIf } from "class-validator-custom-errors";
+import { IsEmail, IsIn, IsNotEmpty, IsNumberString, IsOptional, IsString, IsUrl, MinLength, ValidateIf } from "class-validator-custom-errors";
 
 export const NodeEnv = ['development', 'production', 'test'] as const;
 export const AppEnv = ['local', 'development', 'staging', 'production', 'test'] as const;
@@ -43,6 +43,9 @@ export class Env {
   @IsString()
   @IsNotEmpty()
   RESEND_API_KEY: string = '';
+
+  @IsEmail()
+  RESEND_EMAIL!: string
 
   @IsString()
   @IsNotEmpty()
@@ -108,8 +111,6 @@ export class Env {
   @IsNotEmpty()
   @ValidateIf((o) => o.MEDIA_PROVIDER === 'aws')
   AWS_S3_BUCKET_NAME!: string;
-
-
 
   get ROOT() {
     return this.NODE_ENV === 'production' ? 'dist' : 'src';
