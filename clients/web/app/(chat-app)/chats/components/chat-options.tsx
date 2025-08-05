@@ -22,6 +22,7 @@ const options: Option[] = [
     value: 'create-group',
     icon: <Users className="h-5 w-5" />,
     modal: <CreateGroupModal isOpen={true} onClose={() => { }} />
+
   }
 ];
 export type ModalType = 'add-contact' | 'create-group' | null;
@@ -35,6 +36,7 @@ export function ChatOptions({ openModal }: ChatOptionsProps) {
     <div className="flex gap-2">
       {options.map(option => (
         <button
+          id={option.value}
           onClick={() => openModal(option.value as ModalType)}
           className="p-2 rounded-lg bg-accent hover:bg-accent/80 transition-colors cursor-pointer"
           title={option.label}

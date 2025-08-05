@@ -10,7 +10,7 @@ RM = rm -fr
 # Default target
 .DEFAULT_GOAL := help
 
-.PHONY: help dev prod prod-watch cli build clean docker docker-stop exec-cli db db-restart db-stop db-attach
+.PHONY: help dev prod prod-watch cli build clean docker docker-stop exec-cli db db-restart db-stop db-attach db-reboot
 
 help:
 	@echo "Available commands:"
@@ -27,6 +27,7 @@ help:
 	@echo "  make db-restart    - Restart database container"
 	@echo "  make db-stop       - Stop database container"
 	@echo "  make db-attach     - Attach to PostgreSQL in Docker"
+	@echo "  make db-reboot     - Restarts a fresh instance of the database with everything deleted"
 
 # Development
 
@@ -70,3 +71,5 @@ db-stop:
 
 db-attach:
 	$(DOCKER_EXEC) chat-app-postgres psql -U postgres -d barebone
+db-reboot:
+	cd db && $(DOCKER_COMPOSE) down && docker volume rm db_postgres_data && $(DOCKER_COMPOSE) up -d

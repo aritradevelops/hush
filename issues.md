@@ -12,3 +12,7 @@
 [ ] on adding new contact all the buttons are showing loading state
 [ ] already added contacts are coming may be due to cache
 [ ] channel secret sync issue
+[ ] on import key sync the public key to the server
+[ ] also if users losts his key sync the new key to the server and delete the old one
+    and if other users fails to decrypt message (due to old key being present in cache)
+    then update the cache to fetch the new key

@@ -1,11 +1,11 @@
 'use client'
+import Tour from "@/components/internal/tour";
 import { SocketProvider } from "@/contexts/socket-context";
-import { UserContext, UserContextProvider, useMe } from "@/contexts/user-context";
+import { UserContext, UserContextProvider } from "@/contexts/user-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Menu from "./menu";
-import { useState, useEffect, useContext } from "react";
 import { Loader2 } from "lucide-react";
-
+import { useContext, useEffect } from "react";
+import Menu from "./menu";
 // Create a stable QueryClient instance
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,6 +15,7 @@ const queryClient = new QueryClient({
     },
   },
 });
+
 
 // User data loader component that ensures user data is loaded before rendering children
 function UserDataLoader({ children }: { children: React.ReactNode }) {
