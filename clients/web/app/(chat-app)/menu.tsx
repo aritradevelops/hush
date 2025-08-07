@@ -76,11 +76,12 @@ const MenuItem = ({ name, path, icon, tooltip }: {
               ? 'bg-primary text-primary-foreground'
               : 'hover:bg-accent text-muted-foreground hover:text-foreground'
               }`}
+            id={name}
           >
             {icon}
           </Link>
         </TooltipTrigger>
-        <TooltipContent side="right" className="hidden md:block">
+        <TooltipContent side="right" className="hidden md:block" >
           {tooltip}
         </TooltipContent>
       </Tooltip>

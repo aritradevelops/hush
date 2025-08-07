@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useContext, useEffect } from "react";
 import Menu from "./menu";
+import { StartUpContextProvider } from "@/contexts/startup-context";
+import { EncryptionKeyModal } from "./chats/components/encryption-key-modal";
 // Create a stable QueryClient instance
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,9 +67,13 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         <UserContextProvider>
           <UserDataLoader>
             <SocketProvider>
-              <div className="w-full flex-1 flex">
-                {children}
-              </div>
+              <StartUpContextProvider>
+                <Tour />
+                <EncryptionKeyModal />
+                <div className="w-full flex-1 flex">
+                  {children}
+                </div>
+              </StartUpContextProvider>
             </SocketProvider>
           </UserDataLoader>
         </UserContextProvider>

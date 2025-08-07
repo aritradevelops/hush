@@ -15,23 +15,11 @@ import { Download, Key, Lock, Upload } from "lucide-react"
 import { useEffect, useState } from "react"
 import httpClient from "@/lib/http-client"
 import { useMe } from "@/contexts/user-context"
+import { useStartUpContext } from "@/contexts/startup-context"
 
 export function EncryptionKeyModal() {
-  const [open, setOpen] = useState(false)
+  const { showEncryptionModal, closeEncryptionModal } = useStartUpContext()
   const { user } = useMe()
-  // Since UserDataLoader ensures user is loaded, we can be sure user exists here
-  useEffect(() => {
-    if (user) {
-      // Use email as a unique identifier for the key storage
-      secretManager.getEncryptionKey(user.email).then(data => {
-        console.log("Retrieved encryption key:", data)
-        if (!data) {
-          setOpen(true)
-        }
-      })
-    }
-  }, [user])
-
   const [key, setKey] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
   const [keyGenerated, setKeyGenerated] = useState(false)
@@ -75,7 +63,7 @@ export function EncryptionKeyModal() {
       setKey(privateKey)
       // Store with user email as identifier if available
       await secretManager.setEncryptionKey(privateKey, user?.email)
-      setOpen(false)
+      closeEncryptionModal()
     } catch (error) {
       setImportError("Failed to import key. Please ensure it's a valid encryption key file.")
     }
@@ -84,13 +72,13 @@ export function EncryptionKeyModal() {
   const handleClose = () => {
     // Only allow closing if a key has been set
     if (key) {
-      setOpen(false)
+      closeEncryptionModal()
     }
   }
   // Still render the modal even if user data isn't loaded yet
   // Only disable actions that require user data
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={showEncryptionModal} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

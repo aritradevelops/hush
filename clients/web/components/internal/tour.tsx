@@ -1,41 +1,45 @@
 'use client'
-import React, { useEffect, useState } from 'react'
-import Joyride, { Step, CallBackProps } from 'react-joyride';
+import { useStartUpContext } from '@/contexts/startup-context';
+import Joyride, { CallBackProps, Step } from 'react-joyride';
 const tourSteps: Step[] = [
   {
     target: '#add-contact',
-    content: 'Add new contacts...',
+    content: 'Add new contact...',
     disableBeacon: true,
   }, {
     target: '#create-group',
-    content: 'Create new groups...',
+    content: 'Create new group...',
     disableBeacon: true,
   },
   {
     target: '#search-chats',
     content: 'Search your contacts here...',
     disableBeacon: true
+  },
+  {
+    target: '#profile',
+    content: 'See your profile here...',
+    disableBeacon: true,
+    placement: "right"
+  },
+  {
+    target: '#settings',
+    content: 'Modify your settings here...',
+    disableBeacon: true,
+    placement: 'right'
   }
 ]
 
 function Tour() {
-  const [isTourCompleted, setIsTourCompleted] = useState<string | null>('completed')
-  useEffect(() => {
-    // delay for the page to fully load
-    setTimeout(() => {
-      console.log('executing..')
-      setIsTourCompleted(localStorage.getItem('tour_status'))
-    }, 1000)
-  }, [])
+  const { showTour, completeTour } = useStartUpContext()
   const handleCallback = (data: CallBackProps) => {
     if (data.status == 'finished') {
-      localStorage.setItem('tour_status', 'completed')
-      setIsTourCompleted('completed')
+      completeTour()
     }
   }
   return (
     <>
-      {!isTourCompleted && <Joyride steps={tourSteps} debug={true} callback={handleCallback} />}
+      {showTour && <Joyride steps={tourSteps} debug={true} callback={handleCallback} />}
     </>
   )
 }
