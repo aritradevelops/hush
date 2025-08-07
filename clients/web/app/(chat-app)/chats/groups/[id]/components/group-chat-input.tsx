@@ -9,12 +9,13 @@ import { ReactQueryKeys } from "@/types/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
 import { promises } from "dns";
+import { Paperclip } from "lucide-react";
 import { useRef, useState } from "react";
 import { blob } from "stream/consumers";
 import * as uuid from "uuid";
 
 
-export function GroupChatInput({ group, files, discardFiles }: { group?: GroupDetails, files: File[], discardFiles: () => void }) {
+export function GroupChatInput({ group, files, discardFiles, openDropZone }: { group?: GroupDetails, files: File[], discardFiles: () => void, openDropZone: () => void }) {
   let [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const { sendMessage, emitTypingStart, emitTypingStop } = useSocket()
@@ -109,6 +110,11 @@ export function GroupChatInput({ group, files, discardFiles }: { group?: GroupDe
   return (
     <div className="border-t p-4">
       <div className="flex gap-2">
+        <button
+          className="p-2 rounded-lg bg-accent hover:bg-accent/80 transition-colors cursor-pointer"
+          onClick={openDropZone}
+        ><Paperclip />
+        </button>
         <input
           type="text"
           placeholder={files.length ? "Attach message with files " : "Type a message..."}
