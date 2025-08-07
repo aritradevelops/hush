@@ -1,5 +1,8 @@
-# 🔒 Hush
+<p align="center">
+  <img src="./clients/web/public/logo.png" alt="Logo" width="150" />
+</p>
 
+#  Hush
 > A modern, full-stack end-to-end encrypted chat application for secure communications
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://hush.swiftgeek.in)
@@ -10,6 +13,8 @@
 [Hush](https://hush.swiftgeek.in) delivers privacy-first messaging with end-to-end encryption, ensuring your conversations remain completely private. Built with modern technologies for seamless performance across all devices.
 
 ---
+## Backstory / Inspiration
+  - When I started this project there were many questions in my head like how to manage socket, authentication, authorization, encryption, database layer, read receipts, file encryption, private chat, group chat, web workers, multipart upload, secure key exchange and many more. Of course there are many tutorials which covers chat application, mostly they does not cover any of the above mentioned, just the basic concepts. So with this repository I tend to share my findings and a decent implementation putting all the pieces together. I hope it guides the future me's :)
 
 ## ✨ Features
 
@@ -330,6 +335,11 @@ TODO
 
 ### Maintainers
 - **Lead Developer**: [@aritradevelops](https://github.com/aritradevelops)
+
+## Good To Know
+- As only one instance of the server is running I have not implemented any code for synchronizing the server's socket state.
+by default socket server's are not horizontally scalable. To achieve horizontal scalability please follow this official guide 
+[here](https://socket.io/docs/v4/tutorial/step-9)
 
 ---
 
