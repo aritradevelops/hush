@@ -22,7 +22,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-8">
         <div className="container flex justify-between h-16 items-center space-x-4 sm:justify-between sm:space-x-0 mx-auto">
           <div className="flex gap-2 items-center text-xl font-bold">
-            <img src="./logo.png" alt="hush" height={40} width={40} />
+            <img src="/logo.png" alt="hush" height={40} width={40} />
             <span>Hush</span>
           </div>
           <div className="hidden md:flex items-center space-x-1 gap-2">
