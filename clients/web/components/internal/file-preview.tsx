@@ -1,8 +1,10 @@
+import { Plus, PlusSquare, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function FilesPreview({ files, discardFiles }: {
+export function FilesPreview({ files, discardFiles, openFileDialog }: {
   files: File[],
   discardFiles: () => void
+  openFileDialog: () => void
 }) {
   const [showAll, setShowAll] = useState(false);
   const [gridConfig, setGridConfig] = useState({ columns: 4, maxVisible: 7 });
@@ -209,29 +211,46 @@ export function FilesPreview({ files, discardFiles }: {
   return (
     <div className="flex-1 overflow-y-auto bg-background border-t border-border">
       {/* Header with discard button */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h3 className="text-lg font-semibold">Attachments</h3>
-          <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2 flex items-center justify-between gap-4 z-10">
+        {/* Left: Attachments Title and Count */}
+        <div className="flex items-center gap-2 min-w-0">
+          <h3 className="text-base lg:text-lg font-semibold truncate">
+            Attachments
+          </h3>
+          <span className="inline-flex items-center bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-semibold">
             {files.length}
           </span>
         </div>
-        <button
-          onClick={discardFiles}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Discard All
-        </button>
+
+        {/* Center: Info/Prompt */}
+        <span className="flex items-center text-muted-foreground text-sm select-none whitespace-nowrap gap-1">
+          Drag to add more
+          <span aria-hidden="true" className="font-semibold opacity-40 px-1">·</span>
+          or use
+        </span>
+
+        {/* Right: Action Buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={openFileDialog}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 cursor-pointer"
+            type="button"
+          >
+            <PlusSquare className="text-blue-700" size={18} />
+            <span>Add Files</span>
+          </button>
+          <button
+            onClick={discardFiles}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300 cursor-pointe"
+            type="button"
+          >
+            <Trash2 className="text-red-500" size={18} />
+            <span>Discard All</span>
+          </button>
+        </div>
       </div>
+
+
 
       {/* Files grid */}
       <div className="p-4">

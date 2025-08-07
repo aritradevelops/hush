@@ -9,9 +9,10 @@ import { Chat, ChatMedia, ChatMediaStatus, DmDetails, UserChatInteractionStatus 
 import { ReactQueryKeys } from "@/types/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
+import { Paperclip } from "lucide-react";
 import { useRef, useState } from "react";
 import * as uuid from "uuid";
-export function ChatInput({ dm, files, discardFiles }: { dm?: DmDetails, files: File[], discardFiles: () => void }) {
+export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDetails, files: File[], discardFiles: () => void, openDropZone: () => void }) {
   let [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const { sendMessage, emitTypingStart, emitTypingStop } = useSocket()
@@ -107,6 +108,11 @@ export function ChatInput({ dm, files, discardFiles }: { dm?: DmDetails, files: 
   return (
     <div className="border-t p-4">
       <div className="flex gap-2">
+        <button
+          className="p-2 rounded-lg bg-accent hover:bg-accent/80 transition-colors cursor-pointer"
+          onClick={openDropZone}
+        ><Paperclip />
+        </button>
         <input
           type="text"
           placeholder={files.length ? "Attach message with files " : "Type a message..."}
