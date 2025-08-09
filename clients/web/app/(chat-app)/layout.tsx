@@ -1,12 +1,15 @@
 'use client'
+import Tour from "@/components/internal/tour";
 import { SocketProvider } from "@/contexts/socket-context";
-import { UserContext, UserContextProvider, useMe } from "@/contexts/user-context";
+import { UserContext, UserContextProvider } from "@/contexts/user-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import Menu from "./menu";
-import { useState, useEffect, useContext } from "react";
 import { Loader2 } from "lucide-react";
 import { CallContextProvider } from "@/contexts/call-context";
 
+import { useContext, useEffect } from "react";
+import Menu from "./menu";
+import { StartUpContextProvider } from "@/contexts/startup-context";
+import { EncryptionKeyModal } from "./chats/components/encryption-key-modal";
 // Create a stable QueryClient instance
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,6 +19,7 @@ const queryClient = new QueryClient({
     },
   },
 });
+
 
 // User data loader component that ensures user data is loaded before rendering children
 function UserDataLoader({ children }: { children: React.ReactNode }) {
@@ -65,11 +69,15 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
         <UserContextProvider>
           <UserDataLoader>
             <SocketProvider>
-              <CallContextProvider>
-                <div className="w-full flex-1 flex">
-                  {children}
-                </div>
-              </CallContextProvider>
+              <StartUpContextProvider>
+                <CallContextProvider>
+                  <Tour />
+                  <EncryptionKeyModal />
+                  <div className="w-full flex-1 flex">
+                    {children}
+                  </div>
+                </CallContextProvider>
+              </StartUpContextProvider>
             </SocketProvider>
           </UserDataLoader>
         </UserContextProvider>

@@ -44,17 +44,17 @@ export default function GroupChatPage() {
 
   return (
     <Attachments channelId={chatId}>
-      {({ files, discardFiles, upload }) => (
+      {({ files, discardFiles, upload, openDropZone, openFileDialog }) => (
         <>
           <GroupChatHeader group={group} />
           {group && (
             files.length > 0 ? (
-              <FilesPreview files={files} discardFiles={discardFiles} />
+              <FilesPreview files={files} discardFiles={discardFiles} openFileDialog={openFileDialog} />
             ) : (
               <GroupChatBody group={group} />
             )
           )}
-          <GroupChatInput group={group} files={files} discardFiles={discardFiles} />
+          <GroupChatInput group={group} files={files} discardFiles={discardFiles} openDropZone={openDropZone} />
         </>
       )}
     </Attachments>

@@ -12,6 +12,7 @@ export function ChatSearchBar({ searchQuery, setSearchQuery, placeholder = "Sear
     <div className="relative">
       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
       <input
+        id='search-chats'
         type="text"
         placeholder={placeholder}
         value={searchQuery}

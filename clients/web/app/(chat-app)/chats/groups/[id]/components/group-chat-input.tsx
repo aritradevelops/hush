@@ -9,20 +9,24 @@ import { ReactQueryKeys } from "@/types/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
 import { promises } from "dns";
+import { Paperclip, Smile } from "lucide-react";
 import { useRef, useState } from "react";
 import { blob } from "stream/consumers";
 import * as uuid from "uuid";
+import EmojiPicker, { Theme } from "emoji-picker-react"
 
 
-export function GroupChatInput({ group, files, discardFiles }: { group?: GroupDetails, files: File[], discardFiles: () => void }) {
+export function GroupChatInput({ group, files, discardFiles, openDropZone }: { group?: GroupDetails, files: File[], discardFiles: () => void, openDropZone: () => void }) {
   let [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [openEmojiPicker, setOpenEmojiPicker] = useState(false)
   const { sendMessage, emitTypingStart, emitTypingStop } = useSocket()
   const { user } = useMe()
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient()
   if (!group) return <ChatInputSkeleton />
   const handleSendMessage = async () => {
+    setOpenEmojiPicker(false)
     if (!message.trim()) {
       if (files.length) message = 'Sent attachments'
       else return
@@ -108,7 +112,22 @@ export function GroupChatInput({ group, files, discardFiles }: { group?: GroupDe
   };
   return (
     <div className="border-t p-4">
-      <div className="flex gap-2">
+      <div className="flex gap-2 relative">
+        {openEmojiPicker && <div className="absolute bottom-[80px] ">
+          <EmojiPicker theme={Theme.AUTO} onEmojiClick={({ emoji }) => {
+            setMessage(m => m + emoji)
+          }} />
+        </div>}
+        <button
+          className="p-2 rounded-lg bg-accent hover:bg-accent/80 transition-colors cursor-pointer"
+          onClick={openDropZone}
+        ><Paperclip />
+        </button>
+        <button
+          className="p-2 rounded-lg bg-accent hover:bg-accent/80 transition-colors cursor-pointer"
+          onClick={() => setOpenEmojiPicker(true)}
+        ><Smile />
+        </button>
         <input
           type="text"
           placeholder={files.length ? "Attach message with files " : "Type a message..."}
@@ -116,6 +135,7 @@ export function GroupChatInput({ group, files, discardFiles }: { group?: GroupDe
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           onInput={handleTyping}
+          onFocus={() => setOpenEmojiPicker(false)}
           value={message}
           disabled={group.has_left}
         />

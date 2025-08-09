@@ -45,7 +45,7 @@ const DesktopMenu = () => {
     <div className='h-screen w-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border'>
       <div className='h-full flex flex-col items-center py-8'>
         <div className='mb-8'>
-          <img src="./logo.png" alt="hush" height={40} width={40} />
+          <img src="/logo.png" alt="hush" height={40} width={40} />
         </div>
         <div className='flex-1 flex flex-col items-center gap-6'>
           {MenuOptions.map((option) => (
@@ -76,11 +76,12 @@ const MenuItem = ({ name, path, icon, tooltip }: {
               ? 'bg-primary text-primary-foreground'
               : 'hover:bg-accent text-muted-foreground hover:text-foreground'
               }`}
+            id={name}
           >
             {icon}
           </Link>
         </TooltipTrigger>
-        <TooltipContent side="right" className="hidden md:block">
+        <TooltipContent side="right" className="hidden md:block" >
           {tooltip}
         </TooltipContent>
       </Tooltip>
