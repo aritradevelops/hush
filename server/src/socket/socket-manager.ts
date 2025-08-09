@@ -32,12 +32,12 @@ export class SocketManager {
   remove(socket: AuthenticatedSocket) {
     const userId = socket.user.id
     if (!this.connections.has(userId)) return
-    this.connections.set(userId, this.connections.get(userId)!.filter(s => s.id === socket.id))
+    this.connections.set(userId, this.connections.get(userId)!.filter(s => s.id !== socket.id))
   }
 
   emitToUser(userId: string, ...ev: Parameters<Socket["emit"]>) {
-    console.log(ev[0], this.connections.get(userId)?.map(s => s.user.id))
     if (!this.connections.has(userId)) return
+    console.log(ev[0], this.connections.get(userId)?.map(s => s.user.id))
     for (const s of this.connections.get(userId)!) {
       s.emit(...ev)
     }

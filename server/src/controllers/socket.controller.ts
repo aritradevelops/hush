@@ -227,7 +227,10 @@ export class SocketController {
       logger.notice(`Non member user (${socket.user.id}) tried to join call ${data.id}`)
       return
     }
-    await socket.join(data.id)
+    for (const s of this.manager.getUserSockets(socket.user.id)) {
+      await s.join(data.id)
+    }
+    // await socket.join(data.id)
     logger.info(`new user ${socket.user.id} joined the call ${data.id}`)
     const socketsInRoom = await this.io.in(data.id).fetchSockets()
     const existingUsers = socketsInRoom
@@ -244,7 +247,10 @@ export class SocketController {
   }
   @Bind private async onCallLeave(socket: AuthenticatedSocket, data: Call) {
     logger.info(`user ${socket.user.id} left the call ${data.id}`)
-    await socket.leave(data.id)
+    for (const s of this.manager.getUserSockets(socket.user.id)) {
+      await s.leave(data.id)
+    }
+    // await socket.leave(data.id)
     const existingUsers = await this.io.in(data.id).fetchSockets()
     // @ts-ignore
     logger.info("existing users", existingUsers.map(s => s.user.id))

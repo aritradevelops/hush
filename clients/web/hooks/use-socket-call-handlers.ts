@@ -55,6 +55,7 @@ export const useSocketCallHandlers = ({
       console.log(`Call: User ${data.from} left the call`)
       if (!peersRef.current.has(data.from)) return
       const peer = peersRef.current.get(data.from)!
+      peersRef.current.delete(data.from)
       peer.close()
       setPeers(peers => peers.filter(p => p.id !== peer.id))
     }
