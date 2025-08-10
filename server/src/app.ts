@@ -11,6 +11,7 @@ import { isAuthRequest } from "./middlewares/is-auth";
 import { Router } from "./utils/router";
 import translator from "./utils/translator";
 import path from "path";
+import { requestLogger } from "./middlewares/request-logger";
 const app = express();
 const router = new Router();
 app.set('trust proxy', true)
@@ -37,7 +38,8 @@ if (env.get('APP_ENV') === 'local' && env.get('MEDIA_PROVIDER') === 'localfs') {
   }))
 }
 
-app.use(morgan('combined'));
+// app.use(morgan('combined'));
+app.use(requestLogger())
 app.get('/v1/ready', (_req, res) => { res.json({ message: 'OK' }); });
 app.get('/v1/health-check', async (_req, res) => { res.json({ db: await db.healthCheck() }); });
 app.all('/v1/:module/:action?/:id?', isAuthRequest(), router.handle);

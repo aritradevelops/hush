@@ -4,6 +4,8 @@ import { SocketProvider } from "@/contexts/socket-context";
 import { UserContext, UserContextProvider } from "@/contexts/user-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { CallContextProvider } from "@/contexts/call-context";
+
 import { useContext, useEffect } from "react";
 import Menu from "./menu";
 import { StartUpContextProvider } from "@/contexts/startup-context";
@@ -68,11 +70,13 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
           <UserDataLoader>
             <SocketProvider>
               <StartUpContextProvider>
-                <Tour />
-                <EncryptionKeyModal />
-                <div className="w-full flex-1 flex">
-                  {children}
-                </div>
+                <CallContextProvider>
+                  <Tour />
+                  <EncryptionKeyModal />
+                  <div className="w-full flex-1 flex">
+                    {children}
+                  </div>
+                </CallContextProvider>
               </StartUpContextProvider>
             </SocketProvider>
           </UserDataLoader>

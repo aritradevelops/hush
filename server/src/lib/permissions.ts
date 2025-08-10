@@ -1,4 +1,5 @@
 /** For now user permissions are static */
+// TODO : A new scope should be introduces to channel specific access management
 export const userPermissions: Record<string, SCOPES> = {
   'users_list': 'ALL',
   'users_me': 'SELF',
@@ -26,4 +27,6 @@ export const userPermissions: Record<string, SCOPES> = {
   'chat-media_multipart-end': 'SELF',
   'chat-media_upload': 'SELF',
 
+  'calls_view': 'ALL',
+  'calls_ongoing': 'ALL'
 }

@@ -1,11 +1,14 @@
 import { UUID } from "crypto";
 import { Server } from "socket.io";
-import { In } from "typeorm";
+import { In, IsNull } from "typeorm";
 import { v4 } from "uuid";
 import Bind from "../decorators/bind";
+import Call from "../entities/call";
 import Channel, { ChannelType } from "../entities/channel";
+import ChatMedia from "../entities/chat-media";
 import UserChatInteraction, { UserChatInteractionStatus, UserChatInteractionStatusEnum } from "../entities/user-chat-interaction";
 import { NotFoundError } from "../errors/http/not-found.error";
+import callRepository from "../repositories/call.repository";
 import channelParticipantRepository from "../repositories/channel-participant.repository";
 import channelRepository from "../repositories/channel.repository";
 import chatRepository from "../repositories/chat.repository";
@@ -14,12 +17,13 @@ import userChatInteractionRepository from "../repositories/user-chat-interaction
 import userRepository from "../repositories/user.repository";
 import type { AuthenticatedSocket } from "../socket-io";
 import logger from "../utils/logger";
-import ChatMedia from "../entities/chat-media";
+import { SocketManager } from "../socket/socket-manager";
 
 // TODO: figure out a way to validate client sent data
+// TODO: make a layer that converts socket io into Express Request/Response object so that
+// TODO: the existing controller layer can be used
 export class SocketController {
-  // TODO: one user might be connected to multiple devices, so we need to make it map<UUID, Set<AuthenticatedSocket>>
-  private activeConnections: Map<UUID, AuthenticatedSocket> = new Map();
+  private manager = new SocketManager()
   private io!: Server
   init(io: Server) {
     this.io = io
@@ -48,12 +52,29 @@ export class SocketController {
       this.onChannelSeen(socket, data)
     })
 
+    socket.on(SocketClientEmittedEvents.CALL_JOIN, (data) => {
+      this.onCallJoin(socket, data)
+    })
+    socket.on(SocketClientEmittedEvents.CALL_LEAVE, (data) => {
+      this.onCallLeave(socket, data)
+    })
+    socket.on(SocketClientEmittedEvents.CALL_START, (data, callback) => {
+      this.onCallStart(socket, data, callback)
+    })
+
+    socket.on(SocketClientEmittedEvents.RTC_SESSCION_DESCRIPTION, (data) => {
+      this.onRTCSessionDescription(socket, data)
+    })
+    socket.on(SocketClientEmittedEvents.RTC_ICE_CANDIDATE, (data) => {
+      this.onRTCICECandidate(socket, data)
+    })
+
     socket.on('disconnect', (r) => this.onDisconnect(r, socket))
   }
   @Bind
   private async onConnect(socket: AuthenticatedSocket) {
     logger.info(`User connected: ${socket.user.id}`)
-    this.activeConnections.set(socket.user.id, socket)
+    this.manager.add(socket)
     // set all the messages pending messages as delivered
     const pendingMessages = await userChatInteractionRepository.getPendingInteractions(socket.user.id)
     if (pendingMessages.length) {
@@ -66,9 +87,9 @@ export class SocketController {
       // notify the sender that the message has been delivered
       for (const m of pendingMessages) {
         logger.info(`Notifying user ${m.chat.created_by} that message ${m.chat.id} has been delivered`,
-          this.activeConnections.get(m.chat.created_by)?.id || "null")
+          this.manager.getUserSocketIds(m.chat.created_by))
 
-        this.activeConnections.get(m.chat.created_by)?.emit(SocketServerEmittedEvents.MESSAGE_DELIVERED,
+        this.manager.emitToUser(m.chat.created_by, SocketServerEmittedEvents.MESSAGE_DELIVERED,
           {
             chat_id: m.chat.id, channel_id: m.channel_id, status: UserChatInteractionStatusEnum.RECEIVED,
             updated_at: new Date(), updated_by: socket.user.id
@@ -80,7 +101,7 @@ export class SocketController {
   private onDisconnect(reason: string, socket: AuthenticatedSocket) {
     logger.notice(`socket connection closed: ${reason}`)
     logger.info(`User disconnected: ${socket.user.id}`)
-    this.activeConnections.delete(socket.user.id)
+    this.manager.remove(socket)
   }
   @Bind
   private async onContactAdd(socket: AuthenticatedSocket, data: { contact_id: UUID }, callback: (dm: Channel) => void) {
@@ -134,7 +155,7 @@ export class SocketController {
     for (const p of participants) {
       // if the intended recipient is active then notify them about the message
       // and they will notify about whether they have seen the message or not
-      this.activeConnections.get(p.user_id)?.emit(SocketServerEmittedEvents.MESSAGE_RECEIVED,
+      this.manager.emitToUser(p.user_id, SocketServerEmittedEvents.MESSAGE_RECEIVED,
         {
           ...insertResult.raw[0], ucis: Array.from(participantUciMap.values()).
             filter(uci => uci.created_by !== p.user_id), attachments: data.attachments
@@ -146,7 +167,7 @@ export class SocketController {
         // notify others that the user has recieved or seen the message
         participants.filter(cp => cp.user_id !== p.user_id).forEach((cp) => {
           // TODO: make this single event
-          this.activeConnections.get(cp.user_id)?.emit(status === UserChatInteractionStatusEnum.RECEIVED
+          this.manager.emitToUser(cp.user_id, status === UserChatInteractionStatusEnum.RECEIVED
             ? SocketServerEmittedEvents.MESSAGE_DELIVERED : SocketServerEmittedEvents.MESSAGE_SEEN,
             { ...participantUciMap.get(p.user_id), status: status, updated_at: new Date(), updated_by: p.user_id })
         })
@@ -180,7 +201,6 @@ export class SocketController {
 
   @Bind
   private async onChannelSeen(socket: AuthenticatedSocket, data: { channel_id: UUID }) {
-    console.log('received channel seen', data.channel_id)
     const notSeenChats = await userChatInteractionRepository.getNotSeenInteractions(socket.user.id, data.channel_id)
     // set all the messages as seen
     if (notSeenChats.length) {
@@ -191,13 +211,102 @@ export class SocketController {
       for (const m of notSeenChats) {
         logger.info(`chat`, m)
         logger.info(`Notifying user ${m.chat.created_by} that message ${m.chat.id} has been seen`,
-          this.activeConnections.get(m.chat.created_by)?.id || "null")
-        this.activeConnections.get(m.chat.created_by)?.emit(SocketServerEmittedEvents.MESSAGE_SEEN,
+          this.manager.getUserSocketIds(m.chat.created_by))
+        this.manager.emitToUser(m.chat.created_by, SocketServerEmittedEvents.MESSAGE_SEEN,
           {
             chat_id: m.chat.id, channel_id: m.channel_id, status: UserChatInteractionStatusEnum.SEEN,
             updated_at: new Date(), updated_by: socket.user.id
           })
       }
+    }
+  }
+
+  @Bind private async onCallJoin(socket: AuthenticatedSocket, data: Call) {
+    const cp = await channelParticipantRepository.view({ user_id: socket.user.id, deleted_at: IsNull() })
+    if (!cp) {
+      logger.notice(`Non member user (${socket.user.id}) tried to join call ${data.id}`)
+      return
+    }
+    for (const s of this.manager.getUserSockets(socket.user.id)) {
+      await s.join(data.id)
+    }
+    // await socket.join(data.id)
+    logger.info(`new user ${socket.user.id} joined the call ${data.id}`)
+    const socketsInRoom = await this.io.in(data.id).fetchSockets()
+    const existingUsers = socketsInRoom
+      .filter((s) => (s as unknown as AuthenticatedSocket).user.id !== socket.user.id)
+      .map((s) => (s as unknown as AuthenticatedSocket).user.id)
+    logger.info('existing users', existingUsers, 'socket user', socket.user.id)
+    // Notify others about the new user (they'll create impolite peer connections)
+    socket.to(data.id).emit(SocketServerEmittedEvents.CALL_JOINED, { id: socket.user.id, polite: false })
+    // Notify new user about existing participants (it will create polite connections)
+    socket.emit(SocketServerEmittedEvents.CALL_JOINED, {
+      existing_users: [...new Set(existingUsers)],
+      polite: true
+    })
+  }
+  @Bind private async onCallLeave(socket: AuthenticatedSocket, data: Call) {
+    logger.info(`user ${socket.user.id} left the call ${data.id}`)
+    for (const s of this.manager.getUserSockets(socket.user.id)) {
+      await s.leave(data.id)
+    }
+    // await socket.leave(data.id)
+    const existingUsers = await this.io.in(data.id).fetchSockets()
+    // @ts-ignore
+    logger.info("existing users", existingUsers.map(s => s.user.id))
+    if (!existingUsers.length) {
+      await callRepository.update({ id: data.id }, { ended_at: new Date() })
+      // There's no more member on this call so end the call
+      const members = await channelParticipantRepository.getByChannelId(data.channel_id)
+      logger.info("sending call ended event")
+      for (const member of members) {
+        this.manager.emitToUser(member.user_id, SocketServerEmittedEvents.CALL_ENDED, data)
+      }
+    } else {
+      // Notify others that user has left the call
+      socket.to(data.id).emit(SocketServerEmittedEvents.CALL_LEFT, { ...data, from: socket.user.id })
+    }
+
+  }
+
+  @Bind
+  private async onRTCSessionDescription(socket: AuthenticatedSocket, data: { descripion: any, to: UUID }) {
+    this.manager.emitToUser(data.to, SocketServerEmittedEvents.RTC_SESSION_DESCRIPTION, {
+      ...data,
+      from: socket.user.id
+    })
+  }
+  @Bind
+  private async onRTCICECandidate(socket: AuthenticatedSocket, data: { candidate: any, to: UUID }) {
+    this.manager.emitToUser(data.to, SocketServerEmittedEvents.RTC_ICE_CANDIDATE, {
+      ...data,
+      from: socket.user.id
+    })
+  }
+
+  @Bind
+  private async onCallStart(socket: AuthenticatedSocket, data: Pick<Call, 'channel_id' | 'channel_type' | 'iv'>, cb: (call: Call | string) => void) {
+    try {
+      // check if there's already an call running for this channel
+      const callExisting = await callRepository.view({ channel_id: data.channel_id, channel_type: data.channel_type, ended_at: IsNull() })
+      if (callExisting) {
+        return cb("call is running")
+      }
+      const result = await callRepository.create({ ...data, created_by: socket.user.id })
+      const newCall = result.raw[0] as Call
+
+      // let user know about the call
+      cb(newCall)
+      // Notify channel members
+      const cps = await channelParticipantRepository.getByChannelId(data.channel_id)
+      logger.info("channel memebers", cps)
+      cps.forEach(cp => {
+        this.manager.emitToUser(cp.user_id, SocketServerEmittedEvents.CALL_STARTED, newCall)
+      })
+    } catch (error) {
+      logger.notice("failed to create call")
+      logger.error(error)
+      cb((error as Error).message)
     }
   }
 
@@ -241,6 +350,13 @@ export enum SocketClientEmittedEvents {
   // Typing Events
   TYPING_START = 'typing:start',
   TYPING_STOP = 'typing:stop',
+
+  CALL_JOIN = "call:join",
+  CALL_LEAVE = "call:leave",
+  CALL_START = 'call:start',
+
+  RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
+  RTC_ICE_CANDIDATE = "rtc:icecandiate",
 }
 export enum SocketServerEmittedEvents {
   MESSAGE_RECEIVED = 'message:received',
@@ -249,4 +365,12 @@ export enum SocketServerEmittedEvents {
   // Typing Events
   TYPING_START = 'typing:start',
   TYPING_STOP = 'typing:stop',
+
+  CALL_JOINED = 'call:joined',
+  CALL_LEFT = 'call:left',
+  CALL_STARTED = 'call:started',
+  CALL_ENDED = 'call:ended',
+
+  RTC_SESSION_DESCRIPTION = "rtc:sessiondescription",
+  RTC_ICE_CANDIDATE = "rtc:icecandiate",
 }

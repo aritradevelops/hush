@@ -11,11 +11,12 @@ import logger from "./utils/logger";
 
 const httpServer = createServer(app);
 
-socketIO.init(httpServer)
+
 
 const server = httpServer.listen(env.get('PORT'), async () => {
   await db.init();
   await hookManager.init();
+  socketIO.init(httpServer)
   if (env.get('NODE_ENV') === 'development') {
     const { Swagger } = require('./utils/swagger');
     Swagger.generate();
@@ -25,10 +26,11 @@ const server = httpServer.listen(env.get('PORT'), async () => {
 
 async function shutDown() {
   server.close(async err => {
-    await db.close();
     logger.notice('Server gracefully shutting down');
+    await socketIO.close();
+    await db.close();
 
-    logger.info(`Server stopped successfully`)
+    logger.notice(`Server stopped successfully`)
     process.exit(err ? 1 : 0);
   });
 }

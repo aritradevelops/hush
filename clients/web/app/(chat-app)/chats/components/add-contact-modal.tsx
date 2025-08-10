@@ -9,7 +9,7 @@ import { ReactQueryKeys } from '@/types/react-query';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UUID } from 'crypto';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChatSearchBar } from './chat-search-bar';
 
 interface AddContactModalProps {
@@ -31,7 +31,9 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
       return response.data;
     },
   });
-
+  useEffect(() => {
+    setSearchQuery('')
+  }, [isOpen])
   const handleAddContact = async (contactId: UUID) => {
     setAdding(contactId)
     addContact(contactId, async (ch) => {

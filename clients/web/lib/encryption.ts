@@ -209,8 +209,13 @@ export class AESGCM {
 }
 
 export class AESCTR {
-  static async encrypt(buffer: ArrayBuffer, sharedSecret: Uint8Array) {
-    const iv = crypto.getRandomValues(new Uint8Array(16)); // 16-byte IV for AES-CTR
+  static async encrypt(buffer: ArrayBuffer, sharedSecret: Uint8Array, base64IV?: string) {
+    let iv: Uint8Array
+    if (base64IV) {
+      iv = Base64Utils.decode(base64IV)
+    } else {
+      iv = crypto.getRandomValues(new Uint8Array(16)); // 16-byte IV for AES-CTR
+    }
     const key = await crypto.subtle.importKey(
       'raw',
       sharedSecret,
@@ -229,7 +234,7 @@ export class AESCTR {
       buffer
     )
 
-    return { encrypted, iv: Base64Utils.encode(iv) }
+    return { encrypted, iv: base64IV || Base64Utils.encode(iv) }
   }
   static async decrypt(encryptedData: BufferSource, base64IV: string, rawKey: Uint8Array): Promise<{ decrypted: ArrayBuffer }> {
     const key = await crypto.subtle.importKey(
