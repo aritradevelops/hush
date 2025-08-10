@@ -3,6 +3,8 @@ import { UUID } from 'crypto'
 import { Socket } from 'socket.io-client'
 import { Peer } from '@/lib/webrtc/peer'
 import { SocketServerEmittedEvent, SocketClientEmittedEvent } from '@/types/events'
+import keysManager from '@/lib/internal/keys-manager'
+import { Base64Utils } from '@/lib/base64'
 
 interface UseSocketHandlersProps {
   socket: Socket | null
@@ -25,12 +27,13 @@ export const useSocketCallHandlers = ({
 }: UseSocketHandlersProps) => {
   useEffect(() => {
     if (!socket || !call) return
+    console.log('very important', call, user)
 
     const onCallJoined = async (data: { id?: UUID, polite: boolean, existing_users?: UUID[] }) => {
       if (data.id) {
         if (peersRef.current.has(data.id)) return
         console.log(`Call: New User Joined :${data.id}`, user.id)
-        const newPeer = new Peer(data.id, data.polite, socket, userMediaRef.current, deviceMediaRef.current)
+        const newPeer = new Peer(data.id, data.polite, socket, userMediaRef.current, deviceMediaRef.current, call, Base64Utils.encode(await keysManager.getSharedSecret(call.channel_id, user.email)))
 
         await newPeer.init()
         peersRef.current.set(newPeer.id, newPeer)
@@ -42,7 +45,7 @@ export const useSocketCallHandlers = ({
         const newPeers: Peer[] = []
 
         for (const id of data.existing_users) {
-          const newPeer = new Peer(id, data.polite, socket, userMediaRef.current, deviceMediaRef.current)
+          const newPeer = new Peer(id, data.polite, socket, userMediaRef.current, deviceMediaRef.current, call, Base64Utils.encode(await keysManager.getSharedSecret(call.channel_id, user.email)))
           await newPeer.init()
           newPeers.push(newPeer)
           peersRef.current.set(id, newPeer)

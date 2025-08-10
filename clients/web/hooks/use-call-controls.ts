@@ -38,7 +38,6 @@ export const useCallControls = () => {
         for (const peer of peersRef.current.values()) {
           await peer.removeTrack(track)
         }
-
         track.stop()
         userMediaRef.current.removeTrack(track)
       }

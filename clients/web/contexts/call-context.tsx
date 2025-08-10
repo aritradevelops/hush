@@ -14,7 +14,7 @@ interface CallContextValue {
   joinCall: (call: Call) => void;
   leaveCall: (call: Call) => void;
   declineCall: (call: Call) => void;
-  startCall: (channelId: UUID, channelType: 'dm' | 'groups', cb: (callOrError: Call | string) => void) => void;
+  startCall: (channelId: UUID, channelType: 'dm' | 'group', cb: (callOrError: Call | string) => void) => void;
 }
 
 const CallContext = createContext<CallContextValue | null>(null)
@@ -69,7 +69,7 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
     window.open(`/calls/${call.id}`, '_blank')
   }
 
-  const startCall = (channelId: UUID, channelType: 'dm' | 'groups', cb: (callOrErr: string | Call) => void) => {
+  const startCall = (channelId: UUID, channelType: 'dm' | 'group', cb: (callOrErr: string | Call) => void) => {
     if (!socket) return
     socket.emit(SocketClientEmittedEvent.CALL_START, {
       channel_id: channelId, channel_type: channelType,

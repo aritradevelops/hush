@@ -34,12 +34,12 @@ export const CallControls: React.FC<CallControlsProps> = ({
         {isVideoOff ? <CameraOff /> : <Camera />}
       </div>
 
-      <div
+      {/* <div
         className='h-12 w-12 rounded-md flex justify-center items-center bg-blue-500 cursor-pointer'
         onClick={onScreenShare}
       >
         <ScreenShare />
-      </div>
+      </div> */}
 
       <div
         className='h-12 w-12 rounded-md flex justify-center items-center bg-red-500 cursor-pointer'

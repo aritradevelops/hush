@@ -13,15 +13,16 @@ import { useCallControls } from '@/hooks/use-call-controls'
 import { useSocketCallHandlers } from '@/hooks/use-socket-call-handlers'
 import { CallControls } from '@/app/(chat-app)/calls/components/call-controls'
 import { CallGrid } from '@/app/(chat-app)/calls/components/call-grid'
-import { CallConnecting, CallNotFound, CallEnded } from '@/app/(chat-app)/calls/components/call-states'
+import { CallConnecting, CallNotFound, CallEnded, CallNotSupported } from '@/app/(chat-app)/calls/components/call-states'
 import { SocketClientEmittedEvent } from '@/types/events'
+import { isEncryptionPossible } from '@/config/wetbrtc'
 
 const CallPage: React.FC = () => {
   const params = useParams()
   const callId = params.id as UUID
   const { socket } = useSocket()
   const { user } = useMe()
-
+  const isSupported = isEncryptionPossible()
   const { data: call, isLoading: isCallLoading } = useCallData(callId)
   const { devices, permissions, loading, error, refresh } = useMediaDevices()
 
@@ -46,11 +47,10 @@ const CallPage: React.FC = () => {
     setPeers,
     user
   })
-
+  if (!isSupported) return <CallNotSupported />
   if (isCallLoading || loading) return <CallConnecting />
   if (!isCallLoading && !call) return <CallNotFound />
   if (call && call.ended_at) return <CallEnded />
-
   return (
     <div className={cn('flex flex-col w-full h-full gap-2 p-5 justify-center items-center')}>
       <CallGrid

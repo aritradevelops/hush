@@ -2,6 +2,11 @@ import { RTC_CONFIG } from "@/config/wetbrtc"
 import { SocketClientEmittedEvent } from "@/types/events"
 import { UUID } from "crypto"
 import { Socket } from "socket.io-client"
+import { AESCTR } from "../encryption"
+import { Base64Utils } from "../base64"
+import { Call } from "@/types/entities"
+import { PeerWorkerMessage } from "@/types/peer-worker"
+import { WorkerMessage } from "@/types/upload-worker"
 type OnMicChangeCallback = (state: 'muted' | 'unmuted') => void
 type OnCameraChangeCallback = (state: 'muted' | 'unmuted') => void
 export class Peer {
@@ -22,14 +27,17 @@ export class Peer {
     private socket: Socket,
     private localUserMedia: MediaStream,
     private localDeviceMedia: MediaStream | null,
+    private call: Call,
+    private sharedSecret: string,
     private onMicChangeCallback: OnMicChangeCallback | null = null,
     private onCameraChangeCallback: OnCameraChangeCallback | null = null,
   ) {
     this.conn = new RTCPeerConnection(RTC_CONFIG)
     this.remoteUserMedia = new MediaStream()
     this.remoteDeviceMedia = null
-    this.worker = new window.Worker('/workers/video-decrypt.worker.ts', {
-      type: 'module'
+    this.worker = new window.Worker('/workers/peer.worker.js', {
+      type: 'module',
+      name: `${this._id}_e2ee`
     })
     this.debugLog(`Peer ${this._id} created. Polite: ${this.isPolite}`)
   }
@@ -48,6 +56,15 @@ export class Peer {
 
   async init() {
     this.debugLog('Initializing peer connection')
+
+    // Initialize the worker
+    this.worker.postMessage({
+      type: 'init',
+      data: {
+        iv: this.call.iv,
+        sharedSecret: this.sharedSecret
+      }
+    } as PeerWorkerMessage)
 
     // Initialize with existing tracks
     this.localUserMedia.getTracks().forEach(t => {
@@ -92,7 +109,7 @@ export class Peer {
       }
     }
 
-    this.conn.ontrack = ({ track, streams }) => {
+    this.conn.ontrack = ({ track, streams, receiver }) => {
       this.debugLog(`Track received from remote: ${track.kind}`)
       this.debugLog('Track streams:', streams)
       // Remove existing tracks of the same kind
@@ -104,8 +121,10 @@ export class Peer {
           oldTrack.stop()
         })
 
+
       // Add track to remote media stream
       this.remoteUserMedia.addTrack(track)
+      this.setupReceiveTransform(receiver)
 
       // Log when track ends
       // track.onended = () => {
@@ -146,7 +165,6 @@ export class Peer {
         }
       }
 
-      // Log when track becomes active
       track.onmute = () => {
         this.debugLog(`Remote track muted: ${track.kind}`)
         if (track.kind === 'video' && this.onCameraChangeCallback) {
@@ -286,8 +304,9 @@ export class Peer {
 
       // Add track to peer connection
       const sender = this.conn.addTrack(track, stream)
+      this.setupSendTransform(sender)
       this.debugLog(`Track added to peer connection: ${track.kind} (${kind})`)
-
+      await this.reNegotiate()
       // The onnegotiationneeded event should fire automatically
       // Don't manually trigger negotiation here
 
@@ -358,6 +377,44 @@ export class Peer {
     } finally {
       this.makingOffer = false
     }
+  }
+  private setupSendTransform(sender: RTCRtpSender) {
+    if (window.RTCRtpScriptTransform) {
+      this.debugLog("using RTCRtpScriptTransform")
+      sender.transform = new RTCRtpScriptTransform(this.worker, { operation: 'encrypt' });
+      return;
+    }
+
+    const senderStreams = sender.createEncodedStreams!();
+    // Instead of creating the transform stream here, we do a postMessage to the worker. The first
+    // argument is an object defined by us, the second is a list of variables that will be transferred to
+    // the worker. See
+    //   https://developer.mozilla.org/en-US/docs/Web/API/Worker/postMessage
+    const { readable, writable } = senderStreams;
+    this.worker.postMessage({
+      type: 'encrypt',
+      data: {
+        readable,
+        writable
+      }
+    } as PeerWorkerMessage, [readable, writable]);
+  }
+  private setupReceiveTransform(receiver: RTCRtpReceiver) {
+    if (window.RTCRtpScriptTransform) {
+      this.debugLog("using RTCRtpScriptTransform")
+      receiver.transform = new RTCRtpScriptTransform(this.worker, { operation: 'decrypt' });
+      return;
+    }
+
+    const receiverStreams = receiver.createEncodedStreams!();
+    const { readable, writable } = receiverStreams;
+    this.worker.postMessage({
+      type: 'decrypt',
+      data: {
+        readable,
+        writable
+      }
+    } as PeerWorkerMessage, [readable, writable]);
   }
 
   close() {

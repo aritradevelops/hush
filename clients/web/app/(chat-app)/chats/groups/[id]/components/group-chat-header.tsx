@@ -1,10 +1,30 @@
+import { Button } from "@/components/ui/button";
+import { useCall } from "@/contexts/call-context";
 import { useMe } from "@/contexts/user-context";
-import { GroupDetails } from "@/types/entities";
+import { Call, GroupDetails } from "@/types/entities";
 
 export function GroupChatHeader({ group }: { group?: GroupDetails }) {
   const { user } = useMe();
+  const { call, ongoingCalls, startCall, joinCall } = useCall()
   if (!group) {
     return <ChatHeaderSkeleton />
+  }
+  const localCall: Call | null = ongoingCalls.find(c => c.call.channel_id === group.id)?.call || null
+  console.log(ongoingCalls)
+  const handleCLick = () => {
+    if (localCall) {
+      // join the call
+      joinCall(localCall)
+    } else {
+      // start new call
+      startCall(group.id, 'group', (callOrErr) => {
+        if (typeof callOrErr == 'string') {
+          alert(callOrErr)
+        } else {
+          joinCall(callOrErr)
+        }
+      })
+    }
   }
   return (<div className="border-b p-4">
     <div className="flex items-center gap-4">
@@ -20,6 +40,15 @@ export function GroupChatHeader({ group }: { group?: GroupDetails }) {
         <p className="text-sm text-muted-foreground truncate">
           {group.group_members.filter(member => member.user_id !== user.id).map((member) => member.contact?.nickname || member.user.name).join(", ")}
         </p>
+      </div>
+      <div className="ml-auto">
+        <Button
+          onClick={handleCLick}
+          className="bg-green-500 border-2 border-b-green-800 border-r-green-800 hover:bg-green-500"
+        >
+          {localCall ? 'Join Call' : 'Start Call'}
+        </Button>
+
       </div>
     </div>
   </div>)
