@@ -17,3 +17,5 @@
     and if other users fails to decrypt message (due to old key being present in cache)
     then update the cache to fetch the new key
 [ ] if user is not added then not able to join the call (clients/web/app/(chat-app)/calls/components/peer-video.tsx:42)
+[ ] when remote peer leaves the call my screen gets black
+[ ] add contact modal showing multiple entries of same person
