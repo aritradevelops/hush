@@ -25,14 +25,14 @@ export class KeysManager {
     await this.indexDb.set(keyId, key)
   }
   async getSharedSecret(channelId: UUID, identifier: string) {
-    // console.log('Getting shared secret for channel', channelId)
+    // console.debug('Getting shared secret for channel', channelId)
     const secretStr = await this.indexDb.get<string>(`${this.SHARED_SECRET_IDENTIFIER}_${channelId}`)
-    // console.log('Shared secret found', secretStr)
+    // console.debug('Shared secret found', secretStr)
     if (secretStr) return Base64Utils.decode(secretStr)
-    // console.log('Shared secret not found, getting from server')
+    // console.debug('Shared secret not found, getting from server')
 
     const response = await httpClient.getSharedSecret(channelId)
-    // console.log('Shared secret response', response)
+    // console.debug('Shared secret response', response)
     const encryptedSharedSecret = response.data.encrypted_shared_secret
     const encryptionKey = await this.getEncryptionKey(identifier)
     if (!encryptionKey) throw new Error("Encryption key not found")

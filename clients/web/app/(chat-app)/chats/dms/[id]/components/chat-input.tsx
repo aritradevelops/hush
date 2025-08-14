@@ -9,10 +9,12 @@ import { Chat, ChatMedia, ChatMediaStatus, DmDetails, UserChatInteractionStatus 
 import { ReactQueryKeys } from "@/types/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
-import { Paperclip, Smile } from "lucide-react";
+import { Paperclip, Send, Smile } from "lucide-react";
 import { useRef, useState } from "react";
 import * as uuid from "uuid";
 import EmojiPicker, { Theme } from "emoji-picker-react"
+import { useScreen } from "@/contexts/screen-context";
+import { cn } from "@/lib/utils";
 export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDetails, files: File[], discardFiles: () => void, openDropZone: () => void }) {
   let [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -21,6 +23,7 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
   const { user } = useMe()
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient()
+  const { isMobile } = useScreen()
   if (!dm) return <ChatInputSkeleton />
   const handleSendMessage = async () => {
     setOpenEmojiPicker(false)
@@ -67,7 +70,7 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
       }
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, dm.id],
         (oldData: { pages: ApiListResponseSuccess<Chat & { ucis?: UserChatInteractionStatus[] }>[], pageParams: number[] }) => {
-          console.log('chat', chat)
+          console.debug('chat', chat)
           return {
             pages: [{ ...oldData.pages[0], data: [chat, ...oldData.pages[0].data] }],
             pageParams: oldData.pageParams
@@ -111,7 +114,7 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
   return (
     <div className="border-t p-4">
 
-      <div className="flex gap-2 relative">
+      <div className={cn("flex  relative", isMobile ? "gap-1" : "gap-2")}>
         {openEmojiPicker && <div className="absolute bottom-[80px] ">
           <EmojiPicker theme={Theme.AUTO} onEmojiClick={({ emoji }) => {
             setMessage(m => m + emoji)
@@ -139,11 +142,12 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
           disabled={dm.has_blocked}
         />
         <button
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 cursor-pointer"
+          className={cn("bg-primary text-primary-foreground  py-2 rounded-lg hover:bg-primary/90 cursor-pointer", isMobile ? "px-2" : "px-4")}
           onClick={handleSendMessage}
           disabled={dm.has_blocked}
         >
-          {sending ? 'Sending...' : 'Send'}
+          {/* saving some space here for mobile */}
+          {isMobile ? <Send /> : sending ? 'Sending...' : 'Send'}
         </button>
       </div>
     </div>

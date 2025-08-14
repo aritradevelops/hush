@@ -9,11 +9,13 @@ import { ReactQueryKeys } from "@/types/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
 import { promises } from "dns";
-import { Paperclip, Smile } from "lucide-react";
+import { Paperclip, Send, Smile } from "lucide-react";
 import { useRef, useState } from "react";
 import { blob } from "stream/consumers";
 import * as uuid from "uuid";
 import EmojiPicker, { Theme } from "emoji-picker-react"
+import { useScreen } from "@/contexts/screen-context";
+import { cn } from "@/lib/utils";
 
 
 export function GroupChatInput({ group, files, discardFiles, openDropZone }: { group?: GroupDetails, files: File[], discardFiles: () => void, openDropZone: () => void }) {
@@ -22,6 +24,7 @@ export function GroupChatInput({ group, files, discardFiles, openDropZone }: { g
   const [openEmojiPicker, setOpenEmojiPicker] = useState(false)
   const { sendMessage, emitTypingStart, emitTypingStop } = useSocket()
   const { user } = useMe()
+  const { isMobile } = useScreen()
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient()
   if (!group) return <ChatInputSkeleton />
@@ -112,7 +115,7 @@ export function GroupChatInput({ group, files, discardFiles, openDropZone }: { g
   };
   return (
     <div className="border-t p-4">
-      <div className="flex gap-2 relative">
+      <div className={cn("flex  relative", isMobile ? "gap-1" : "gap-2")}>
         {openEmojiPicker && <div className="absolute bottom-[80px] ">
           <EmojiPicker theme={Theme.AUTO} onEmojiClick={({ emoji }) => {
             setMessage(m => m + emoji)
@@ -140,11 +143,12 @@ export function GroupChatInput({ group, files, discardFiles, openDropZone }: { g
           disabled={group.has_left}
         />
         <button
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 cursor-pointer"
+          className={cn("bg-primary text-primary-foreground  py-2 rounded-lg hover:bg-primary/90 cursor-pointer", isMobile ? "px-2" : "px-4")}
           onClick={handleSendMessage}
           disabled={group.has_left || sending}
         >
-          {sending ? 'Sending...' : 'Send'}
+          {/* saving some space here for mobile */}
+          {isMobile ? <Send /> : sending ? 'Sending...' : 'Send'}
         </button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { ChannelPreview } from '@/app/(chat-app)/chats/components/channel-preview';
 import { FilterType } from '@/app/(chat-app)/chats/components/chat-filters';
+import { useScreen } from '@/contexts/screen-context';
 import { UUID } from 'crypto';
 
 interface ChatListSectionProps {
@@ -10,6 +11,7 @@ interface ChatListSectionProps {
 }
 
 export const ChatListSection = ({ channels, activeFilter, activeChatId, setActiveChatId }: ChatListSectionProps) => {
+  const { isMobile } = useScreen()
   const getSectionTitle = () => {
     switch (activeFilter) {
       case 'all': return 'All Chats';
@@ -41,6 +43,8 @@ export const ChatListSection = ({ channels, activeFilter, activeChatId, setActiv
             setActiveChatId={setActiveChatId}
           />
         ))}
+        {/* for mobile render a extra div so that user can scroll to the last chat */}
+        {isMobile && <div className='h-16'></div>}
       </div>
     </div>
   );

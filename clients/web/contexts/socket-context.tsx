@@ -36,12 +36,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       });
 
       socket.current.on(SocketServerEmittedEvent.CONNECT, () => {
-        console.log('Connected to socket server');
+        console.debug('Connected to socket server');
         setIsConnected(true);
       });
 
       socket.current.on(SocketServerEmittedEvent.DISCONNECT, () => {
-        console.log('Disconnected from socket server');
+        console.debug('Disconnected from socket server');
         setIsConnected(false);
       });
     }
@@ -65,7 +65,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
   const sendMessage = (chat: NewChatPaylod) => {
     if (!socket.current) return;
-    console.log('sending message', chat)
+    console.debug('sending message', chat)
     socket.current.emit(SocketClientEmittedEvent.MESSAGE_SEND, chat);
   };
 

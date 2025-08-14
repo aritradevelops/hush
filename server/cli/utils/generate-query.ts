@@ -15,7 +15,7 @@ function initializeQueryDirectory() {
       fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
     }
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-    console.log("✅ Queries directory re-initialized.");
+    console.debug("✅ Queries directory re-initialized.");
   } catch (error) {
     console.error("❌ Error initializing queries directory:", error);
   }
@@ -56,7 +56,7 @@ export function generateQuery() {
       // Write generated TypeScript class to file
       const outputFilePath = path.join(OUTPUT_DIR, `${dir.name}.query.ts`);
       fs.writeFileSync(outputFilePath, queryClass.generate());
-      console.log(`✅ Successfully generated: ${outputFilePath}`);
+      console.debug(`✅ Successfully generated: ${outputFilePath}`);
     }
   } catch (error) {
     console.error("❌ Error generating queries:", error);

@@ -17,7 +17,7 @@ export const useChatSocket = (activeChatId: UUID | null) => {
     if (!socket) return;
 
     socket.emit(SocketClientEmittedEvent.CHANNEL_SEEN, { channel_id: activeChatId });
-    console.log('emitting channel seen', activeChatId);
+    console.debug('emitting channel seen', activeChatId);
 
     function updateMessageStatus(message: Chat, ucis?: UserChatInteraction[]) {
       queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
@@ -58,17 +58,17 @@ export const useChatSocket = (activeChatId: UUID | null) => {
     }
 
     function onMessage(message: Chat & { ucis: UserChatInteraction[] }, cb: ({ status, event }: { status: UserChatInteractionStatus, event: string }) => void) {
-      console.log('new message received', message, message.channel_id, activeChatId);
+      console.debug('new message received', message, message.channel_id, activeChatId);
 
       if (message.created_by === user.id && message.channel_id === activeChatId) {
         updateMessageStatus(message, message.ucis);
       } else {
         if (message.channel_id !== activeChatId) {
-          console.log('emitting delivered');
+          console.debug('emitting delivered');
           cb({ status: UserChatInteractionStatus.DELIVERED, event: 'delivered' });
           queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.CHANNEL_OVERVIEW] });
         } else {
-          console.log('emitting seen', UserChatInteractionStatus.SEEN);
+          console.debug('emitting seen', UserChatInteractionStatus.SEEN);
           cb({ status: UserChatInteractionStatus.SEEN, event: 'seen' });
           queryClient.setQueryData([ReactQueryKeys.DIRECT_MESSAGES_CHATS, message.channel_id],
             (oldData: { pages: ApiListResponseSuccess<Chat & { ucis: UserChatInteractionStatus[] }>[], pageParams: number[] }) => {
@@ -108,7 +108,7 @@ export const useChatSocket = (activeChatId: UUID | null) => {
               ...updatedMessages[foundMessageIndex],
               ucis: updatedMessages[foundMessageIndex].ucis?.map(uci => {
                 if (uci.created_by === message.updated_by || uci.updated_by === message.updated_by) {
-                  console.log('updating uci', typeof status);
+                  console.debug('updating uci', typeof status);
                   return {
                     ...uci,
                     status: status,
@@ -132,13 +132,13 @@ export const useChatSocket = (activeChatId: UUID | null) => {
     }
 
     function onMessageDelivered(message: UserChatInteraction & { chat_id: UUID }) {
-      console.log('message delivered', message);
+      console.debug('message delivered', message);
       if (message.channel_id !== activeChatId) return;
       updateSpecificMessageStatus(message, UserChatInteractionStatus.DELIVERED);
     }
 
     function onMessageSeen(message: UserChatInteraction & { chat_id: UUID }) {
-      console.log('message seen', message);
+      console.debug('message seen', message);
       if (message.channel_id !== activeChatId) return;
       updateSpecificMessageStatus(message, UserChatInteractionStatus.SEEN);
     }

@@ -31,7 +31,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.raw({ limit: 10 * 1 << 20 }))
 app.use(cookieParser());
 if (env.get('APP_ENV') === 'local' && env.get('MEDIA_PROVIDER') === 'localfs') {
-  console.log('here')
+  console.debug('here')
   app.use('/uploads', express.static(path.join(process.cwd(), '/uploads'), {
     acceptRanges: true,
     lastModified: true,

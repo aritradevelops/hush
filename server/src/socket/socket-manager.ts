@@ -37,7 +37,7 @@ export class SocketManager {
 
   emitToUser(userId: string, ...ev: Parameters<Socket["emit"]>) {
     if (!this.connections.has(userId)) return
-    console.log(ev[0], this.connections.get(userId)?.map(s => s.user.id))
+    console.debug(ev[0], this.connections.get(userId)?.map(s => s.user.id))
     for (const s of this.connections.get(userId)!) {
       s.emit(...ev)
     }

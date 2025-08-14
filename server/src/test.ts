@@ -21,4 +21,4 @@ const ASCII_ART = `
   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝╚═╝                       
 `;
 
-console.log(ASCII_ART);
+console.debug(ASCII_ART);

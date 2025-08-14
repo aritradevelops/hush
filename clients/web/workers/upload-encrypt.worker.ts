@@ -32,10 +32,10 @@ self.onmessage = async (e: MessageEvent<UploadMessage>) => {
       }
 
       const multipartRes = await res.json()
-      // console.log('Encrypted file size:', encrypted.byteLength)
+      // console.debug('Encrypted file size:', encrypted.byteLength)
 
       const parts = Math.ceil(encrypted.byteLength / CHUNK_SIZE)
-      // console.log('Number of parts:', parts)
+      // console.debug('Number of parts:', parts)
 
       const partPromises: Array<Promise<any>> = []
 
@@ -44,7 +44,7 @@ self.onmessage = async (e: MessageEvent<UploadMessage>) => {
         const end = Math.min((i + 1) * CHUNK_SIZE, encrypted.byteLength)
         const chunk = encrypted.slice(start, end)
 
-        // console.log(`Part ${i + 1}: ${start}-${end - 1} (${chunk.byteLength} bytes)`)
+        // console.debug(`Part ${i + 1}: ${start}-${end - 1} (${chunk.byteLength} bytes)`)
         const params = new URLSearchParams({
           'path': multipartRes.data.path,
           'multipart_id': multipartRes.data.multipart_id,
@@ -66,7 +66,7 @@ self.onmessage = async (e: MessageEvent<UploadMessage>) => {
               return res.json()
             })
             .then(data => {
-              // console.log(`Part ${i + 1} uploaded:`, data)
+              // console.debug(`Part ${i + 1} uploaded:`, data)
               return data
             })
             .catch(error => {
@@ -77,7 +77,7 @@ self.onmessage = async (e: MessageEvent<UploadMessage>) => {
       }
 
       await Promise.all(partPromises)
-      // console.log('All parts uploaded successfully')
+      // console.debug('All parts uploaded successfully')
 
       // Complete multipart upload
       const result = await fetch(apiUrl + '/v1/chat-media/multipart-end', {
@@ -96,7 +96,7 @@ self.onmessage = async (e: MessageEvent<UploadMessage>) => {
       }
 
       const finalResult: { data: ChatMedia, error: string, message: string } = await result.json()
-      // console.log('Upload completed:', finalResult)
+      // console.debug('Upload completed:', finalResult)
       self.postMessage({
         type: 'final',
         data: finalResult.data,
@@ -131,14 +131,14 @@ self.onmessage = async (e: MessageEvent<UploadMessage>) => {
     })
     const res: Promise<any> = new Promise(r => {
       xhr.addEventListener("load", function () {
-        // console.log(xhr.status)
-        // console.log(xhr.responseText)
+        // console.debug(xhr.status)
+        // console.debug(xhr.responseText)
         r(JSON.parse(xhr.responseText))
       })
     })
     xhr.send(encrypted)
     const { data, error } = await res
-    // console.log(data, error)
+    // console.debug(data, error)
     self.postMessage({
       type: "final",
       error: error,

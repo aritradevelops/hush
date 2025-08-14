@@ -1,3 +1,4 @@
+import { useScreen } from "@/contexts/screen-context";
 import { Plus, PlusSquare, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -8,7 +9,7 @@ export function FilesPreview({ files, discardFiles, openFileDialog }: {
 }) {
   const [showAll, setShowAll] = useState(false);
   const [gridConfig, setGridConfig] = useState({ columns: 4, maxVisible: 7 });
-
+  const { isMobile } = useScreen()
   // Responsive grid configuration
   const getGridConfig = () => {
     if (typeof window === 'undefined') return { columns: 4, maxVisible: 7 };
@@ -108,7 +109,7 @@ export function FilesPreview({ files, discardFiles, openFileDialog }: {
 
   const handleRemoveFile = (indexToRemove: number) => {
     // This function would need to communicate with the parent component
-    console.log('Remove file at index:', indexToRemove);
+    console.debug('Remove file at index:', indexToRemove);
   };
 
   const getFilePreview = (file: File) => {
@@ -223,11 +224,11 @@ export function FilesPreview({ files, discardFiles, openFileDialog }: {
         </div>
 
         {/* Center: Info/Prompt */}
-        <span className="flex items-center text-muted-foreground text-sm select-none whitespace-nowrap gap-1">
+        {!isMobile && <span className="flex items-center text-muted-foreground text-sm select-none whitespace-nowrap gap-1">
           Drag to add more
           <span aria-hidden="true" className="font-semibold opacity-40 px-1">·</span>
           or use
-        </span>
+        </span>}
 
         {/* Right: Action Buttons */}
         <div className="flex items-center gap-2 flex-shrink-0">

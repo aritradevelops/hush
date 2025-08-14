@@ -2,6 +2,8 @@ import { ChatFilters, FilterType } from '@/app/(chat-app)/chats/components/chat-
 import { ChatHeader } from './chat-header';
 import { ChatListContent } from './chat-list-content';
 import { UUID } from 'crypto';
+import { useScreen } from '@/contexts/screen-context';
+import { cn } from '@/lib/utils';
 
 interface ChatSidebarProps {
   activeFilter: FilterType;
@@ -28,8 +30,9 @@ export const ChatSidebar = ({
   activeChatId,
   setActiveChatId
 }: ChatSidebarProps) => {
+  const { isMobile } = useScreen()
   return (
-    <div className="w-[400px] border-r flex flex-col h-full">
+    <div className={cn("border-r flex flex-col h-full", isMobile ? 'w-full' : 'w-[400px]')}>
       <div className="p-4">
         <ChatHeader
           searchQuery={searchQuery}

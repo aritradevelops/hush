@@ -69,11 +69,11 @@ const CallPage: React.FC = () => {
         onEndCall={() => {
           if (!socket) refresh
           socket?.emit(SocketClientEmittedEvent.CALL_LEAVE, call)
-          console.log('Call: emitting call leave')
+          console.debug('Call: emitting call leave')
         }}
         onScreenShare={() => {
           // Handle screen share logic
-          console.log('Screen share clicked')
+          console.debug('Screen share clicked')
         }}
       />
     </div>

@@ -4,11 +4,12 @@ import { ChatHeader } from "@/app/(chat-app)/chats/dms/[id]/components/chat-head
 import { ChatInput } from "@/app/(chat-app)/chats/dms/[id]/components/chat-input"
 import { Attachments } from "@/components/internal/attachements"
 import { FilesPreview } from "@/components/internal/file-preview"
+import { Button } from "@/components/ui/button"
 import httpClient from "@/lib/http-client"
 import { ReactQueryKeys } from "@/types/react-query"
 import { useQuery } from "@tanstack/react-query"
 import { UUID } from "crypto"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useEffect } from "react"
 export default function DMPage() {
   const params = useParams()
@@ -18,11 +19,13 @@ export default function DMPage() {
     queryFn: () => httpClient.getDmDetails(chatId as UUID),
     select: (data) => data.data
   })
+  const router = useRouter()
 
   if (!dmLoading && !dm) {
     return <div className="flex-1 flex flex-col h-full">
-      <div className="text-center text-muted-foreground h-full flex items-center justify-center">
-        Chat not found
+      <div className="text-center text-muted-foreground h-full flex items-center justify-center flex-col gap-4">
+        <h1 className="text-3xl">Nothing Right Here</h1>
+        <Button onClick={() => router.back()} className="block">Go Back</Button>
       </div>
     </div>
   }

@@ -29,6 +29,8 @@ export default function Menu() {
 }
 
 const MobileMenu = () => {
+  const pathname = usePathname()
+  if (pathname.startsWith('/chats/') || pathname.startsWith('/calls/')) return
   return (
     <div className='fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border'>
       <div className='h-full max-w-4xl mx-auto flex items-center justify-around'>

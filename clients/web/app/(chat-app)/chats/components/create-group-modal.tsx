@@ -77,7 +77,7 @@ export function CreateGroupModal({ isOpen, onClose }: CreateGroupModalProps) {
     try {
       const memberIds = selectedContacts.map(contact => contact.user_id);
       createGroup({ name: groupName.trim(), description: groupDescription.trim(), memberIds }, async (group: { id: UUID }) => {
-        console.log('callback', group)
+        console.debug('callback', group)
         // Generate a shared secret for the group
         const sharedSecret = AESGCM.generateKey();
         const publicKeys = await httpClient.listPublicKeysForUsers(memberIds);

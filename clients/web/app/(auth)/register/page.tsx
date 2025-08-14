@@ -12,12 +12,14 @@ import { RegisterSchema } from "@/schemas/auth"
 import { useForm } from "@/hooks/use-form"
 import httpClient, { HttpClient } from "@/lib/http-client-old"
 import { getFacebookOauthUrl, getGoogleOauthUrl } from "@/lib/oauth-helper"
+import { useScreen } from "@/contexts/screen-context"
 
 export default function RegisterPage() {
+  const { isMobile } = useScreen()
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Branding Section */}
-      <div className="relative flex flex-col items-center justify-center bg-gradient-to-b from-primary/20 to-primary/5 p-8 text-center md:w-1/2">
+      {!isMobile && <div className="relative flex flex-col items-center justify-center bg-gradient-to-b from-primary/20 to-primary/5 p-8 text-center md:w-1/2">
         <div className="relative z-10 max-w-md">
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-2 text-2xl font-bold">
@@ -62,7 +64,7 @@ export default function RegisterPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Registration Form Section */}
       <div className="flex flex-1 items-center justify-center p-8 md:w-1/2">

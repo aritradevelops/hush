@@ -34,15 +34,15 @@ export function ChatsBody({ dm }: { dm?: DmDetails }) {
   useEffect(() => {
     if (!socket) return
     function onTypingStart({ channel_id, user_id }: { channel_id: UUID, user_id: UUID }) {
-      console.log('Typing start');
+      console.debug('Typing start');
       if (channel_id !== chatId) return
-      console.log('here')
+      console.debug('here')
       setIsTyping(true)
     }
     function onTypingStop({ channel_id, user_id }: { channel_id: UUID, user_id: UUID }) {
-      console.log('Typing stop');
+      console.debug('Typing stop');
       if (channel_id !== chatId) return
-      console.log('here2')
+      console.debug('here2')
       setIsTyping(false)
     }
     socket.on(SocketServerEmittedEvent.TYPING_START, onTypingStart)
