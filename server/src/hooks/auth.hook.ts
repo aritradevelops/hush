@@ -18,7 +18,7 @@ class AuthHook extends Hook {
     // logger.info("I was called before");
   }
   after(req: Request, res: Response, data: any): void {
-    // console.log("I was called after", data);
+    // console.debug("I was called after", data);
   }
 }
 export class SignUp extends AuthHook {

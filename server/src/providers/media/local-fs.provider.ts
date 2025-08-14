@@ -58,7 +58,7 @@ export class LocalFsProvider implements MediaProvider {
       tempDir: tempPath
     });
 
-    console.log(`Multipart upload initialized: ${uploadId} for path: ${path}`);
+    console.debug(`Multipart upload initialized: ${uploadId} for path: ${path}`);
     return { id: uploadId };
   }
 
@@ -76,7 +76,7 @@ export class LocalFsProvider implements MediaProvider {
       // Store part info in memory
       upload.parts.set(partNumber, content);
 
-      console.log(`Part ${partNumber} uploaded for upload ${id} (${content.length} bytes)`);
+      console.debug(`Part ${partNumber} uploaded for upload ${id} (${content.length} bytes)`);
       return true;
     } catch (error) {
       console.error(`Failed to upload part ${partNumber}:`, error);
@@ -117,7 +117,7 @@ export class LocalFsProvider implements MediaProvider {
       // Cleanup: remove temporary files and directory
       await this.cleanupMultipartUpload(id);
 
-      console.log(`Multipart upload completed: ${id} -> ${upload.path}`);
+      console.debug(`Multipart upload completed: ${id} -> ${upload.path}`);
       return true;
     } catch (error) {
       console.error(`Failed to complete multipart upload ${id}:`, error);
@@ -138,7 +138,7 @@ export class LocalFsProvider implements MediaProvider {
       // Write file
       await fsPromises.writeFile(fullPath, data);
 
-      console.log(`File uploaded: ${fullPath} (${data.length} bytes)`);
+      console.debug(`File uploaded: ${fullPath} (${data.length} bytes)`);
       return true;
     } catch (error) {
       console.error(`Failed to upload file ${path}:`, error);
@@ -168,7 +168,7 @@ export class LocalFsProvider implements MediaProvider {
     try {
       const fullPath = this.getFullPath(path);
       await fsPromises.unlink(fullPath);
-      console.log(`File deleted: ${fullPath}`);
+      console.debug(`File deleted: ${fullPath}`);
       return true;
     } catch (error) {
       console.error(`Failed to delete file ${path}:`, error);
@@ -196,7 +196,7 @@ export class LocalFsProvider implements MediaProvider {
       // Remove from memory
       this.multipartUploads.delete(uploadId);
 
-      console.log(`Cleaned up multipart upload: ${uploadId}`);
+      console.debug(`Cleaned up multipart upload: ${uploadId}`);
     } catch (error) {
       console.error(`Failed to cleanup multipart upload ${uploadId}:`, error);
     }
@@ -212,7 +212,7 @@ export class LocalFsProvider implements MediaProvider {
         const age = now - stats.birthtimeMs;
 
         if (age > maxAge) {
-          console.log(`Cleaning up orphaned upload: ${uploadId} (age: ${age}ms)`);
+          console.debug(`Cleaning up orphaned upload: ${uploadId} (age: ${age}ms)`);
           await this.cleanupMultipartUpload(uploadId);
         }
       } catch (error) {

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useCall } from "@/contexts/call-context";
+import { useScreen } from "@/contexts/screen-context";
 import { useSocket } from "@/contexts/socket-context";
 import { Base64Utils } from "@/lib/base64";
 import { DirectMessage, Contact, User, DmDetails, Call } from "@/types/entities";
@@ -7,16 +8,19 @@ import { SocketClientEmittedEvent } from "@/types/events";
 import { ReactQueryKeys } from "@/types/react-query";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
 import { useQueryClient } from "@tanstack/react-query";
-import { UserX, UserPlus } from "lucide-react";
+import { UserX, UserPlus, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function ChatHeader({ dm }: { dm?: DmDetails }) {
   const { addContact, socket } = useSocket()
   const queryClient = useQueryClient()
   const { call, ongoingCalls, startCall, joinCall } = useCall()
+  const { isMobile } = useScreen()
+  const router = useRouter()
   if (!dm) return <ChatHeaderSkeleton />
   const localCall: Call | null = ongoingCalls.find(c => c.call.channel_id === dm.id)?.call || null
-  console.log(ongoingCalls)
+  console.debug(ongoingCalls)
   const handleAddContact = () => {
     addContact(dm.chat_user.id, () => {
       queryClient.invalidateQueries({ queryKey: [ReactQueryKeys.DIRECT_MESSAGE_DETAILS, dm.id] })
@@ -25,7 +29,7 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
 
   const handleBlockUser = () => {
     // Block user functionality
-    console.log('Block user:', dm.chat_user.id)
+    console.debug('Block user:', dm.chat_user.id)
   }
 
   const handleCLick = () => {
@@ -46,6 +50,9 @@ export function ChatHeader({ dm }: { dm?: DmDetails }) {
   return (
     <div className="border-b p-4">
       <div className="flex items-center gap-4">
+        {isMobile && <button type="button" onClick={() => router.back()}>
+          <ArrowLeft />
+        </button>}
         <img
           src={dm.chat_user.dp || `https://api.dicebear.com/7.x/avataaars/svg?seed=${dm.chat_user.name}`}
           alt={dm.chat_user.name}

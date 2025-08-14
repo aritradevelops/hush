@@ -22,7 +22,7 @@ export const PeerVideo: React.FC<PeerVideoProps> = ({ peer }) => {
     })
 
     peer.onCameraChange((s) => {
-      console.log('changing state')
+      console.debug('changing state')
       setIsVideoOff(s === 'muted')
     })
 
@@ -46,7 +46,7 @@ export const PeerVideo: React.FC<PeerVideoProps> = ({ peer }) => {
       </div>
     )
   }
-  console.log('re rendering', isAudioOff, isVideoOff)
+  console.debug('re rendering', isAudioOff, isVideoOff)
 
   return (
     <div className="relative flex justify-center items-center rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 w-full h-full min-h-0 overflow-hidden aspect-video">
@@ -73,10 +73,10 @@ export const PeerVideo: React.FC<PeerVideoProps> = ({ peer }) => {
               playsInline
               autoPlay
               onLoadedMetadata={() => {
-                console.log(`✅ audio metadata loaded for peer ${peer.id}`)
+                console.debug(`✅ audio metadata loaded for peer ${peer.id}`)
               }}
               onPlaying={() => {
-                console.log(`▶️ audio playing for peer ${peer.id}`)
+                console.debug(`▶️ audio playing for peer ${peer.id}`)
               }}
               onError={(e) => {
                 console.error(`❌ audio error for peer ${peer.id}:`, e)
@@ -90,10 +90,10 @@ export const PeerVideo: React.FC<PeerVideoProps> = ({ peer }) => {
           playsInline
           autoPlay
           onLoadedMetadata={() => {
-            console.log(`✅ Video metadata loaded for peer ${peer.id}`)
+            console.debug(`✅ Video metadata loaded for peer ${peer.id}`)
           }}
           onPlaying={() => {
-            console.log(`▶️ Video playing for peer ${peer.id}`)
+            console.debug(`▶️ Video playing for peer ${peer.id}`)
           }}
           onError={(e) => {
             console.error(`❌ Video error for peer ${peer.id}:`, e)

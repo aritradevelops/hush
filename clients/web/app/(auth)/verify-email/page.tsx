@@ -8,12 +8,14 @@ import Link from 'next/link';
 import { SiTicktick } from 'react-icons/si';
 import { RxCrossCircled } from 'react-icons/rx';
 import httpClient from '@/lib/http-client-old';
+import { useScreen } from '@/contexts/screen-context';
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
   const hash = searchParams.get('hash');
   const router = useRouter();
   const [verified, setVerified] = useState<boolean | null>(null);
+  const { isMobile } = useScreen()
 
   useEffect(() => {
     if (!hash) {
@@ -40,7 +42,7 @@ export default function VerifyEmailPage() {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Branding Section */}
-      <div className="relative flex flex-col items-center justify-center bg-gradient-to-b from-primary/20 to-primary/5 p-8 text-center md:w-1/2">
+      {!isMobile && <div className="relative flex flex-col items-center justify-center bg-gradient-to-b from-primary/20 to-primary/5 p-8 text-center md:w-1/2">
         <div className="relative z-10 max-w-md">
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-2 text-2xl font-bold">
@@ -85,7 +87,7 @@ export default function VerifyEmailPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
 
       {verified ? <VerificationSuccess /> : <VerificationFailure />}
     </div>

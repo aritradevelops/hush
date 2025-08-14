@@ -1,9 +1,14 @@
+'use client'
+import { useScreen } from '@/contexts/screen-context'
+import { cn } from '@/lib/utils'
 import React from 'react'
 
 export default function Page() {
+  const { isMobile } = useScreen()
+
   return (
     <div className="w-full flex flex-col items-center justify-center h-[100dvh] bg-background text-center">
-      <div className="inline-flex items-center gap-4 text-6xl">
+      <div className={cn("inline-flex items-center gap-4", isMobile ? 'text-3xl' : 'text-6xl')}>
         <ConstructionIcon className="h-16 w-16" />
         <span>Under Construction</span>
       </div>

@@ -27,12 +27,12 @@ export const useSocketCallHandlers = ({
 }: UseSocketHandlersProps) => {
   useEffect(() => {
     if (!socket || !call) return
-    console.log('very important', call, user)
+    console.debug('very important', call, user)
 
     const onCallJoined = async (data: { id?: UUID, polite: boolean, existing_users?: UUID[] }) => {
       if (data.id) {
         if (peersRef.current.has(data.id)) return
-        console.log(`Call: New User Joined :${data.id}`, user.id)
+        console.debug(`Call: New User Joined :${data.id}`, user.id)
         const newPeer = new Peer(data.id, data.polite, socket, userMediaRef.current, deviceMediaRef.current, call, Base64Utils.encode(await keysManager.getSharedSecret(call.channel_id, user.email)))
 
         await newPeer.init()
@@ -41,7 +41,7 @@ export const useSocketCallHandlers = ({
       }
 
       if (data.existing_users) {
-        console.log(`Call: Existing users :${data.existing_users}`)
+        console.debug(`Call: Existing users :${data.existing_users}`)
         const newPeers: Peer[] = []
 
         for (const id of data.existing_users) {
@@ -55,7 +55,7 @@ export const useSocketCallHandlers = ({
     }
 
     const onCallLeft = async (data: { from: UUID }) => {
-      console.log(`Call: User ${data.from} left the call`)
+      console.debug(`Call: User ${data.from} left the call`)
       if (!peersRef.current.has(data.from)) return
       const peer = peersRef.current.get(data.from)!
       peersRef.current.delete(data.from)
@@ -64,7 +64,7 @@ export const useSocketCallHandlers = ({
     }
 
     const onSessionDescription = async (data: { description: RTCSessionDescription, from: UUID }) => {
-      console.log('received session description', data.description.type)
+      console.debug('received session description', data.description.type)
       const peer = peersRef.current.get(data.from)
       if (!peer) {
         console.warn(`Peer ${data.from} not found!`)
@@ -89,11 +89,11 @@ export const useSocketCallHandlers = ({
 
     // join call
     socket.emit(SocketClientEmittedEvent.CALL_JOIN, call)
-    console.log('Call: emitting call join')
+    console.debug('Call: emitting call join')
     window.onbeforeunload = (e) => {
       // leave call
       socket.emit(SocketClientEmittedEvent.CALL_LEAVE, call)
-      console.log('Call: emitting call leave')
+      console.debug('Call: emitting call leave')
     }
     return () => {
       socket.off(SocketServerEmittedEvent.CALL_JOINED, onCallJoined)
@@ -102,7 +102,7 @@ export const useSocketCallHandlers = ({
       socket.off(SocketServerEmittedEvent.CALL_LEFT, onCallLeft)
       // leave call
       socket.emit(SocketClientEmittedEvent.CALL_LEAVE, call)
-      console.log('Call: emitting call leave')
+      console.debug('Call: emitting call leave')
     }
   }, [socket, call, peersRef, userMediaRef, deviceMediaRef, setPeers, user])
 }

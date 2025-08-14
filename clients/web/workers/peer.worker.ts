@@ -38,7 +38,7 @@ function dump(encodedFrame: any, direction: 'send' | 'receive', max = 16) {
     bytes += (data[j] < 16 ? '0' : '') + data[j].toString(16) + ' ';
   }
   const metadata = encodedFrame.getMetadata();
-  console.log(performance.now().toFixed(2), direction, bytes.trim(),
+  console.debug(performance.now().toFixed(2), direction, bytes.trim(),
     'len=' + encodedFrame.data.byteLength,
     'type=' + (encodedFrame.type || 'audio'),
     'ts=' + (metadata.rtpTimestamp || encodedFrame.timestamp),
@@ -55,7 +55,7 @@ self.onmessage = (event: MessageEvent<PeerWorkerMessage>) => {
       sharedSecret = event.data.data.sharedSecret
       iv = event.data.data.iv
       isInitialized = true
-      console.log(sharedSecret, iv)
+      console.debug(sharedSecret, iv)
       break
     }
     case 'encrypt': {

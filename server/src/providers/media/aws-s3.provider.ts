@@ -23,7 +23,7 @@ export class AwsS3Provider implements MediaProvider {
     return pathM.join(this.pathToDir, path)
   }
   async multipartInit(path: string) {
-    console.log(this.getFullPath(path))
+    console.debug(this.getFullPath(path))
     const response = await this.client.send(new CreateMultipartUploadCommand({
       Bucket: this.bucketName,
       Key: this.getFullPath(path)

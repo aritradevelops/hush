@@ -38,11 +38,11 @@ export class SocketController {
     })
 
     socket.on(SocketClientEmittedEvents.TYPING_START, (data) => {
-      console.log(socket.user.id + ' started typing on channel :' + data.channel_id)
+      console.debug(socket.user.id + ' started typing on channel :' + data.channel_id)
       this.onTypingStart(socket, data)
     })
     socket.on(SocketClientEmittedEvents.TYPING_STOP, (data) => {
-      console.log(socket.user.id + ' stopped typing on channel :' + data.channel_id)
+      console.debug(socket.user.id + ' stopped typing on channel :' + data.channel_id)
       this.onTypingStop(socket, data)
     })
     socket.on(SocketClientEmittedEvents.GROUP_CREATE, (data, callback) => {

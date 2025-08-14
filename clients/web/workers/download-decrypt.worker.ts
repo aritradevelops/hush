@@ -2,7 +2,7 @@ import { ChatMedia } from "@/types/entities";
 const CHUNK_SIZE = 1 << 20 // 1 MB
 self.onmessage = (e: MessageEvent<{ media: ChatMedia, sharedSecret: Uint8Array }>) => {
   const { media, sharedSecret } = e.data
-  console.log('ssd', Base64Utils.encode(sharedSecret))
+  console.debug('ssd', Base64Utils.encode(sharedSecret))
   const partLen = Math.ceil(media.file_size / CHUNK_SIZE)
   const partPromises: Promise<ArrayBuffer>[] = []
 

@@ -17,7 +17,7 @@ export class ChatMediaService extends CrudService<ChatMediaRepository> {
     this.mediaProvider = mediaProviderFactory.provider
   }
   private getFullPath(data: ChatMedia) {
-    console.log(data)
+    console.debug(data)
     return path.join(this.directory, data.channel_id, data.id)
   }
   async multipartInit(req: Request, res: Response, data: ChatMedia) {

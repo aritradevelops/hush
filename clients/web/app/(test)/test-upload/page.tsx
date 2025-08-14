@@ -24,7 +24,7 @@ export default function Page() {
   const handleUpload = async () => {
     const fileInput = fileInputRef.current
     if (!fileInput?.files || fileInput.files.length === 0) {
-      console.log('No file selected')
+      console.debug('No file selected')
       return
     }
 
@@ -51,7 +51,7 @@ export default function Page() {
           sharedSecret: sharedSecret
         })
         uploadWorker.addEventListener("message", e => {
-          console.log(e)
+          console.debug(e)
           uploadWorker.terminate()
           res(e.data)
         })

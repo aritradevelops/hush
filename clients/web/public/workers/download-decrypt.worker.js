@@ -1,7 +1,7 @@
 const CHUNK_SIZE = 1 << 20; // 1 MB
 self.onmessage = (e) => {
     const { media, sharedSecret } = e.data;
-    console.log('ssd', Base64Utils.encode(sharedSecret));
+    console.debug('ssd', Base64Utils.encode(sharedSecret));
     const partLen = Math.ceil(media.file_size / CHUNK_SIZE);
     const partPromises = [];
     for (let i = 0; i < partLen; i++) {

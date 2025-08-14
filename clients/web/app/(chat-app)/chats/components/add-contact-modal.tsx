@@ -39,7 +39,7 @@ export function AddContactModal({ isOpen, onClose }: AddContactModalProps) {
     addContact(contactId, async (ch) => {
       const sharedSecret = AESGCM.generateKey();
       const publicKeys = await httpClient.listPublicKeysForUsers([user.id, contactId])
-      console.log('public keys received', publicKeys)
+      console.debug('public keys received', publicKeys)
       for (const publicKey of publicKeys.data) {
         const encryptedSharedSecret = await RSAKeyPair.encryptWithPublicKey(sharedSecret, publicKey.key);
         await httpClient.createSharedSecret({

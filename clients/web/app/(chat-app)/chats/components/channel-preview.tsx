@@ -31,6 +31,7 @@ function MessagePreview({ lastChat, channelId }: { lastChat: ChannelOverview['la
             message={lastChat.encrypted_message}
             channel_id={channelId}
             iv={lastChat.iv}
+            truncate
           />
         )
       }

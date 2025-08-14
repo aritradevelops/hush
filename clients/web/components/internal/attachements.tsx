@@ -20,7 +20,7 @@ export function Attachments({ children, channelId }: AttachmentsProps) {
   const [files, setFiles] = React.useState<File[]>([]);
   const [isDragging, setIsDragging] = React.useState(false);
   const handleDrop = (acceptedFiles: File[]) => {
-    console.log('Accepted files:', acceptedFiles);
+    console.debug('Accepted files:', acceptedFiles);
     setFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
     setIsDragging(false);
   };
@@ -50,7 +50,7 @@ export function Attachments({ children, channelId }: AttachmentsProps) {
         sharedSecret: sharedSecret
       })
       uploadWorker.addEventListener("message", e => {
-        console.log(e)
+        console.debug(e)
         uploadWorker.terminate()
       })
     }

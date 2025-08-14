@@ -10,12 +10,14 @@ import { Label } from "@/components/ui/label"
 import { useForm } from "@/hooks/use-form"
 import httpClient from "@/lib/http-client-old"
 import { ForgotPasswordSchema } from "@/schemas/auth"
+import { useScreen } from "@/contexts/screen-context"
 
 export default function ForgotPasswordPage() {
+  const { isMobile } = useScreen()
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Branding Section */}
-      <div className="relative flex flex-col items-center justify-center bg-gradient-to-b from-primary/20 to-primary/5 p-8 text-center md:w-1/2">
+      {!isMobile && <div className="relative flex flex-col items-center justify-center bg-gradient-to-b from-primary/20 to-primary/5 p-8 text-center md:w-1/2">
         <div className="relative z-10 max-w-md">
           <div className="flex justify-center mb-6">
             <div className="flex items-center gap-2 text-2xl font-bold">
@@ -60,7 +62,7 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Form Section */}
       <div className="flex flex-1 items-center justify-center p-8 md:w-1/2">

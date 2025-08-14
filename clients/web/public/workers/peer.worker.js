@@ -31,7 +31,7 @@ function dump(encodedFrame, direction, max = 16) {
         bytes += (data[j] < 16 ? '0' : '') + data[j].toString(16) + ' ';
     }
     const metadata = encodedFrame.getMetadata();
-    console.log(performance.now().toFixed(2), direction, bytes.trim(), 'len=' + encodedFrame.data.byteLength, 'type=' + (encodedFrame.type || 'audio'), 'ts=' + (metadata.rtpTimestamp || encodedFrame.timestamp), 'ssrc=' + metadata.synchronizationSource, 'pt=' + (metadata.payloadType || '(unknown)'), 'mimeType=' + (metadata.mimeType || '(unknown)'));
+    console.debug(performance.now().toFixed(2), direction, bytes.trim(), 'len=' + encodedFrame.data.byteLength, 'type=' + (encodedFrame.type || 'audio'), 'ts=' + (metadata.rtpTimestamp || encodedFrame.timestamp), 'ssrc=' + metadata.synchronizationSource, 'pt=' + (metadata.payloadType || '(unknown)'), 'mimeType=' + (metadata.mimeType || '(unknown)'));
 }
 // Handler for messages, including transferable streams.
 self.onmessage = (event) => {
@@ -40,7 +40,7 @@ self.onmessage = (event) => {
             sharedSecret = event.data.data.sharedSecret;
             iv = event.data.data.iv;
             isInitialized = true;
-            console.log(sharedSecret, iv);
+            console.debug(sharedSecret, iv);
             break;
         }
         case 'encrypt': {
