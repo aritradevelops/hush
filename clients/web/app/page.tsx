@@ -1,5 +1,7 @@
+"use client"
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from "react"
 import {
   Shield,
   Lock,
@@ -13,10 +15,21 @@ import {
   Download,
   ChevronRight,
   GithubIcon,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-8">
@@ -51,25 +64,90 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="flex md:hidden">
-            <Button variant="ghost" size="sm" className="px-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6"
-              >
-                <path d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="px-2"
+              onClick={toggleMobileMenu}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6"
+                >
+                  <path d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+              )}
               <span className="sr-only">Toggle Menu</span>
             </Button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container px-4 py-4 space-y-4 mx-auto">
+              <nav className="flex flex-col space-y-4 text-sm font-medium">
+                <Link
+                  href="#features"
+                  className="transition-colors hover:text-foreground/80 py-2"
+                  onClick={closeMobileMenu}
+                >
+                  Features
+                </Link>
+                <Link
+                  href="#security"
+                  className="transition-colors hover:text-foreground/80 py-2"
+                  onClick={closeMobileMenu}
+                >
+                  Security
+                </Link>
+                {/* <Link 
+                  href="#testimonials" 
+                  className="transition-colors hover:text-foreground/80 py-2"
+                  onClick={closeMobileMenu}
+                >
+                  Testimonials
+                </Link>
+                <Link 
+                  href="#download" 
+                  className="transition-colors hover:text-foreground/80 py-2"
+                  onClick={closeMobileMenu}
+                >
+                  Download
+                </Link> */}
+              </nav>
+              <div className="flex flex-col space-y-2 pt-4 border-t">
+                <Link href={"https://github.com/aritradevelops/hush"} target="_blank" className="flex items-center gap-2">
+                  <Button variant="secondary" size="sm" className="w-full justify-center">
+                    <GithubIcon className="h-4 w-4" />
+                    GitHub
+                  </Button>
+                </Link>
+                <Link href={"/register"}>
+                  <Button variant="secondary" size="sm" className="w-full justify-center">
+                    Register
+                  </Button>
+                </Link>
+                <Link href={"/login"}>
+                  <Button size="sm" className="w-full justify-center">
+                    Log in
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-b from-background to-muted">
