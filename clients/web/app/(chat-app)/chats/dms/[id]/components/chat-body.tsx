@@ -12,14 +12,22 @@ import { SocketClientEmittedEvent, SocketServerEmittedEvent } from "@/types/even
 import { ReactQueryKeys } from "@/types/react-query"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
 import { UUID } from "crypto"
-import { Check, CheckCheck, Clock, User } from "lucide-react"
+import { Check, CheckCheck, Clock, User, Reply } from "lucide-react"
 import { useParams } from "next/navigation"
 import { use, useCallback, useEffect, useRef, useState } from "react"
+import { useSwipeable } from "react-swipeable"
 //! NOTE: per page should be at least a number that overflows the chat body 
 //! else the scroll bar won't show and infinite scroll won't work
 // TODO: figure out a solution for this
 const PER_PAGE = 25
-export function ChatsBody({ dm }: { dm?: DmDetails }) {
+
+// Add this interface for reply functionality
+interface ReplyContext {
+  message: Chat & { ucis?: UserChatInteraction[] } & { attachments?: ChatMedia[] };
+  onReply: (message: Chat & { ucis?: UserChatInteraction[] } & { attachments?: ChatMedia[] }) => void;
+}
+
+export function ChatsBody({ dm, setReplyingTo }: { dm?: DmDetails, setReplyingTo: (replyingTo: Chat | null) => void }) {
   // --- State and refs ---
   const params = useParams();
   const chatId = params.id as UUID;
@@ -30,6 +38,13 @@ export function ChatsBody({ dm }: { dm?: DmDetails }) {
   const { socket } = useSocket();
   const [isTyping, setIsTyping] = useState(false);
   const queryClient = useQueryClient();
+
+  // Handle reply action
+  const handleReply = useCallback((message: Chat & { ucis?: UserChatInteraction[] } & { attachments?: ChatMedia[] }) => {
+    setReplyingTo(message);
+    // You can add additional logic here like scrolling to input or showing reply UI
+  }, []);
+
   // --- Socket event handlers ---
   useEffect(() => {
     if (!socket) return
@@ -131,7 +146,7 @@ export function ChatsBody({ dm }: { dm?: DmDetails }) {
       )}
       {
         uniqueMessages.map(m => {
-          return <ChatMessage key={m.id} message={m} dm={dm} />
+          return <ChatMessage key={m.id} message={m} dm={dm} onReply={handleReply} />
         })
       }
       {/* <MessageList messages={uniqueMessages} dm={dm} onMarkerRef={el => { newMessagesRef.current = el; }} /> */}
@@ -147,29 +162,81 @@ export function ChatsBody({ dm }: { dm?: DmDetails }) {
 
 export function ChatMessage({
   message,
-  dm
+  dm,
+  onReply
 }: {
   message: Chat & { ucis?: UserChatInteraction[] } & { attachments?: ChatMedia[] },
-  dm: DmDetails
+  dm: DmDetails,
+  onReply: (message: Chat & { ucis?: UserChatInteraction[] } & { attachments?: ChatMedia[] }) => void
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isSwiped, setIsSwiped] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
   const isOwnMessage = message.created_by !== dm.chat_user.id;
+
+  const handlers = useSwipeable({
+    onSwiping: (eventData) => {
+      if (isOwnMessage) {
+        // Own messages can only swipe LEFT (negative deltaX)
+        if (eventData.deltaX < 0) {
+          const offset = Math.max(eventData.deltaX, -80); // cap at -80px
+          setSwipeOffset(offset);
+          setIsSwiped(Math.abs(offset) > 20);
+        }
+      } else {
+        // Others’ messages can only swipe RIGHT (positive deltaX)
+        if (eventData.deltaX > 0) {
+          const offset = Math.min(eventData.deltaX, 80); // cap at +80px
+          setSwipeOffset(offset);
+          setIsSwiped(offset > 20);
+        }
+      }
+    },
+    onSwiped: (eventData) => {
+      let validSwipe = false;
+
+      if (isOwnMessage && eventData.deltaX < -40) {
+        validSwipe = true;
+      } else if (!isOwnMessage && eventData.deltaX > 40) {
+        validSwipe = true;
+      }
+
+      if (validSwipe) {
+        onReply(message);
+      }
+
+      // Reset after swipe
+      setTimeout(() => {
+        setSwipeOffset(0);
+        setIsSwiped(false);
+      }, 300);
+    },
+    trackMouse: true,
+    preventScrollOnSwipe: true,
+    delta: 40,
+    swipeDuration: 500,
+  });
 
   return (
     <div
       className={cn(
-        "w-full flex items-center gap-2 py-1",
+        "w-full flex items-center gap-2 py-1 cursor-grab relative",
         isOwnMessage ? "justify-end" : "justify-start"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       id={message.id}
+      style={{
+        transform: `translateX(${swipeOffset}px)`,
+        transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none'
+      }}
+      {...handlers}
     >
-      {/* Timestamp for sent messages (appears on the left of own messages) */}
-      {isOwnMessage && isHovered && (
-        <span className="text-xs text-muted-foreground opacity-80 self-center min-w-16 text-right">
-          {formatTime(message.created_at)}
-        </span>
+      {/* Reply indicator that appears when swiped */}
+      {isSwiped && !isOwnMessage && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 flex items-center gap-2 text-white px-3 py-2 rounded-lg shadow-lg">
+          <Reply className="w-4 h-4" />
+        </div>
       )}
 
       {/* Message bubble */}
@@ -181,6 +248,18 @@ export function ChatMessage({
             : "bg-primary text-primary-foreground rounded-tl-none"
         )}
       >
+        {message.reply && <div
+          className="w-full p-2 mb-2 flex items-center justify-self-start border-l-2 border-l-blue-700 rounded-lg bg-blue-700/40 cursor-pointer"
+          onClick={() => {
+            document.getElementById(message.reply?.id as string)?.scrollIntoView({ behavior: 'smooth' })
+          }}
+        >
+          <EncryptedMessage
+            channel_id={message.reply.channel_id}
+            iv={message.reply.iv}
+            message={message.reply.encrypted_message}
+          />
+        </div>}
         {(message.attachments && !!message.attachments.length) && <ShowAttachments attachments={message.attachments} />}
         <EncryptedMessage
           message={message.encrypted_message}
@@ -201,12 +280,11 @@ export function ChatMessage({
           {isOwnMessage && <ShowStatus ucis={message.ucis} />}
         </span>
       </div>
-
-      {/* Timestamp for received messages (appears on the right of others' messages) */}
-      {!isOwnMessage && isHovered && (
-        <span className="text-xs text-muted-foreground opacity-80 self-center min-w-16 text-left">
-          {formatTime(message.created_at)}
-        </span>
+      {/* Reply indicator that appears when swiped */}
+      {isSwiped && isOwnMessage && (
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 flex items-center gap-2 text-white px-3 py-2 rounded-lg shadow-lg">
+          <Reply className="w-4 h-4" />
+        </div>
       )}
     </div>
   );

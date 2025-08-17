@@ -129,12 +129,13 @@ export class SocketController {
   }
   @Bind
   private async onMessageSend(socket: AuthenticatedSocket, data:
-    { id: UUID, channel_id: UUID, encrypted_message: string, iv: string, created_at: string, attachments: ChatMedia[] }) {
+    { id: UUID, channel_id: UUID, encrypted_message: string, iv: string, created_at: string, attachments: ChatMedia[], replied_to?: UUID | undefined }) {
     const insertResult = await chatRepository.create({
       id: data.id,
       channel_id: data.channel_id,
       encrypted_message: data.encrypted_message,
       iv: data.iv,
+      replied_to: data.replied_to,
       created_at: new Date(data.created_at),
       created_by: socket.user.id
     })

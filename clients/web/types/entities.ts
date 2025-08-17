@@ -17,6 +17,7 @@ export type Chat = PrimaryColumns & {
   encrypted_message: string;
   iv: string;
   channel_id: UUID;
+  reply: Chat | null
 }
 
 // Contact
