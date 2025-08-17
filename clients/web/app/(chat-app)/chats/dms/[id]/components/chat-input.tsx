@@ -9,13 +9,14 @@ import { Chat, ChatMedia, ChatMediaStatus, DmDetails, UserChatInteractionStatus 
 import { ReactQueryKeys } from "@/types/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { UUID } from "crypto";
-import { Paperclip, Send, Smile } from "lucide-react";
-import { useRef, useState } from "react";
+import { Paperclip, Send, Smile, XIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import * as uuid from "uuid";
 import EmojiPicker, { Theme } from "emoji-picker-react"
 import { useScreen } from "@/contexts/screen-context";
 import { cn } from "@/lib/utils";
-export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDetails, files: File[], discardFiles: () => void, openDropZone: () => void }) {
+import { EncryptedMessage } from "@/components/internal/encrypted-message";
+export function ChatInput({ dm, files, discardFiles, openDropZone, replyingTo, setReplyingTo }: { dm?: DmDetails, files: File[], discardFiles: () => void, openDropZone: () => void, replyingTo: Chat | null, setReplyingTo: (replyingTo: Chat | null) => void }) {
   let [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [openEmojiPicker, setOpenEmojiPicker] = useState(false)
@@ -24,6 +25,12 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const queryClient = useQueryClient()
   const { isMobile } = useScreen()
+  const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (replyingTo && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [replyingTo])
   if (!dm) return <ChatInputSkeleton />
   const handleSendMessage = async () => {
     setOpenEmojiPicker(false)
@@ -44,6 +51,8 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
         channel_id: dm.id,
         encrypted_message: encrypted,
         iv: iv,
+        replied_to: replyingTo?.id,
+        reply: replyingTo ?? null,
         created_at: new Date().toISOString(),
         created_by: user.id,
         status: UserChatInteractionStatus.SENDING,
@@ -80,6 +89,9 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
       // set files empty
       discardFiles()
 
+      // clear reply
+      setReplyingTo(null)
+
       // upload synchronously then
       const result = await Promise.all(uploadPromises)
       // @ts-ignore
@@ -111,9 +123,11 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
       emitTypingStop(dm.id)
     }, 1000); // Stops detecting after 1 second of inactivity
   };
-  return (
-    <div className="border-t p-4">
 
+
+  return (
+    <div className="border-t p-2">
+      {replyingTo && <ReplyPreview chat={replyingTo} discard={() => { setReplyingTo(null) }} />}
       <div className={cn("flex  relative", isMobile ? "gap-1" : "gap-2")}>
         {openEmojiPicker && <div className="absolute bottom-[80px] ">
           <EmojiPicker theme={Theme.AUTO} onEmojiClick={({ emoji }) => {
@@ -140,6 +154,7 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
           onFocus={() => setOpenEmojiPicker(false)}
           value={message}
           disabled={dm.has_blocked}
+          ref={inputRef}
         />
         <button
           className={cn("bg-primary text-primary-foreground  py-2 rounded-lg hover:bg-primary/90 cursor-pointer", isMobile ? "px-2" : "px-4")}
@@ -154,9 +169,23 @@ export function ChatInput({ dm, files, discardFiles, openDropZone }: { dm?: DmDe
   )
 }
 
+export function ReplyPreview({ chat, discard }: { chat: Chat, discard: () => void }) {
+  return (
+    <div className="w-full p-2 mb-2 flex items-center justify-around border-l-2 rounded-lg border-l-blue-700 bg-gradient-to-r from-blue-700/30 via-blue-500/15 to-transparent">
+      <EncryptedMessage
+        channel_id={chat.channel_id}
+        iv={chat.iv}
+        message={chat.encrypted_message}
+        className="flex-1"
+      />
+      <XIcon className="ml-2 cursor-pointer" onClick={discard} />
+    </div>
+  )
+}
+
 export function ChatInputSkeleton() {
   return (
-    <div className="border-t p-4">
+    <div className="border-t p-2">
       <div className="flex gap-2">
         <div className="flex-1 h-16 rounded-lg bg-accent animate-pulse" />
         <div className="h-16 rounded-lg bg-accent animate-pulse" />

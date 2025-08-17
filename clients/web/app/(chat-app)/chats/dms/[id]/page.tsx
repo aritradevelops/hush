@@ -32,17 +32,17 @@ export default function DMPage() {
 
   return (
     <Attachments channelId={chatId}>
-      {({ files, discardFiles, upload, openDropZone, openFileDialog }) => (
+      {({ files, discardFiles, upload, openDropZone, openFileDialog, replyingTo, setReplyingTo }) => (
         <>
           <ChatHeader dm={dm} />
           {dm && (
             files.length > 0 ? (
               <FilesPreview files={files} discardFiles={discardFiles} openFileDialog={openFileDialog} />
             ) : (
-              <ChatsBody dm={dm} />
+              <ChatsBody dm={dm} setReplyingTo={setReplyingTo} />
             )
           )}
-          <ChatInput dm={dm} files={files} discardFiles={discardFiles} openDropZone={openDropZone} />
+          <ChatInput dm={dm} files={files} discardFiles={discardFiles} openDropZone={openDropZone} replyingTo={replyingTo} setReplyingTo={setReplyingTo} />
         </>
       )}
     </Attachments>

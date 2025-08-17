@@ -7,6 +7,8 @@ import Dropzone from "react-dropzone";
 
 interface AttachmentsProps {
   children: (props: {
+    replyingTo: Chat | null,
+    setReplyingTo: (replyingTo: Chat | null) => void,
     files: File[],
     discardFiles: () => void
     upload: (chat: Chat, sharedSecret: Uint8Array) => Promise<void>
@@ -18,6 +20,7 @@ interface AttachmentsProps {
 
 export function Attachments({ children, channelId }: AttachmentsProps) {
   const [files, setFiles] = React.useState<File[]>([]);
+  const [replyingTo, setReplyingTo] = React.useState<Chat | null>(null)
   const [isDragging, setIsDragging] = React.useState(false);
   const handleDrop = (acceptedFiles: File[]) => {
     console.debug('Accepted files:', acceptedFiles);
@@ -92,7 +95,7 @@ export function Attachments({ children, channelId }: AttachmentsProps) {
             </div>
 
           )}
-          {children({ files, discardFiles, upload, openDropZone, openFileDialog: open })}
+          {children({ files, discardFiles, upload, openDropZone, openFileDialog: open, replyingTo, setReplyingTo })}
         </div>
       )}
     </Dropzone>
