@@ -173,7 +173,6 @@ export class Peer {
         if (track.kind === 'audio' && this.onMicChangeCallback) {
           this.onMicChangeCallback('muted')
         }
-
       }
       track.onunmute = () => {
         if (track.kind === 'video' && this.onCameraChangeCallback) {
@@ -306,7 +305,7 @@ export class Peer {
       const sender = this.conn.addTrack(track, stream)
       this.setupSendTransform(sender)
       this.debugLog(`Track added to peer connection: ${track.kind} (${kind})`)
-      await this.reNegotiate()
+      // await this.reNegotiate()
       // The onnegotiationneeded event should fire automatically
       // Don't manually trigger negotiation here
 
@@ -324,6 +323,7 @@ export class Peer {
     try {
       const sender = this.conn.getSenders().find(s => s.track === track)
       if (sender) {
+        track.stop()
         this.conn.removeTrack(sender)
         this.debugLog(`Track removed from peer connection: ${track.kind}`)
 
