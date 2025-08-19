@@ -66,7 +66,7 @@ const CallContextProvider = ({ children }: { children: React.ReactNode }) => {
   const joinCall = (call: Call) => {
     log("Joining call: ", call)
     setCall(call)
-    window.open(`/calls/${call.id}`, '_blank')
+    window.open(`/calls-new/${call.id}`, '_blank')
   }
 
   const startCall = (channelId: UUID, channelType: 'dm' | 'group', cb: (callOrErr: string | Call) => void) => {

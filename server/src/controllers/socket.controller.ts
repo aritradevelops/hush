@@ -69,6 +69,14 @@ export class SocketController {
       this.onRTCICECandidate(socket, data)
     })
 
+    // Mic/Camera toggle events
+    socket.on(SocketClientEmittedEvents.CALL_MIC, (data) => {
+      this.onCallMicToggle(socket, data)
+    })
+    socket.on(SocketClientEmittedEvents.CALL_CAMERA, (data) => {
+      this.onCallCameraToggle(socket, data)
+    })
+
     socket.on('disconnect', (r) => this.onDisconnect(r, socket))
   }
   @Bind
@@ -286,6 +294,36 @@ export class SocketController {
   }
 
   @Bind
+  private async onCallMicToggle(
+    socket: AuthenticatedSocket,
+    data: { channel_id: UUID; state: 'muted' | 'unmuted' }
+  ) {
+    const participants = await channelParticipantRepository.getByChannelId(data.channel_id)
+    for (const p of participants) {
+      this.manager.emitToUser(p.user_id, SocketServerEmittedEvents.CALL_MIC, {
+        channel_id: data.channel_id,
+        state: data.state,
+        from: socket.user.id,
+      })
+    }
+  }
+
+  @Bind
+  private async onCallCameraToggle(
+    socket: AuthenticatedSocket,
+    data: { channel_id: UUID; state: 'muted' | 'unmuted' }
+  ) {
+    const participants = await channelParticipantRepository.getByChannelId(data.channel_id)
+    for (const p of participants) {
+      this.manager.emitToUser(p.user_id, SocketServerEmittedEvents.CALL_CAMERA, {
+        channel_id: data.channel_id,
+        state: data.state,
+        from: socket.user.id,
+      })
+    }
+  }
+
+  @Bind
   private async onCallStart(socket: AuthenticatedSocket, data: Pick<Call, 'channel_id' | 'channel_type' | 'iv'>, cb: (call: Call | string) => void) {
     try {
       // check if there's already an call running for this channel
@@ -358,6 +396,10 @@ export enum SocketClientEmittedEvents {
 
   RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
   RTC_ICE_CANDIDATE = "rtc:icecandiate",
+
+  // Call control events
+  CALL_MIC = 'call:mic',
+  CALL_CAMERA = 'call:camera',
 }
 export enum SocketServerEmittedEvents {
   MESSAGE_RECEIVED = 'message:received',
@@ -374,4 +416,8 @@ export enum SocketServerEmittedEvents {
 
   RTC_SESSION_DESCRIPTION = "rtc:sessiondescription",
   RTC_ICE_CANDIDATE = "rtc:icecandiate",
+
+  // Call control events
+  CALL_MIC = 'call:mic',
+  CALL_CAMERA = 'call:camera',
 }

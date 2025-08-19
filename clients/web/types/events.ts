@@ -43,6 +43,10 @@ export enum SocketClientEmittedEvent {
   RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
   RTC_ICE_CANDIDATE = "rtc:icecandiate",
 
+  // Call control events
+  CALL_MIC = 'call:mic',
+  CALL_CAMERA = 'call:camera',
+
 
 }
 
@@ -66,4 +70,8 @@ export enum SocketServerEmittedEvent {
 
   RTC_SESSCION_DESCRIPTION = "rtc:sessiondescription",
   RTC_ICE_CANDIDATE = "rtc:icecandiate",
+
+  // Call control events
+  CALL_MIC = 'call:mic',
+  CALL_CAMERA = 'call:camera',
 }
