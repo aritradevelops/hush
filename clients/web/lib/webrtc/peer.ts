@@ -421,8 +421,8 @@ export class Peer {
     this.debugLog('Closing peer connection')
 
     // Stop all tracks
-    this.localUserMedia.getTracks().forEach(track => track.stop())
-    this.localDeviceMedia?.getTracks().forEach(track => track.stop())
+    this.remoteUserMedia.getTracks().forEach(track => track.stop())
+    this.remoteDeviceMedia?.getTracks().forEach(track => track.stop())
 
     // Close connection
     this.conn.close()
