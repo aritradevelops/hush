@@ -29,7 +29,7 @@ export function StartUpContextProvider({ children }: { children: React.ReactNode
     if (user) {
       // Use email as a unique identifier for the key storage
       secretManager.getEncryptionKey(user.email).then(data => {
-        console.debug("Retrieved encryption key:", data)
+        console.debug("Retrieved encryption key successfully")
         if (!data) {
           setShowEncryptionModal(true)
         } else {
