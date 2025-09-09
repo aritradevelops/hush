@@ -1,13 +1,14 @@
 import { constants } from "./constants";
 
 export const RTC_CONFIG: RTCConfiguration = {
-  encodedInsertableStreams: true,
+  encodedInsertableStreams: !constants.DISABLE_STREAM_ENCRYPTION,
   iceServers: [
     { urls: constants.STUN_SERVER_URLS }
   ]
 }
 
 export const isEncryptionPossible = () => {
+  if (constants.DISABLE_STREAM_ENCRYPTION) return true
   let hasEnoughAPIs = !!window.RTCRtpScriptTransform;
 
   if (!hasEnoughAPIs) {

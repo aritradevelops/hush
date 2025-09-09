@@ -8,6 +8,7 @@ import { Call } from "@/types/entities"
 import { PeerWorkerMessage } from "@/types/peer-worker"
 import { WorkerMessage } from "@/types/upload-worker"
 import { getFormattedTimestamp } from "../time"
+import { constants } from "@/config/constants"
 type OnMicChangeCallback = (state: 'muted' | 'unmuted') => void
 type OnCameraChangeCallback = (state: 'muted' | 'unmuted') => void
 export class Peer {
@@ -410,6 +411,7 @@ export class Peer {
     }
   }
   private setupSendTransform(sender: RTCRtpSender) {
+    if (constants.DISABLE_STREAM_ENCRYPTION) return true
     if (window.RTCRtpScriptTransform) {
       this.debugLog("using RTCRtpScriptTransform")
       sender.transform = new RTCRtpScriptTransform(this.worker, { operation: 'encrypt' });
@@ -431,6 +433,7 @@ export class Peer {
     } as PeerWorkerMessage, [readable, writable]);
   }
   private setupReceiveTransform(receiver: RTCRtpReceiver) {
+    if (constants.DISABLE_STREAM_ENCRYPTION) return true
     if (window.RTCRtpScriptTransform) {
       this.debugLog("using RTCRtpScriptTransform")
       receiver.transform = new RTCRtpScriptTransform(this.worker, { operation: 'decrypt' });
