@@ -138,3 +138,5 @@ FROM
     LIMIT
       1
   ) AS last_chat ON true
+ORDER BY
+  last_chat.created_at DESC NULLS LAST;
