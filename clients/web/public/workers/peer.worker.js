@@ -24,14 +24,14 @@ const frameTypeToCryptoOffset = {
     delta: 3,
     undefined: 1,
 };
-function dump(encodedFrame, direction, max = 16) {
+function dump(encodedFrame, direction, mode, max = 16) {
     const data = new Uint8Array(encodedFrame.data);
     let bytes = '';
     for (let j = 0; j < data.length && j < max; j++) {
         bytes += (data[j] < 16 ? '0' : '') + data[j].toString(16) + ' ';
     }
     const metadata = encodedFrame.getMetadata();
-    console.debug(performance.now().toFixed(2), direction, bytes.trim(), 'len=' + encodedFrame.data.byteLength, 'type=' + (encodedFrame.type || 'audio'), 'ts=' + (metadata.rtpTimestamp || encodedFrame.timestamp), 'ssrc=' + metadata.synchronizationSource, 'pt=' + (metadata.payloadType || '(unknown)'), 'mimeType=' + (metadata.mimeType || '(unknown)'));
+    console.debug(performance.now().toFixed(2), mode, direction, bytes.trim(), 'len=' + encodedFrame.data.byteLength, 'type=' + (encodedFrame.type || 'audio'), 'ts=' + (metadata.rtpTimestamp || encodedFrame.timestamp), 'ssrc=' + metadata.synchronizationSource, 'pt=' + (metadata.payloadType || '(unknown)'), 'mimeType=' + (metadata.mimeType || '(unknown)'));
 }
 // Handler for messages, including transferable streams.
 self.onmessage = (event) => {
@@ -50,12 +50,18 @@ self.onmessage = (event) => {
             const transformStream = new TransformStream({
                 async transform(chunk, controller) {
                     // Dump first 30 frames
-                    if (frameCount++ < 30) {
-                        dump(chunk, 'send');
+                    if (frameCount++ % 5 == 0) {
+                        dump(chunk, 'send', 'before');
                     }
-                    // Encrypt `chunk.data` with AES
-                    const { encrypted } = await AESCTR.encrypt(chunk.data, Base64Utils.decode(sharedSecret), iv);
-                    chunk.data = encrypted;
+                    if (frameCount > 15) {
+                        // Encrypt `chunk.data` with AES
+                        const { encrypted } = await AESCTR.encrypt(chunk.data, Base64Utils.decode(sharedSecret), iv);
+                        chunk.data = encrypted;
+                    }
+                    // Dump first 30 frames
+                    if (frameCount++ % 5 == 0) {
+                        dump(chunk, 'send', 'after');
+                    }
                     controller.enqueue(chunk);
                 },
             });
@@ -70,13 +76,17 @@ self.onmessage = (event) => {
             let frameCount = 0;
             const transformStream = new TransformStream({
                 async transform(chunk, controller) {
-                    if (frameCount++ < 30) {
-                        dump(chunk, 'receive');
+                    if (frameCount++ % 5 == 0) {
+                        dump(chunk, 'receive', 'before');
                     }
-                    // Decrypt `chunk.data` with AES
-                    const { decrypted } = await AESCTR.decrypt(chunk.data, iv, Base64Utils.decode(sharedSecret));
-                    chunk.data = decrypted;
+                    if (frameCount > 15) { // Decrypt `chunk.data` with AES
+                        const { decrypted } = await AESCTR.decrypt(chunk.data, iv, Base64Utils.decode(sharedSecret));
+                        chunk.data = decrypted;
+                    }
                     // Dump first 30 frames
+                    if (frameCount++ % 5 == 0) {
+                        dump(chunk, 'receive', 'after');
+                    }
                     controller.enqueue(chunk);
                 },
             });
@@ -100,12 +110,14 @@ if (self.RTCTransformEvent) {
                 const transformStream = new TransformStream({
                     async transform(chunk, controller) {
                         // Dump first 30 frames
-                        if (frameCount++ < 30) {
-                            dump(chunk, 'send');
+                        if (frameCount++ % 5 == 0) {
+                            dump(chunk, 'send', 'before');
                         }
-                        // Encrypt `chunk.data` with AES
-                        const { encrypted } = await AESCTR.encrypt(chunk.data, Base64Utils.decode(sharedSecret), iv);
-                        chunk.data = encrypted;
+                        if (frameCount > 15) {
+                            // Encrypt `chunk.data` with AES
+                            const { encrypted } = await AESCTR.encrypt(chunk.data, Base64Utils.decode(sharedSecret), iv);
+                            chunk.data = encrypted;
+                        }
                         controller.enqueue(chunk);
                     },
                 });
@@ -121,12 +133,13 @@ if (self.RTCTransformEvent) {
                 const transformStream = new TransformStream({
                     async transform(chunk, controller) {
                         // Dump first 30 frames
-                        if (frameCount++ < 30) {
-                            dump(chunk, 'receive');
+                        if (frameCount++ % 5 == 0) {
+                            dump(chunk, 'receive', 'after');
                         }
-                        // Decrypt `chunk.data` with AES
-                        const { decrypted } = await AESCTR.decrypt(chunk.data, iv, Base64Utils.decode(sharedSecret));
-                        chunk.data = decrypted;
+                        if (frameCount > 15) { // Decrypt `chunk.data` with AES
+                            const { decrypted } = await AESCTR.decrypt(chunk.data, iv, Base64Utils.decode(sharedSecret));
+                            chunk.data = decrypted;
+                        }
                         controller.enqueue(chunk);
                     },
                 });
