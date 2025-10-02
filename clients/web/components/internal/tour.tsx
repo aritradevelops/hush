@@ -65,6 +65,8 @@ const CustomTooltip = ({
   const isWelcomeStep = index === 0;
   const [isVisible, setIsVisible] = useState(false);
 
+
+
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
@@ -115,6 +117,14 @@ const CustomTooltip = ({
             variant="ghost"
             size="icon"
             className="h-8 w-8 ml-2 hover:bg-muted/50 -mt-1 transition-colors"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (closeProps.onClick) {
+                closeProps.onClick(e);
+              }
+            }}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -157,7 +167,15 @@ const CustomTooltip = ({
                 {...backProps}
                 variant="outline"
                 size="sm"
-                className="gap-1.5 h-8 transition-all hover:scale-105"
+                className="gap-1.5 h-9 transition-all hover:scale-105"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (backProps.onClick) {
+                    backProps.onClick(e);
+                  }
+                }}
               >
                 <ChevronLeft className="h-3 w-3" />
                 Back
@@ -168,7 +186,15 @@ const CustomTooltip = ({
               {...skipProps}
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-foreground h-8 transition-all hover:scale-105"
+              className="text-muted-foreground hover:text-foreground h-9 transition-all hover:scale-105"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (skipProps.onClick) {
+                  skipProps.onClick(e);
+                }
+              }}
             >
               Skip Tour
             </Button>
@@ -177,7 +203,15 @@ const CustomTooltip = ({
           <Button
             {...primaryProps}
             size="sm"
-            className="gap-1.5 h-8 transition-all hover:scale-105"
+            className="gap-1.5 h-10 px-4 font-medium transition-all hover:scale-105"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (primaryProps.onClick) {
+                primaryProps.onClick(e);
+              }
+            }}
           >
             {index === tourSteps.length - 1
               ? "Get Started"
@@ -220,17 +254,19 @@ function Tour() {
   // Custom styles that respect the theme
   const customStyles: Partial<Styles> = {
     overlay: {
-      backgroundColor: isDark ? "rgba(0, 0, 0, 0.85)" : "rgba(0, 0, 0, 0.6)",
-      backdropFilter: "blur(2px)",
+      backgroundColor: isDark ? "rgba(0, 0, 0, 0.75)" : "rgba(0, 0, 0, 0.5)",
     },
     spotlight: {
       borderRadius: "var(--radius)",
       border: isDark
-        ? "2px solid hsl(var(--primary) / 0.3)"
-        : "2px solid hsl(var(--primary) / 0.2)",
+        ? "3px solid hsl(var(--primary) / 0.6)"
+        : "3px solid hsl(var(--primary) / 0.5)",
       boxShadow: isDark
-        ? "0 0 0 9999px rgba(0, 0, 0, 0.85), 0 0 20px hsl(var(--primary) / 0.3)"
-        : "0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 20px hsl(var(--primary) / 0.2)",
+        ? "0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 30px hsl(var(--primary) / 0.4), inset 0 0 0 3px rgba(255, 255, 255, 0.1)"
+        : "0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 30px hsl(var(--primary) / 0.3), inset 0 0 0 3px rgba(255, 255, 255, 0.2)",
+    },
+    beacon: {
+      backgroundColor: "hsl(var(--primary))",
     },
     beaconInner: {
       backgroundColor: "hsl(var(--primary))",
@@ -254,7 +290,7 @@ function Tour() {
           disableScrolling={true}
           hideCloseButton={true}
           spotlightClicks={false}
-          spotlightPadding={8}
+          spotlightPadding={12}
           styles={customStyles}
           tooltipComponent={CustomTooltip}
           floaterProps={{
