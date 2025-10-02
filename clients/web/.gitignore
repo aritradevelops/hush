@@ -41,4 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 
-public/workers
+/public/types
+/public/workers

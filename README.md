@@ -71,76 +71,10 @@
 
 ## 🚀 Quick Start
 
-### Prerequisites
+For setup and development instructions, see the contribution guide:
 
-Choose one of the following setups:
-
-**Option A: Local Development**
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [PostgreSQL](https://www.postgresql.org/) database
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-
-**Option B: Docker**
-- [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
-
-### 🖥️ Server Setup
-
-#### Using Node.js
-```bash
-# Navigate to server directory
-cd server
-
-# Copy environment configuration
-cp .env.example .env
-
-# Install dependencies
-npm ci
-
-# Start PostgreSQL database (ensure it's running)
-# Configure database connection in .env file
-
-# Run database migrations
-npm run migrate
-
-# Start development server
-npm run dev
-```
-
-#### Using Docker
-```bash
-# Navigate to server directory
-cd server
-
-# Copy environment configuration
-cp .env.example .env
-
-# Start all services (database + server)
-docker-compose up
-```
-
-### 🌐 Client Setup
-
-#### Using Node.js
-```bash
-# Navigate to web client directory
-cd clients/web
-
-# Copy environment configuration
-cp example.env .env
-
-# Install dependencies
-npm ci
-
-# Start development server
-npm run dev
-```
-
-#### Using Docker
-```bash
-# Coming soon - Docker setup for client
-# TODO: Add Docker configuration for web client
-```
+- Read: [CONTRIBUTING.md](CONTRIBUTING.md) — includes end-to-end server and client setup steps
+- Issues and PR workflow are also documented there
 
 ---
 
@@ -162,37 +96,6 @@ hush/
 ├── clients/
 │   └── web/            # Frontend web application
 └
-```
-
-### Environment Variables
-
-#### Server (.env)
-```env
-# Database
-DATABASE_URL=postgresql://username:password@localhost:5432/hush
-
-# Server
-PORT=3000
-NODE_ENV=development
-
-# Security
-JWT_SECRET=your-super-secret-jwt-key
-ENCRYPTION_KEY=your-encryption-key
-
-# File Storage
-UPLOAD_PATH=./uploads
-MAX_FILE_SIZE=10485760  # 10MB
-```
-
-#### Client (.env)
-```env
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_WS_URL=ws://localhost:3000
-
-# App Configuration
-NEXT_PUBLIC_APP_NAME=Hush
-NEXT_PUBLIC_MAX_FILE_SIZE=10485760
 ```
 
 ### Available Scripts
@@ -353,6 +256,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Maintainers
 - **Lead Developer**: [@aritradevelops](https://github.com/aritradevelops)
+
+### Contributors
+
+<!-- example
+<a href="https://github.com/username1">
+  <img src="https://github.com/username1.png" width="50px" alt="@username1"/>
+</a> 
+-->
+
+
+
 
 ### 🎯 Hacktoberfest 2025
 This project is participating in Hacktoberfest 2025! We welcome contributions from developers of all skill levels. Check out our [Contributing Guide](CONTRIBUTING.md) to get started.

@@ -25,27 +25,56 @@ We welcome feature suggestions! Please:
 1. **Fork the repository**
 2. **Clone your fork**
    ```bash
-   git clone https://github.com/your-username/hush.git
+   git clone https://github.com/<your-username>/hush.git
    cd hush
    ```
 
 3. **Set up development environment**
+
+   #### Server setup
    ```bash
-   # Server setup
    cd server
+   npm ci
    cp .env.example .env
-   npm ci
-   
-   # Client setup
-   cd ../clients/web
-   cp example.env .env
-   npm ci
+   npm run d:db
+   npm run typeorm:migrate
+   npm run dev
    ```
+
+   - `cd server`: Enter the backend server directory.
+   - `npm ci`: Install exact dependency versions from `package-lock.json` for a clean, reproducible install.
+   - `cp .env.example .env`: Create your local environment file using the example as a template.
+   - `npm run d:db`: Start the Postgres database via Docker Compose as defined under `server/db`.
+   - `npm run typeorm:migrate`: Run database migrations to create/update schema.
+   - `npm run dev`: Start the development server with hot-reload.
+
+   #### Client setup
+   ```bash
+   cd clients/web
+   npm ci
+   npm run dev
+   ```
+
+   - `cd clients/web`: Enter the Next.js web client directory.
+   - `npm ci`: Install exact dependency versions for the client.
+   - `npm run dev`: Start the Next.js development server. 
 
 4. **Create a feature branch**
    ```bash
    git checkout -b feature/your-feature-name
    ```
+### Create an Account (Local Development)
+   1. Ensure both the backend (server) and frontend (client) are running without errors.
+   2. Open http://localhost:3000/register in your browser.
+   3. Register with any email address (for local development, a non-real/fake email is fine).
+   4. Check the backend server terminal output. A verification URL will be printed to the console.
+   5. Click that verification link (or copy-paste it into your browser) to verify the account.
+   6. After verification, go to http://localhost:3000/login and sign in with your credentials.
+
+   Notes:
+   - If you do not see a verification link, confirm the backend is running and watch its logs for the printed URL.
+   - In production, emails are sent via a real provider; in local development, the link is intentionally logged to the console for convenience.
+
 
 #### Development Guidelines
 
@@ -70,13 +99,13 @@ We welcome feature suggestions! Please:
 
 Use conventional commit format:
 ```
-type(scope): description
+type: description
 
 Examples:
-feat(auth): add OAuth2 integration
-fix(encryption): resolve key generation issue
-docs(readme): update installation instructions
-refactor(socket): improve connection handling
+feat: add OAuth2 integration
+fix: resolve key generation issue
+docs: update installation instructions
+refactor: improve connection handling
 ```
 
 #### Pull Request Process
