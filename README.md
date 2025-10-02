@@ -46,7 +46,6 @@
 
 ## 🚀 What Makes Hush Different
 
-### **Technical Excellence**
 - **Client-Side Encryption**: All encryption happens in your browser using Web Crypto API
   - **AES-GCM** for message encryption with authenticated encryption
   - **AES-CTR** for media files with stream-based encryption
@@ -60,7 +59,6 @@
 ### **Scalable Architecture**
 - **Horizontally Scalable**: Socket.io servers with Redis pub/sub for multi-instance support
 - **JWT + RBAC**: Role-based access control with secure token management
-- **SFU Video Architecture**: Selective Forwarding Unit for efficient video conferencing
 - **Database Optimization**: Custom query generation and TypeORM for complex relationships
 
 ### **Developer Experience**
@@ -311,6 +309,20 @@ npm run start         # Start production server
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
+### 🎯 Hacktoberfest 2025
+
+This project is participating in Hacktoberfest 2025! We welcome contributions from developers of all skill levels.
+
+**Good First Issues**: Look for issues labeled with `good first issue`, `hacktoberfest`, or `help wanted`.
+
+**Contribution Types**:
+- 🐛 Bug fixes
+- ✨ New features  
+- 📚 Documentation improvements
+- 🧪 Test coverage
+- 🎨 UI/UX enhancements
+- 🔒 Security improvements
+
 ### Development Workflow
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -319,11 +331,14 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request
 
+### Code of Conduct
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
+
 ---
 
 ## 📄 License
 
-TODO
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -332,9 +347,15 @@ TODO
 ### Community
 - **Issues**: [GitHub Issues](https://github.com/aritradevelops/hush/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/aritradevelops/hush/discussions)
+- **Security**: [Security Policy](SECURITY.md)
+- **Contributing**: [Contributing Guide](CONTRIBUTING.md)
+- **Code of Conduct**: [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ### Maintainers
 - **Lead Developer**: [@aritradevelops](https://github.com/aritradevelops)
+
+### 🎯 Hacktoberfest 2025
+This project is participating in Hacktoberfest 2025! We welcome contributions from developers of all skill levels. Check out our [Contributing Guide](CONTRIBUTING.md) to get started.
 
 ## Good To Know
 - As only one instance of the server is running I have not implemented any code for synchronizing the server's socket state.
@@ -345,7 +366,7 @@ by default socket server's are not horizontally scalable. To achieve horizontal 
 
 <div align="center">
 
-**[🔒 Try Hush Live](https://hush.swiftgeek.in)** | **[📖 Documentation](./docs/)** | **[🐛 Report Bug](https://github.com/aritradevelops/hush/issues)**
+**[🔒 Try Hush Live](https://hush.swiftgeek.in)** | **[🐛 Report Bug](https://github.com/aritradevelops/hush/issues)**
 
 Made with ❤️ for privacy-conscious users worldwide
 
