@@ -2,8 +2,7 @@
   <img src="./clients/web/public/logo.png" alt="Logo" width="150" />
 </p>
 
-# Hush
-
+#  Hush
 > A modern, full-stack end-to-end encrypted chat application for secure communications
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-blue?style=for-the-badge)](https://hush.swiftgeek.in)
@@ -14,35 +13,29 @@
 [Hush](https://hush.swiftgeek.in) delivers privacy-first messaging with end-to-end encryption, ensuring your conversations remain completely private. Built with modern technologies for seamless performance across all devices.
 
 ---
-
 ## Backstory / Inspiration
-
-- When I started this project there were many questions in my head like how to manage socket, authentication, authorization, encryption, database layer, read receipts, file encryption, private chat, group chat, web workers, multipart upload, secure key exchange and many more. Of course there are many tutorials which covers chat application, mostly they does not cover any of the above mentioned, just the basic concepts. So with this repository I tend to share my findings and a decent implementation putting all the pieces together. I hope it guides the future me's :)
+  - When I started this project there were many questions in my head like how to manage socket, authentication, authorization, encryption, database layer, read receipts, file encryption, private chat, group chat, web workers, multipart upload, secure key exchange and many more. Of course there are many tutorials which covers chat application, mostly they does not cover any of the above mentioned, just the basic concepts. So with this repository I tend to share my findings and a decent implementation putting all the pieces together. I hope it guides the future me's :)
 
 ## ✨ Features
 
 ### 🔐 **Security & Privacy**
-
 - **End-to-end encryption** - Messages encrypted with AES-GCM, media with AES-CTR
 - **RSA key exchange** - Secure 2048-bit RSA key pairs for initial key establishment
 - **Zero-knowledge architecture** - Server cannot read your messages or access encryption keys
 - **Secure file sharing** - Documents, images, and media encrypted before upload
 
 ### 💬 **Messaging**
-
 - **Direct messaging** - One-on-one conversations
 - **Group messaging** - Secure group chats with multiple participants
 - **Read status tracking** - Know when messages are delivered and read
 - **Rich media support** - Share images, documents, and files securely
 
 ### 👥 **User Management**
-
 - **Block users** - Control who can contact you
 - **User profiles** - Customizable user information
 - **Online status** - See when contacts are active
 
 ### 🎯 **Coming Soon**
-
 - **Video conferencing** with scalable SFU architecture
 - **Message reactions** and emoji responses
 - **Message replies** and threading
@@ -54,7 +47,6 @@
 ## 🚀 What Makes Hush Different
 
 - **Client-Side Encryption**: All encryption happens in your browser using Web Crypto API
-
   - **AES-GCM** for message encryption with authenticated encryption
   - **AES-CTR** for media files with stream-based encryption
   - **RSA-2048** key pairs for secure key exchange protocols
@@ -65,13 +57,11 @@
   - **Progressive Downloads**: Media files downloaded in chunks and merged seamlessly
 
 ### **Scalable Architecture**
-
 - **Horizontally Scalable**: Socket.io servers with Redis pub/sub for multi-instance support
 - **JWT + RBAC**: Role-based access control with secure token management
 - **Database Optimization**: Custom query generation and TypeORM for complex relationships
 
 ### **Developer Experience**
-
 - **Auto-Generated CRUD**: CLI tools for rapid API development
 - **Type Safety**: End-to-end TypeScript with custom type definitions
 - **Background Processing**: Web Workers handle heavy crypto operations without blocking UI
@@ -86,20 +76,17 @@
 Choose one of the following setups:
 
 **Option A: Local Development**
-
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [PostgreSQL](https://www.postgresql.org/) database
 - [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
 
 **Option B: Docker**
-
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
 ### 🖥️ Server Setup
 
 #### Using Node.js
-
 ```bash
 # Navigate to server directory
 cd server
@@ -121,7 +108,6 @@ npm run dev
 ```
 
 #### Using Docker
-
 ```bash
 # Navigate to server directory
 cd server
@@ -136,7 +122,6 @@ docker-compose up
 ### 🌐 Client Setup
 
 #### Using Node.js
-
 ```bash
 # Navigate to web client directory
 cd clients/web
@@ -152,7 +137,6 @@ npm run dev
 ```
 
 #### Using Docker
-
 ```bash
 # Coming soon - Docker setup for client
 # TODO: Add Docker configuration for web client
@@ -163,7 +147,6 @@ npm run dev
 ## 🛠️ Development
 
 ### Project Structure
-
 ```
 hush/
 ├── server/             # Backend API server
@@ -184,7 +167,6 @@ hush/
 ### Environment Variables
 
 #### Server (.env)
-
 ```env
 # Database
 DATABASE_URL=postgresql://username:password@localhost:5432/hush
@@ -203,7 +185,6 @@ MAX_FILE_SIZE=10485760  # 10MB
 ```
 
 #### Client (.env)
-
 ```env
 # API Configuration
 NEXT_PUBLIC_API_URL=http://localhost:3000
@@ -217,7 +198,6 @@ NEXT_PUBLIC_MAX_FILE_SIZE=10485760
 ### Available Scripts
 
 #### Server
-
 ```bash
 npm run dev          # Start development server
 npm run prod         # Start production server
@@ -229,7 +209,6 @@ npm run cli g:query  # Generate code for SQL queries written in queries director
 ```
 
 #### Client
-
 ```bash
 npm run dev           # Start development server
 npm run build         # Build for production
@@ -243,30 +222,27 @@ npm run start         # Start production server
 ## 🔐 Security Architecture
 
 ### Client-Side Encryption
-
 - **Message Encryption**: AES-GCM (Galois/Counter Mode) with authenticated encryption
   - 256-bit keys with built-in authentication
   - Prevents tampering and ensures message integrity
   - Unique nonce for each message
+  
 - **Media Encryption**: AES-CTR (Counter Mode) for streaming encryption
   - Efficient for large files with parallel processing
   - Stream cipher perfect for chunked uploads/downloads
   - No padding required, works with any file size
 
 ### Secure Key Exchange
-
 - **RSA Key Pairs**: 2048-bit RSA encryption for initial key establishment
 - **Secure Storage**: Keys stored in browser's IndexedDB with additional encryption layer
 
 ### Authentication & Authorization
-
 - **JWT Authentication**: Stateless tokens with configurable expiration
 - **Role-Based Access Control (RBAC)**: Granular permissions system
 - **Refresh Token Rotation**: Automatic token refresh with security best practices
 - **Session Management**: Secure logout and session invalidation
 
 ### Data Protection
-
 - **Zero-Knowledge**: Server never has access to decryption keys or plaintext
 
 ---
@@ -274,7 +250,6 @@ npm run start         # Start production server
 ## 🏗️ Tech Stack
 
 ### Backend
-
 - **Runtime**: Node.js with TypeScript
 - **Framework**: Express.js with custom middleware
 - **Database**: PostgreSQL with TypeORM
@@ -284,7 +259,6 @@ npm run start         # Start production server
 - **Video Infrastructure**: SFU (Selective Forwarding Unit) architecture
 
 ### Frontend
-
 - **Framework**: Next.js with TypeScript
 - **UI Library**: React with Tailwind CSS
 - **State Management**: React Context + Custom hooks
@@ -294,7 +268,6 @@ npm run start         # Start production server
 - **Performance**: Chunk-based uploads/downloads with progress tracking
 
 ### DevOps
-
 - **Containerization**: Docker & Docker Compose
 - **Development**: Hot reload, TypeScript, ESLint
 - **Deployment**: Production-ready Docker images
@@ -304,7 +277,6 @@ npm run start         # Start production server
 ## 📋 Roadmap
 
 ### Phase 1: Core Messaging ✅
-
 - [x] End-to-end encrypted messaging
 - [x] User authentication and profiles
 - [x] Direct and group messaging
@@ -313,7 +285,6 @@ npm run start         # Start production server
 - [x] Database migrations
 
 ### Phase 2: Enhanced Features 🔄
-
 - [ ] Message replies and threading
 - [ ] Message reactions with emojis
 - [ ] Message deletion and editing
@@ -321,14 +292,12 @@ npm run start         # Start production server
 - [ ] Push notifications
 
 ### Phase 3: Advanced Communication 🔮
-
 - [ ] Video conferencing with SFU
 - [ ] Voice messages
 - [ ] Screen sharing
 - [ ] File collaboration tools
 
 ### Phase 4: Platform Expansion 🚀
-
 - [ ] Mobile applications (iOS/Android)
 - [ ] Desktop applications (Electron)
 - [ ] Browser extensions
@@ -347,16 +316,14 @@ This project is participating in Hacktoberfest 2025! We welcome contributions fr
 **Good First Issues**: Look for issues labeled with `good first issue`, `hacktoberfest`, or `help wanted`.
 
 **Contribution Types**:
-
 - 🐛 Bug fixes
-- ✨ New features
+- ✨ New features  
 - 📚 Documentation improvements
 - 🧪 Test coverage
 - 🎨 UI/UX enhancements
 - 🔒 Security improvements
 
 ### Development Workflow
-
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
@@ -365,7 +332,6 @@ This project is participating in Hacktoberfest 2025! We welcome contributions fr
 6. Open a Pull Request
 
 ### Code of Conduct
-
 Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
 ---
@@ -379,7 +345,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🌟 Support
 
 ### Community
-
 - **Issues**: [GitHub Issues](https://github.com/aritradevelops/hush/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/aritradevelops/hush/discussions)
 - **Security**: [Security Policy](SECURITY.md)
@@ -387,22 +352,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Code of Conduct**: [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ### Maintainers
-
 - **Lead Developer**: [@aritradevelops](https://github.com/aritradevelops)
 
-### Contributors
-
-- **Princy Ballabh** -(https://github.com/princyballabh)
-
 ### 🎯 Hacktoberfest 2025
-
 This project is participating in Hacktoberfest 2025! We welcome contributions from developers of all skill levels. Check out our [Contributing Guide](CONTRIBUTING.md) to get started.
 
 ## Good To Know
-
 - As only one instance of the server is running I have not implemented any code for synchronizing the server's socket state.
-  by default socket server's are not horizontally scalable. To achieve horizontal scalability please follow this official guide
-  [here](https://socket.io/docs/v4/tutorial/step-9)
+by default socket server's are not horizontally scalable. To achieve horizontal scalability please follow this official guide 
+[here](https://socket.io/docs/v4/tutorial/step-9)
 
 ---
 
@@ -412,6 +370,6 @@ This project is participating in Hacktoberfest 2025! We welcome contributions fr
 
 Made with ❤️ for privacy-conscious users worldwide
 
-_Your conversations, truly private._
+*Your conversations, truly private.*
 
 </div>
