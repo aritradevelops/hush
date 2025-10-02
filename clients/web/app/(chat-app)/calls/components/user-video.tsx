@@ -27,7 +27,7 @@ export const UserVideo: React.FC<UserVideoProps> = ({ user, isVideoOff, isMuted,
           playsInline
           autoPlay
           muted
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain rotate-y-180"
         />
       )}
 

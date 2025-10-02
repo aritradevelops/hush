@@ -7,6 +7,8 @@ import { Base64Utils } from "../base64"
 import { Call } from "@/types/entities"
 import { PeerWorkerMessage } from "@/types/peer-worker"
 import { WorkerMessage } from "@/types/upload-worker"
+import { getFormattedTimestamp } from "../time"
+import { constants } from "@/config/constants"
 type OnMicChangeCallback = (state: 'muted' | 'unmuted') => void
 type OnCameraChangeCallback = (state: 'muted' | 'unmuted') => void
 export class Peer {
@@ -31,6 +33,7 @@ export class Peer {
     private sharedSecret: string,
     private onMicChangeCallback: OnMicChangeCallback | null = null,
     private onCameraChangeCallback: OnCameraChangeCallback | null = null,
+    private pendingICEqueue: RTCIceCandidate[] = []
   ) {
     this.conn = new RTCPeerConnection(RTC_CONFIG)
     this.remoteUserMedia = new MediaStream()
@@ -43,7 +46,9 @@ export class Peer {
   }
 
   private debugLog(...args: any[]) {
-    if (this.debugMode) console.debug(`[Peer ${this._id}]`, ...args)
+    // if (this.debugMode) console.debug(`[Peer ${this._id}]`, ...args)
+
+    if (this.debugMode) console.debug(`[${getFormattedTimestamp()}]`, ...args)
   }
 
   get id() {
@@ -109,17 +114,38 @@ export class Peer {
       }
     }
 
-    this.conn.ontrack = ({ track, streams, receiver }) => {
+    this.conn.ontrack = ({ track, streams: [stream], receiver }) => {
       this.debugLog(`Track received from remote: ${track.kind}`)
-      this.debugLog('Track streams:', streams)
+      this.debugLog('Track streams:', stream)
+
+      stream.onremovetrack = () => {
+        this.debugLog(`Track removed track id: ${track.id}`)
+        // track.stop()
+        this.remoteUserMedia.removeTrack(track)
+        if (track.kind === 'video') {
+          this.isVideoOff = true
+          this.debugLog('Video track removed, setting isVideoOff = true')
+          if (this.onCameraChangeCallback) {
+            this.onCameraChangeCallback('muted')
+          }
+        }
+        if (track.kind === 'audio') {
+          this.isMuted = true
+          this.debugLog('Audio track removed, setting isMuted = true')
+          if (this.onMicChangeCallback) {
+            this.onMicChangeCallback('muted')
+          }
+        }
+      }
+
       // Remove existing tracks of the same kind
-      this.remoteUserMedia.getTracks()
-        .filter(t => t.kind === track.kind)
-        .forEach(oldTrack => {
-          this.debugLog(`Removing old ${oldTrack.kind} track: ${oldTrack.id}`)
-          this.remoteUserMedia.removeTrack(oldTrack)
-          oldTrack.stop()
-        })
+      // this.remoteUserMedia.getTracks()
+      //   .filter(t => t.kind === track.kind)
+      //   .forEach(oldTrack => {
+      //     this.debugLog(`Removing old ${oldTrack.kind} track: ${oldTrack.id}`)
+      //     this.remoteUserMedia.removeTrack(oldTrack)
+      //     oldTrack.stop()
+      //   })
 
 
       // Add track to remote media stream
@@ -167,20 +193,20 @@ export class Peer {
 
       track.onmute = () => {
         this.debugLog(`Remote track muted: ${track.kind}`)
-        if (track.kind === 'video' && this.onCameraChangeCallback) {
-          this.onCameraChangeCallback('muted')
-        }
-        if (track.kind === 'audio' && this.onMicChangeCallback) {
-          this.onMicChangeCallback('muted')
-        }
+        // if (track.kind === 'video' && this.onCameraChangeCallback) {
+        //   this.onCameraChangeCallback('muted')
+        // }
+        // if (track.kind === 'audio' && this.onMicChangeCallback) {
+        //   this.onMicChangeCallback('muted')
+        // }
       }
       track.onunmute = () => {
-        if (track.kind === 'video' && this.onCameraChangeCallback) {
-          this.onCameraChangeCallback('unmuted')
-        }
-        if (track.kind === 'audio' && this.onMicChangeCallback) {
-          this.onMicChangeCallback('unmuted')
-        }
+        // if (track.kind === 'video' && this.onCameraChangeCallback) {
+        //   this.onCameraChangeCallback('unmuted')
+        // }
+        // if (track.kind === 'audio' && this.onMicChangeCallback) {
+        //   this.onMicChangeCallback('unmuted')
+        // }
         this.debugLog(`Remote track unmuted: ${track.kind}`)
       }
     }
@@ -242,6 +268,11 @@ export class Peer {
 
       await this.conn.setRemoteDescription(description)
       this.debugLog('Set remote description from', description.type)
+      this.debugLog('pending ICE candidates length: ', this.pendingICEqueue.length)
+      for (const c of this.pendingICEqueue) {
+        await this.conn.addIceCandidate(c)
+      }
+      this.pendingICEqueue = []
 
       if (description.type === "offer") {
         await this.conn.setLocalDescription()
@@ -266,6 +297,7 @@ export class Peer {
         this.debugLog('Added remote ICE candidate successfully')
       } else {
         this.debugLog('Remote description not set, queueing ICE candidate')
+        this.pendingICEqueue.push(candidate)
         // You might want to queue candidates here if remote description isn't set
       }
     } catch (error) {
@@ -379,6 +411,7 @@ export class Peer {
     }
   }
   private setupSendTransform(sender: RTCRtpSender) {
+    if (constants.DISABLE_STREAM_ENCRYPTION) return true
     if (window.RTCRtpScriptTransform) {
       this.debugLog("using RTCRtpScriptTransform")
       sender.transform = new RTCRtpScriptTransform(this.worker, { operation: 'encrypt' });
@@ -400,6 +433,7 @@ export class Peer {
     } as PeerWorkerMessage, [readable, writable]);
   }
   private setupReceiveTransform(receiver: RTCRtpReceiver) {
+    if (constants.DISABLE_STREAM_ENCRYPTION) return true
     if (window.RTCRtpScriptTransform) {
       this.debugLog("using RTCRtpScriptTransform")
       receiver.transform = new RTCRtpScriptTransform(this.worker, { operation: 'decrypt' });

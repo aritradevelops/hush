@@ -98,7 +98,16 @@ export const PeerVideo: React.FC<PeerVideoProps> = ({ peer }) => {
           onError={(e) => {
             console.error(`❌ Video error for peer ${peer.id}:`, e)
           }}
-          className="w-full h-full object-contain"
+          onStalled={(e) => {
+            console.debug(`video stalled`, e)
+          }}
+          onSuspend={(e) => {
+            console.debug(`video suspended`, e)
+          }}
+          onWaiting={(e) => {
+            console.debug(`video waiting`, e)
+          }}
+          className="w-full h-full object-contain rotate-y-180"
         />
       )}
     </div>
