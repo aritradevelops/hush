@@ -8,6 +8,7 @@ export const userPermissions: Record<string, SCOPES> = {
   'channels_overview': 'SELF',
   'channels_dms': 'SELF',
   'channels_groups': 'SELF',
+  'channels_details' : 'ALL',
 
   'public-keys_create': 'SELF',
   'public-keys_list': 'ALL',

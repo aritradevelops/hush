@@ -6,12 +6,18 @@ import { SocketClientEmittedEvent, SocketServerEmittedEvent } from '@/types/even
 import { Chat, User, UserChatInteraction, UserChatInteractionStatus } from '@/types/entities';
 import { ReactQueryKeys } from '@/types/react-query';
 import { ApiListResponseSuccess } from '@/types/api';
+import {
+  getNotificationContent,
+  isTabInactive,
+} from "@/lib/notification-helper";
+import { useNotification } from "./use-notification";
 import { UUID } from 'crypto';
 
 export const useChatSocket = (activeChatId: UUID | null) => {
   const { socket } = useSocket();
   const { user } = useMe();
   const queryClient = useQueryClient();
+  const notify = useNotification();
 
   useEffect(() => {
     if (!socket) return;
@@ -63,6 +69,44 @@ export const useChatSocket = (activeChatId: UUID | null) => {
       if (message.created_by === user.id && message.channel_id === activeChatId) {
         updateMessageStatus(message, message.ucis);
       } else {
+        if (isTabInactive() || message.channel_id !== activeChatId) {
+          console.debug("sending notif");
+          getNotificationContent({
+            message,
+            user,
+          })
+            .then(
+              ({
+senderName,
+decryptedMessage,
+type,
+                unreadCount,
+                channelName,
+}) => {
+              const displayMessage =
+                type === "dm"
+                  ? decryptedMessage
+                  : `${senderName} : ${decryptedMessage}`;
+              const displayTitle =
+                type === "dm"
+                  ? `${senderName} has messaged you`
+                  : `# ${channelName}`;
+              notify({
+                soundPath: "/notification/received.mp3",
+                notification: {
+                  title: displayTitle,
+                  description: displayMessage,
+                    unreadCount,
+                },
+                groupBy: message.channel_id,
+              });
+              }
+            )
+            .catch((error) => {
+              console.debug("Failed to send Notification", error);
+            });
+        }
+
         if (message.channel_id !== activeChatId) {
           console.debug('emitting delivered');
           cb({ status: UserChatInteractionStatus.DELIVERED, event: 'delivered' });
@@ -133,6 +177,9 @@ export const useChatSocket = (activeChatId: UUID | null) => {
 
     function onMessageDelivered(message: UserChatInteraction & { chat_id: UUID }) {
       console.debug('message delivered', message);
+notify({
+        soundPath: "/notification/sent.mp3",
+      });
       if (message.channel_id !== activeChatId) return;
       updateSpecificMessageStatus(message, UserChatInteractionStatus.DELIVERED);
     }

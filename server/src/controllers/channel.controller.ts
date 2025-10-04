@@ -49,5 +49,19 @@ export class ChannelController extends CrudController<typeof Channel, ChannelSer
       data: group,
     }
   }
-};
+
+  @GET()
+  async details(req: Request, res: Response) {
+    const channelId = req.params.id as UUID;
+    if (!channelId || !isUUID(channelId, "4")) throw new BadRequestError();
+    const channel = await this.service.getChannel(req, res, channelId);
+    if (!channel) throw new NotFoundError();
+    return {
+      message: req.t("controller.details", {
+        module: singularize(kebabToPascal(req.params.module as string)),
+      }),
+      data: channel,
+    };
+  }
+}
 export default new ChannelController();

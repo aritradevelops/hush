@@ -20,5 +20,9 @@ export class ChannelService extends CrudService<ChannelRepository> {
     const userId = req.user!.id;
     return await this.repository.getGroupDetails(userId, id);
   }
+  async getChannel(req: Request, res: Response, id: UUID) {
+    const userId = req.user!.id;
+    return await this.repository.getChannelById(userId, id);
+  }
 }
 export default new ChannelService();

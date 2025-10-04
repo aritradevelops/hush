@@ -10,7 +10,7 @@ import { z } from 'zod';
 const ApiActions = ['create', 'list', 'view', 'update', 'delete'] as const
 const ApiModuleActionMap = {
   users: [...ApiActions, 'me', 'unknowns'],
-  channels: [...ApiActions, 'overview', 'dms', 'groups'],
+  channels: [...ApiActions, 'overview', 'dms', 'groups',"details"],
   chats: [...ApiActions, 'dms', 'groups'],
   groups: [...ApiActions],
   contacts: [...ApiActions],
@@ -193,9 +193,17 @@ export class HttpClient {
   }
 
   async getChannelsOverview() {
-    const { result } = await this.fetch('channels', { action: 'overview' })
-    if ('errors' in result) throw new Error(result.message)
-    return result as ApiListResponseSuccess<ChannelOverview>
+    const { result } = await this.fetch("channels", { action: "overview" });
+    if ("errors" in result) throw new Error(result.message);
+    return result as ApiListResponseSuccess<ChannelOverview>;
+  }
+  async getChannelOverview(channel_id: UUID) {
+    const { result } = await this.fetch("channels", {
+      action: "details",
+      id: channel_id,
+    });
+    if ("errors" in result) throw new Error(result.message);
+    return result as ApiListResponseSuccess<ChannelOverview>;
   }
   async getDmDetails(id: UUID) {
     const { result } = await this.fetch<DmDetails, DmDetails>('channels', { action: 'dms', id })

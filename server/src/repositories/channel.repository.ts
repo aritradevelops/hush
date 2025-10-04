@@ -33,7 +33,13 @@ export class ChannelRepository extends Repository<typeof Channel> {
     const result = await this.entity.query(query, [userId, channelId]);
     return result[0] as GroupDetails | undefined;
   }
-};
+
+  async getChannelById(userId: UUID, channelId: UUID) {
+    const query = channelQuery.detailsById();
+    const result = await this.entity.query(query, [userId, channelId]);
+    return result as ChannelOverview | undefined;
+  }
+}
 export default new ChannelRepository();
 
 export interface ChannelOverview {
