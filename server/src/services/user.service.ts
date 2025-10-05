@@ -42,14 +42,14 @@ export class UserService extends CrudService<UserRepository> {
 
   async uploadProfilePicture(req: Request, res: Response) {
     const userId = req.user!.id;
-    const { mimetype } = req.query;
+    const { mime_type } = req.query;
 
-    if (!mimetype || typeof mimetype !== 'string') {
-      throw new BadRequestError('Mimetype is required');
+    if (!mime_type || typeof mime_type !== 'string') {
+      throw new BadRequestError(req.t('validation.isRequired',{field:"mime_type"}));
     }
 
     let extension: string;
-    switch (mimetype) {
+    switch (mime_type) {
       case 'image/png':
         extension = '.png';
         break;
@@ -60,7 +60,7 @@ export class UserService extends CrudService<UserRepository> {
         extension = '.gif';
         break;
       default:
-        throw new BadRequestError('Unsupported mimetype');
+        throw new BadRequestError(req.t("unsupported_image"));
     }
 
     const key = this.getFullPath(userId) + extension;
