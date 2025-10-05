@@ -21,7 +21,13 @@ export const isAuthRequest = () => {
     }
     let accessToken = req.cookies.access_token
     if (!accessToken) {
-      accessToken = req.headers['authorization']?.split(' ')[1]
+      const authHeader = req.headers['authorization'];
+      if (authHeader) {
+        const parts = authHeader.split(' ');
+        if (parts.length === 2 && parts[0] === 'Bearer') {
+          accessToken = parts[1];
+        }
+      }
     }
     try {
       if (!accessToken) throw new UnauthenticatedError()

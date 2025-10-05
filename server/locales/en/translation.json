@@ -21,7 +21,8 @@
     "isStrongPassword": "The password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
     "isEmail": "The email must be a valid email address.",
     "isUnique": "The email must be unique.",
-    "passwordMismatch": "The passwords do not match."
+    "passwordMismatch": "The passwords do not match.",
+    "isRequired": "{{field}} is required"
   },
   "db": {
     "isUnique": "The {{key}} already exists."
@@ -30,12 +31,14 @@
     "registered": "Verification email sent! Please check your inbox to verify your email.",
     "signed_in": "Signed in successfully!",
     "forgot_password": "Reset password email sent! Please check your inbox to reset your password",
-    "reset_password": "Password reset successfully! Please login with your new password."
+    "reset_password": "Password reset successfully! Please login with your new password.",
+    "profile_picture_uploaded": "Profile picture uploaded successfully!"
   },
   "invalid_email_or_password": "The provided email or password is invalid.",
   "invalid_json_body": "The given payload is not valid JSON.",
   "invalid_or_unverified_domain": "There is no account for this domain or the domain verification is pending.",
   "email_verification_failed": "Invalid or expired verification link. Please contact the administrator.",
   "email_verification_success": "Email verified successfully. Please continue to login.",
-  "resource_not_found": "Sorry! The {{resource}} could not be found!"
+  "resource_not_found": "Sorry! The {{resource}} could not be found!",
+  "unsupported_image": "Unsupported file type. Please upload a valid image (JPEG, PNG, or GIF)."
 }

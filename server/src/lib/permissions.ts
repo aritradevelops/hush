@@ -29,5 +29,7 @@ export const userPermissions: Record<string, SCOPES> = {
   'chat-media_upload': 'SELF',
 
   'calls_view': 'ALL',
-  'calls_ongoing': 'ALL'
+  'calls_ongoing': 'ALL',
+
+  'users_upload-profile-picture': 'SELF'
 }
