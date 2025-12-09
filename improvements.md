@@ -4,3 +4,4 @@
 [x] design a logo
 [ ] design a better logo for god's sake
 [ ] base64Utils and AESCTR utils are copied in every worker, check if they can be reused
+[ ] handle tuple concurrency control

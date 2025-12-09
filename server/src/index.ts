@@ -14,14 +14,19 @@ const httpServer = createServer(app);
 
 
 const server = httpServer.listen(env.get('PORT'), async () => {
-  await db.init();
-  await hookManager.init();
-  socketIO.init(httpServer)
-  if (env.get('NODE_ENV') === 'development') {
-    const { Swagger } = require('./utils/swagger');
-    Swagger.generate();
+  try {
+    await db.init();
+    await hookManager.init();
+    socketIO.init(httpServer)
+    if (env.get('NODE_ENV') === 'development') {
+      const { Swagger } = require('./utils/swagger');
+      Swagger.generate();
+    }
+    logger.info(`Server is running on port ${env.get('PORT')}`);
+  } catch (e) {
+    logger.error(e)
+    await shutDown()
   }
-  logger.info(`Server is running on port ${env.get('PORT')}`);
 });
 
 async function shutDown() {

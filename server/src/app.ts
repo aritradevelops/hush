@@ -40,9 +40,9 @@ if (env.get('APP_ENV') === 'local' && env.get('MEDIA_PROVIDER') === 'localfs') {
 
 // app.use(morgan('combined'));
 app.use(requestLogger())
-app.get('/v1/ready', (_req, res) => { res.json({ message: 'OK' }); });
-app.get('/v1/health-check', async (_req, res) => { res.json({ db: await db.healthCheck() }); });
-app.all('/v1/:module/:action?/:id?', isAuthRequest(), router.handle);
+app.get('/api/v1/ready', (_req, res) => { res.json({ message: 'OK' }); });
+app.get('/api/v1/health-check', async (_req, res) => { res.json({ db: await db.healthCheck() }); });
+app.all('/api/v1/:module/:action?/:id?', isAuthRequest(), router.handle);
 app.all('*', (_, __, next) => { next(new NotFoundError()) });
 app.use(errorHandler());
 

@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: cache
+  template:
+    metadata:
+      labels:
+        component: cache
+    spec:
+      containers:
+        - name: hush-cache
+          image: redis:alpine3.22
+          ports:
+            - containerPort: 6379
+    
